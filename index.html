@@ -1767,9 +1767,10 @@ const SUPABASE_ANON_KEY = 'sb_publishable_g5Q1G2rSNFhsMvwyGxUsOg_MxGT4Vk4';
 async function callAI(messages, opts) {
   const onText = opts && opts.onText;
   const isStr = typeof messages === 'string';
+  // 항상 비스트리밍으로 요청 — 스트리밍 글자 깨짐 방지
   const body = JSON.stringify({
     messages: isStr ? [{ role: 'user', content: messages }] : messages,
-    stream: !!onText,
+    stream: false,
   });
   const resp = await fetch('/api/chat', {
     method: 'POST',
@@ -1780,24 +1781,11 @@ async function callAI(messages, opts) {
     const err = await resp.json().catch(() => ({}));
     throw new Error((err.error) || ('서버 오류 ' + resp.status));
   }
-  if (onText) {
-    const reader = resp.body.getReader();
-    const dec = new TextDecoder();
-    let full = '';
-    while (true) {
-      const chunk = await reader.read();
-      if (chunk.done) break;
-      for (const line of dec.decode(chunk.value).split('\n')) {
-        if (!line.startsWith('data: ')) continue;
-        const d = line.slice(6);
-        if (d === '[DONE]') break;
-        try { const p = JSON.parse(d); const t = p.delta && p.delta.text; if (t) { full += t; onText({ text: full, delta: t }); } } catch(e) {}
-      }
-    }
-    return { text: full };
-  }
   const data = await resp.json();
-  return { text: (data.content && data.content[0] && data.content[0].text) || '' };
+  const text = (data.content && data.content[0] && data.content[0].text) || '';
+  // onText가 있으면 완성된 텍스트를 한 번에 전달
+  if (onText) onText({ text: text, delta: text });
+  return { text };
 }
 
 const supabase = {
