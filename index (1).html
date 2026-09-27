@@ -1,0 +1,2869 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>투자자 합성 사용자 플랫폼</title>
+<style>
+  /* ── Cal.com Design System 토큰 ── */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    /* Primary */
+    --cal-primary: #111111;
+    --cal-primary-active: #242424;
+    --cal-primary-disabled: #e5e7eb;
+    /* Foreground */
+    --cal-ink: #111111;
+    --cal-body: #374151;
+    --cal-muted: #6b7280;
+    --cal-muted-soft: #898989;
+    /* Surface */
+    --cal-canvas: #ffffff;
+    --cal-surface-soft: #f8f9fa;
+    --cal-surface-card: #f5f5f5;
+    --cal-surface-strong: #e5e7eb;
+    --cal-surface-dark: #101010;
+    --cal-surface-dark-elevated: #1a1a1a;
+    /* On colors */
+    --cal-on-primary: #ffffff;
+    --cal-on-dark: #ffffff;
+    --cal-on-dark-soft: #a1a1aa;
+    /* Border */
+    --cal-hairline: #e5e7eb;
+    --cal-hairline-soft: #f3f4f6;
+    /* Semantic */
+    --cal-accent: #3b82f6;
+    --cal-success: #10b981;
+    --cal-warning: #f59e0b;
+    --cal-error: #ef4444;
+    /* Badge */
+    --cal-badge-orange: #fb923c;
+    --cal-badge-pink: #ec4899;
+    --cal-badge-violet: #8b5cf6;
+    --cal-badge-emerald: #34d399;
+    /* Tints (로컬 extension) */
+    --cal-accent-tint: #eff6ff;
+    --cal-success-tint: #ecfdf5;
+    --cal-warning-tint: #fffbeb;
+    --cal-error-tint: #fee2e2;
+
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--cal-surface-soft);
+    color: var(--cal-ink);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 24px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── 상단 헤더 ── */
+  .site-header {
+    background: var(--cal-canvas);
+    border-bottom: 1px solid var(--cal-hairline);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 100;
+  }
+  .site-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    background: var(--cal-primary);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: white;
+  }
+  .logo-text {
+    font-size: 16px; font-weight: 700;
+    color: var(--cal-ink);
+    letter-spacing: -0.5px;
+  }
+  .header-badge {
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--cal-primary);
+    color: var(--cal-on-primary);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── 탭 네비 ── */
+  .tab-nav {
+    background: var(--cal-canvas);
+    border-bottom: 1px solid var(--cal-hairline);
+    display: flex;
+    overflow-x: auto;
+    padding: 0 20px;
+    scrollbar-width: none;
+    gap: 4px;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 16px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cal-muted);
+    background: none;
+    border: none;
+    border-bottom: 2.5px solid transparent;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+  .tab-btn:hover { color: var(--cal-body); }
+  .tab-btn.active {
+    color: var(--cal-ink);
+    border-bottom-color: var(--cal-primary);
+    font-weight: 700;
+    color: var(--cal-surface-dark);
+    border-bottom-width: 2.5px;
+  }
+  .tab-icon { font-size: 15px; }
+
+  /* ── 본문 ── */
+  .main { padding: 28px 24px; max-width: 1200px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── 섹션 헤더 ── */
+  .section-header {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+    font-family: 'Cal Sans', 'Inter', sans-serif;
+  }
+  .section-sub {
+    font-size: 14px;
+    color: var(--cal-muted);
+    margin-top: 4px;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  /* ── TDS 버튼 — xlarge 기준, 축소 적용 ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.1s;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--cal-primary);
+    color: var(--cal-on-primary);
+  }
+  .btn-primary:hover { background: var(--cal-primary-active); }
+  .btn-primary:active { opacity: 0.85; }
+  .btn-secondary {
+    background: var(--cal-surface-card);
+    color: var(--cal-ink);
+    border: 1px solid var(--cal-hairline);
+  }
+  .btn-secondary:hover { background: var(--cal-surface-soft); }
+  .btn-navy {
+    background: var(--cal-surface-dark);
+    color: white;
+  }
+  .btn-navy:hover { background: #222222; opacity: 0.85; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  /* small */
+  .btn-sm {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 13px;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+  /* medium */
+  .btn-md {
+    height: 38px;
+    padding: 0 16px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  /* ── 필터 바 ── */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+  .filter-bar input, .filter-bar select {
+    height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--cal-hairline);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--cal-ink);
+    background: var(--cal-canvas);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.12s;
+  }
+  .filter-bar input:focus, .filter-bar select:focus {
+    border-color: var(--cal-primary);
+    box-shadow: 0 0 0 2px var(--cal-surface-strong);
+  }
+  .filter-bar input { min-width: 180px; }
+
+  /* ── 페르소나 뱅크 그리드 ── */
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .persona-card {
+    background: var(--cal-surface-card);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.12s, box-shadow 0.12s;
+    position: relative;
+  }
+  .persona-card:hover {
+    border-color: var(--cal-primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .persona-card.selected {
+    border-color: var(--cal-primary);
+    background: var(--cal-canvas);
+    box-shadow: 0 0 0 2px var(--cal-primary);
+  }
+  .persona-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .persona-avatar {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .persona-meta {
+    flex: 1;
+    padding-left: 12px;
+  }
+  .persona-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    letter-spacing: -0.2px;
+  }
+  .persona-tag-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  /* TDS Badge — fill, small */
+  .tag {
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-weight: 500;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .tag-age { background: var(--cal-surface-strong); color: var(--cal-muted); }
+  .tag-level-beginner { background: var(--cal-success-tint); color: var(--cal-success); }
+  .tag-level-intermediate { background: var(--cal-warning-tint); color: #92400e; }
+  .tag-channel { background: #f5f3ff; color: var(--cal-badge-violet); }
+  .persona-needs {
+    font-size: 13px;
+    color: var(--cal-body);
+    line-height: 1.55;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--cal-hairline);
+  }
+  .persona-check {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--cal-primary);
+    color: var(--cal-on-primary);
+    font-size: 11px;
+    align-items: center; justify-content: center;
+    display: none;
+  }
+  .persona-card.selected .persona-check { display: flex; }
+
+  /* ── 참고자료 섹션 ── */
+  .ref-section {
+    background: var(--cal-canvas);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .ref-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ref-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    gap: 8px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  .ref-form input, .ref-form select {
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--cal-hairline);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--cal-ink);
+    background: var(--cal-canvas);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.12s;
+  }
+  .ref-form input:focus, .ref-form select:focus {
+    border-color: var(--cal-primary);
+  }
+  .ref-list { display: flex; flex-direction: column; gap: 6px; }
+  .ref-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--cal-surface-card);
+    border-radius: 10px;
+    font-size: 13px;
+  }
+  .ref-item-cat {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+    height: 20px;
+    display: inline-flex; align-items: center;
+  }
+  .cat-stat { background: var(--cal-surface-soft); color: var(--cal-success); }
+  .cat-qual { background: #fce7f3; color: #9d174d; }
+  .cat-law { background: var(--cal-success-tint); color: var(--cal-success); }
+  .ref-item-title { flex: 1; color: var(--cal-ink); }
+  .ref-item-del {
+    color: var(--cal-muted);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: none;
+    border: none;
+    transition: background 0.1s, color 0.1s;
+  }
+  .ref-item-del:hover { background: #fee2e2; color: var(--cal-error); }
+
+  /* ── 채팅 UI (인터뷰) ── */
+  .interview-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 16px;
+  }
+  .persona-sidebar {
+    background: var(--cal-canvas);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .sidebar-title {
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    border-bottom: 1px solid var(--cal-hairline);
+    background: var(--cal-surface-card);
+  }
+  .sidebar-persona-list { padding: 8px; display: flex; flex-direction: column; gap: 4px; max-height: 540px; overflow-y: auto; }
+  .sidebar-hint { padding: 8px 16px; font-size: 12px; color: var(--cal-muted); border-bottom: 1px solid var(--cal-hairline); }
+  .tag-lit { background: var(--cal-accent-tint); color: #1e40af; }
+  .tag-ai { background: #ecfeff; color: #0e7490; }
+  .tag-level-advanced { background: var(--cal-surface-dark); color: var(--cal-on-dark); }
+  .qbank-row { padding: 10px 16px 0; border-top: 1px solid var(--cal-hairline); }
+  .qbank-row select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--cal-hairline); border-radius: 8px; font-size: 13px; color: var(--cal-body); background: var(--cal-surface-soft); font-family: inherit; outline: none; }
+  .qbank-row + .chat-input-row { border-top: none; }
+  .synthetic-warn { font-size: 13px; color: #92400e; background: var(--cal-warning-tint); border: 1px solid #fcd34d; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; line-height: 1.6; }
+  .sidebar-persona-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border: 1.5px solid transparent;
+  }
+  .sidebar-persona-item:hover { background: var(--cal-surface-soft); border-color: var(--cal-hairline); }
+  .sidebar-persona-item.active {
+    background: var(--cal-surface-card);
+    border-color: var(--cal-primary);
+  }
+  .sidebar-avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .sidebar-info .name { font-size: 14px; font-weight: 600; color: var(--cal-ink); }
+  .sidebar-info .desc { font-size: 12px; color: var(--cal-muted); }
+
+  .chat-container {
+    background: var(--cal-canvas);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+  }
+  .chat-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--cal-hairline);
+    background: var(--cal-surface-soft);
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chat-persona-info .name { font-size: 15px; font-weight: 600; color: var(--cal-ink); }
+  .chat-persona-info .role { font-size: 13px; color: var(--cal-muted); }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .msg {
+    display: flex;
+    gap: 10px;
+    max-width: 80%;
+  }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg-bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .msg.assistant .msg-bubble {
+    background: var(--cal-surface-card);
+    color: var(--cal-ink);
+    border-radius: 4px 12px 12px 12px;
+  }
+  .msg.user .msg-bubble {
+    background: var(--cal-primary);
+    color: var(--cal-on-primary);
+    border-radius: 12px 4px 12px 12px;
+  }
+  .msg-avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    align-self: flex-end;
+  }
+  .source-badge {
+    font-size: 11px;
+    color: var(--cal-muted);
+    margin-top: 4px;
+    padding-left: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .chat-input-row {
+    padding: 12px 16px;
+    border-top: 1px solid var(--cal-hairline);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .chat-input-row .btn {
+    height: 44px;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .chat-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--cal-hairline);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--cal-ink);
+    resize: none;
+    height: 44px;
+    overflow: hidden;
+    outline: none;
+    font-family: inherit;
+    line-height: 22px;
+    transition: border-color 0.12s;
+    scrollbar-width: none;
+  }
+  .chat-input::-webkit-scrollbar { display: none; }
+  .chat-input.has-content { height: auto; min-height: 44px; max-height: 120px; overflow-y: auto; white-space: pre-wrap; }
+  .chat-input:focus { border-color: var(--cal-ink); outline: none; height: auto; min-height: 44px; max-height: 120px; overflow-y: auto; white-space: pre-wrap; }
+
+  /* ── 설문 탭 ── */
+  .survey-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .survey-panel {
+    background: var(--cal-canvas);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .survey-panel-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--cal-hairline);
+  }
+  .question-item {
+    margin-bottom: 16px;
+  }
+  .question-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    margin-bottom: 6px;
+    line-height: 21px;
+  }
+  .question-label span {
+    font-weight: 400;
+    color: var(--cal-muted);
+    font-size: 12px;
+    margin-left: 6px;
+  }
+  .question-item select, .question-item textarea, .question-item input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--cal-hairline);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--cal-ink);
+    background: var(--cal-canvas);
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.12s;
+  }
+  .question-item textarea { resize: vertical; min-height: 72px; line-height: 1.55; }
+  .question-item select:focus, .question-item textarea:focus, .question-item input:focus {
+    border-color: var(--cal-primary);
+  }
+  .survey-result-area {
+    background: var(--cal-surface-card);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    padding: 16px;
+    min-height: 200px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--cal-body);
+    white-space: pre-wrap;
+    overflow-y: auto;
+    max-height: 400px;
+  }
+  .result-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .result-table th {
+    background: var(--cal-surface-card);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--cal-body);
+    border-bottom: 1px solid var(--cal-hairline);
+  }
+  .result-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--cal-hairline);
+    color: var(--cal-ink);
+    vertical-align: top;
+  }
+  .result-table tr:last-child td { border-bottom: none; }
+
+  /* ── 워크숍 탭 ── */
+  .workshop-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 16px;
+  }
+  .workshop-chat {
+    background: var(--cal-canvas);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+  }
+  .workshop-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--cal-hairline);
+    background: var(--cal-ink);
+    border-radius: 16px 16px 0 0;
+  }
+  .workshop-header .title { font-size: 15px; font-weight: 600; color: white; }
+  .workshop-header .sub { font-size: 12px; color: var(--cal-muted); margin-top: 2px; }
+  .workshop-participants {
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--cal-hairline);
+    display: flex;
+    gap: 8px;
+    background: var(--cal-surface-card);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .participant-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--cal-hairline);
+    background: var(--cal-canvas);
+    color: var(--cal-ink);
+  }
+
+  /* ── 사용성 평가 탭 ── */
+  .usability-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .usability-panel {
+    background: var(--cal-canvas);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .criteria-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+  .criteria-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--cal-surface-card);
+    border-radius: 10px;
+    border: 1px solid var(--cal-hairline);
+  }
+  .criteria-label { font-size: 14px; font-weight: 600; color: var(--cal-ink); flex: 1; }
+  .criteria-desc { font-size: 12px; color: var(--cal-muted); }
+
+  /* ── 상태 표시 ── */
+  .loading-bar {
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--cal-surface-card);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--cal-body);
+    margin-bottom: 16px;
+    display: none;
+  }
+  .loading-bar.show { display: flex; }
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--cal-hairline);
+    border-top-color: var(--cal-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--cal-muted);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state .msg { font-size: 14px; }
+
+  /* TDS Badge — fill, small, primary */
+  .count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px; height: 22px;
+    border-radius: 4px;
+    background: var(--cal-primary);
+    color: var(--cal-on-primary);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 0 6px;
+  }
+
+  .notice-box {
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+  }
+  .notice-box.info { background: var(--cal-accent-tint); color: var(--cal-accent); border: 1px solid #bfdbfe; }
+  .notice-box.warn { background: var(--cal-warning-tint); color: var(--cal-warning); border: 1px solid #fcd34d; }
+
+  /* ── 페르소나 상세 모달 ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(25,31,40,0.45);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    display: none;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--cal-canvas);
+    border-radius: 12px;
+    padding: 28px;
+    max-width: 540px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(25,31,40,0.16);
+  }
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .modal-title { font-size: 22px; font-weight: 700; color: var(--cal-surface-dark); letter-spacing: -0.4px; }
+  .modal-close {
+    background: var(--cal-surface-card); border: none; cursor: pointer;
+    font-size: 18px; color: var(--cal-muted);
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.1s;
+  }
+  .modal-close:hover { background: var(--cal-hairline); color: var(--cal-ink); }
+  .modal-block { margin-bottom: 18px; }
+  .modal-block-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cal-primary);
+    margin-bottom: 6px;
+  }
+  .modal-block-content {
+    font-size: 14px;
+    color: var(--cal-ink);
+    line-height: 1.6;
+  }
+  .modal-tag-group { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* ── 응답 스트리밍 ── */
+  .thinking-indicator {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--cal-surface-card);
+    border-radius: 4px 14px 14px 14px;
+  }
+  .dot-pulse {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--cal-muted);
+    animation: dot-pulse 1.2s ease-in-out infinite;
+  }
+  .dot-pulse:nth-child(2) { animation-delay: 0.2s; }
+  .dot-pulse:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dot-pulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+
+  /* ── 아바타 스타일 ── */
+  .persona-avatar, .sidebar-avatar, .msg-avatar {
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 700;
+    user-select: none;
+  }
+
+  /* ── 고도화: 모드 토글 ── */
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--cal-surface-card);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    border: 1px solid var(--cal-hairline);
+  }
+  .mode-toggle-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    flex: 1;
+  }
+  .mode-toggle-desc {
+    font-size: 12px;
+    color: var(--cal-muted);
+  }
+  .toggle-switch {
+    position: relative;
+    width: 44px; height: 24px;
+    flex-shrink: 0;
+  }
+  .toggle-switch input { display: none; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--cal-hairline);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-switch input:checked + .toggle-slider { background: var(--cal-primary); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+  .mode-badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+  }
+  .mode-badge.explore { background: var(--cal-surface-strong); color: var(--cal-muted); }
+  .mode-badge.verify { background: var(--cal-surface-dark); color: var(--cal-on-dark); }
+
+  /* ── 고도화: 타이머 + 질문 카운터 ── */
+  .session-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 7px 18px;
+    border-bottom: 1px solid var(--cal-hairline);
+    background: var(--cal-surface-card);
+  }
+  .session-stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .session-stat-label { color: var(--cal-muted); font-size: 12px; font-weight: 400; }
+  .session-stat-value { font-size: 13px; font-weight: 600; color: var(--cal-ink); font-variant-numeric: tabular-nums; letter-spacing: -0.2px; }
+  .session-btn {
+    margin-left: auto;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--cal-hairline);
+    background: var(--cal-canvas);
+    color: var(--cal-body);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: background 0.1s;
+  }
+  .session-btn:hover { background: var(--cal-surface-card); border-color: var(--cal-hairline); color: var(--cal-ink); }
+
+  /* ── 고도화: 대화 저장 버튼 ── */
+  .save-chat-btn {
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--cal-hairline);
+    background: var(--cal-canvas);
+    color: var(--cal-body);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: background 0.1s;
+  }
+  .save-chat-btn:hover { background: var(--cal-surface-card); }
+
+  /* ── 고도화: 출처 분산 시각화 ── */
+  .source-dist-panel {
+    background: var(--cal-canvas);
+    border: 1px solid var(--cal-hairline);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+  }
+  .source-dist-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    margin-bottom: 12px;
+  }
+  .source-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .source-bar-label {
+    width: 160px;
+    flex-shrink: 0;
+    color: var(--cal-body);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .source-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--cal-surface-card);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .source-bar-fill {
+    height: 100%;
+    background: var(--cal-primary);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .source-bar-fill.warn { background: var(--cal-warning); }
+  .source-bar-count {
+    width: 32px;
+    text-align: right;
+    color: var(--cal-muted);
+    font-weight: 600;
+  }
+  .source-warn-msg {
+    font-size: 12px;
+    color: var(--cal-warning);
+    background: var(--cal-warning-tint);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+    display: none;
+  }
+  .source-warn-msg.show { display: block; }
+
+  /* ── 고도화: 참여자 코드 ── */
+  .participant-code-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 24px;
+    background: var(--cal-ink);
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    min-height: 36px;
+  }
+  .participant-code-bar strong { color: white; }
+  .code-input {
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 5px;
+    border: none;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 12px;
+    font-family: inherit;
+    width: 80px;
+    outline: none;
+  }
+  .code-input::placeholder { color: rgba(255,255,255,0.4); }
+  .code-input:focus { background: rgba(255,255,255,0.2); }
+  .code-set-btn {
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 5px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.1s;
+  }
+  .code-set-btn:hover { background: rgba(255,255,255,0.28); }
+  .code-display {
+    margin-left: auto;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* ── 다이얼로그 팝업 ── */
+  .dialog-overlay {
+    position: fixed; inset: 0;
+    background: rgba(17,17,17,0.35);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: dialog-fade-in 0.12s ease;
+  }
+  @keyframes dialog-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .dialog-box {
+    background: var(--cal-canvas);
+    border-radius: 12px;
+    padding: 24px 24px 20px;
+    max-width: 360px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(17,17,17,0.14);
+    animation: dialog-slide-up 0.14s ease;
+  }
+  @keyframes dialog-slide-up {
+    from { transform: translateY(8px); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+  }
+  .dialog-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cal-ink);
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+    font-family: 'Cal Sans', 'Inter', sans-serif;
+  }
+  .dialog-msg {
+    font-size: 14px;
+    color: var(--cal-body);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+  }
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .dialog-confirm {
+    height: 36px;
+    padding: 0 20px;
+    background: var(--cal-primary);
+    color: var(--cal-on-primary);
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.1s;
+  }
+  .dialog-confirm:hover { background: var(--cal-primary-active); }
+  @media (max-width: 768px) {
+    .main { padding: 16px; }
+    .interview-layout, .survey-layout, .workshop-layout, .usability-layout {
+      grid-template-columns: 1fr;
+    }
+    .ref-form { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<header class="site-header">
+  <div class="logo">
+    <div class="logo-mark">S</div>
+    <span class="logo-text">합성 투자자 리서치 플랫폼</span>
+  </div>
+  <span class="header-badge">팀 공유 · 실시간 동기화</span>
+</header>
+
+<!-- 참여자 코드 바 -->
+<div class="participant-code-bar" id="code-bar">
+  <strong>참여자 코드</strong>
+  <input class="code-input" id="code-input" placeholder="예: A, B, C..." maxlength="10" />
+  <button class="code-set-btn" id="code-set-btn">설정</button>
+  <span class="code-display" id="code-display">미설정 — 대화 저장 시 파일명에 반영됩니다</span>
+</div>
+
+<!-- 탭 네비 -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="bank">
+    페르소나 뱅크
+  </button>
+  <button class="tab-btn" data-tab="interview">
+    심층 인터뷰
+  </button>
+  <button class="tab-btn" data-tab="survey">
+    설문
+  </button>
+  <button class="tab-btn" data-tab="workshop">
+    아이디어 워크숍
+  </button>
+  <button class="tab-btn" data-tab="usability">
+    사용성 평가
+  </button>
+</nav>
+
+<!-- 본문 -->
+<main class="main">
+
+  <!-- ══════════ 탭1: 페르소나 뱅크 ══════════ -->
+  <div class="tab-panel active" id="tab-bank">
+    <!-- 참고 자료 섹션 -->
+    <div class="ref-section">
+      <div class="ref-section-title">
+        <span>참고 자료 <small style="font-weight:400;color:var(--cal-muted);font-size:13px;">('배경 전달' 자료만 페르소나 응답에 시장 배경으로 쓰이고, 특정 회사·사건 사례는 '연구자용'으로 분리됩니다)</small></span>
+        <button class="btn btn-sm btn-secondary" id="toggle-ref-form">+ 자료 추가</button>
+      </div>
+      <div id="ref-form-area" style="display:none;">
+        <div class="ref-form">
+          <input type="text" id="ref-title" placeholder="자료 제목 (예: 금융위원회 다크패턴 가이드라인)" />
+          <input type="text" id="ref-url" placeholder="URL (선택)" />
+          <select id="ref-cat">
+            <option value="stat">통계/양적</option>
+            <option value="qual">질적/보고서</option>
+            <option value="law">법령/제도</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="add-ref-btn">추가</button>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--cal-body);margin-bottom:10px;"><input type="checkbox" id="ref-persona" /> 페르소나 응답에 시장 배경으로 전달 (특정 회사·사건 사례라면 체크하지 마세요)</label>
+        <input type="text" id="ref-memo" placeholder="메모 — 이 자료에서 뽑아낼 핵심 패턴 (예: 2030 투자자 65%가 유튜브로 첫 정보 접함)" style="width:100%;height:38px;padding:0 14px;border:1px solid var(--cal-hairline);border-radius:10px;font-size:14px;outline:none;margin-bottom:10px;font-family:inherit;" />
+      </div>
+      <div class="ref-list" id="ref-list"></div>
+    </div>
+
+    <!-- 페르소나 뱅크 -->
+    <div class="section-header">
+      <div>
+        <div class="section-title">
+          페르소나 뱅크
+          <span class="count-badge" id="persona-count">0</span>
+        </div>
+        <div class="section-sub">디지털 금융 의사결정 — 개인 투자자 합성 사용자 (가설 생성·질문지 점검용)</div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" id="gen-btn" style="gap:6px;">
+          100명 생성
+        </button>
+        <button class="btn btn-navy" id="regen-btn" style="display:none;">
+          새로 생성
+        </button>
+      </div>
+    </div>
+
+    <div class="loading-bar" id="gen-loading">
+      <div class="spinner"></div>
+      <span id="gen-loading-text">페르소나를 생성하고 있습니다…</span>
+    </div>
+
+    <div class="notice-box info" id="init-notice">
+      
+      <div><strong>시작하기:</strong> <strong>'100명 생성'</strong>을 누른 뒤 필터로 인터뷰할 페르소나를 좁혀주세요. 필터 결과가 인터뷰·워크숍·설문·사용성 평가의 선택 목록에 그대로 반영됩니다. 팀원이 같은 링크를 열면 동일한 페르소나를 공유합니다.</div>
+    </div>
+
+    <div class="synthetic-warn"><strong>합성 응답은 실제 사용자 데이터가 아닙니다.</strong> 가설을 만들고 질문지를 점검하는 용도로만 쓰고, 실제 인터뷰 결과와 비교해 어디서 맞고 틀렸는지 확인하세요.</div>
+
+    <!-- 필터 -->
+    <div class="filter-bar" id="filter-bar" style="display:none;">
+      <input type="text" id="search-input" placeholder="이름 검색…" />
+      <select id="filter-age">
+        <option value="">연령대 전체</option>
+        <option value="20대">20대</option>
+        <option value="30대">30대</option>
+        <option value="40대">40대</option>
+        <option value="50대+">50대+</option>
+      </select>
+      <select id="filter-level">
+        <option value="">경험 수준 전체</option>
+        <option value="초보">초보</option>
+        <option value="중급">중급</option>
+        <option value="고급">고급</option>
+      </select>
+      <select id="filter-literacy">
+        <option value="">금융 이해도 전체</option>
+        <option value="낮음">이해도 낮음</option>
+        <option value="보통">이해도 보통</option>
+        <option value="높음">이해도 높음</option>
+      </select>
+      <select id="filter-ai">
+        <option value="">AI 활용 전체</option>
+        <option value="자주 사용">AI 자주 사용</option>
+        <option value="가끔 사용">AI 가끔 사용</option>
+        <option value="사용 안 함">AI 사용 안 함</option>
+      </select>
+      <select id="filter-channel">
+        <option value="">정보 채널 전체</option>
+        <option value="유튜브">유튜브</option>
+        <option value="SNS">SNS</option>
+        <option value="금융앱">금융앱</option>
+        <option value="네이버카페">네이버카페</option>
+      </select>
+      <button class="btn btn-sm btn-secondary" id="filter-reset">초기화</button>
+    </div>
+
+    <div class="persona-grid" id="persona-grid">
+      <div class="empty-state" id="empty-state">
+        
+        <div class="msg">페르소나가 아직 없습니다. 생성 버튼을 눌러주세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 탭2: 심층 인터뷰 ══════════ -->
+  <div class="tab-panel" id="tab-interview">
+    <div class="section-header">
+      <div>
+        <div class="section-title">심층 인터뷰</div>
+        <div class="section-sub">페르소나를 선택하고 1:1 대화를 시작하세요</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="save-chat-btn" id="save-interview-btn">대화 저장 (TXT)</button>
+      </div>
+    </div>
+    <!-- 모드 토글 -->
+    <div class="mode-toggle">
+      <div>
+        <div class="mode-toggle-label">응답 모드 <span class="mode-badge explore" id="interview-mode-badge">탐색 모드</span></div>
+        <div class="mode-toggle-desc" id="interview-mode-desc">설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="interview-mode-toggle" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="interview-layout">
+      <!-- 사이드바 -->
+      <div class="persona-sidebar">
+        <div class="sidebar-title">페르소나 선택</div>
+        <div class="sidebar-hint">페르소나 뱅크 필터 결과 기준</div>
+        <div class="sidebar-persona-list" id="interview-persona-list">
+          <div class="empty-state" style="padding:24px 12px;">
+            <div class="msg" style="font-size:12px;">페르소나 뱅크에서 먼저 생성해주세요</div>
+          </div>
+        </div>
+      </div>
+      <!-- 채팅창 -->
+      <div class="chat-container">
+        <div class="session-bar" id="interview-session-bar">
+          <div class="session-stat">
+            <span class="session-stat-label">경과 시간</span>
+            <span class="session-stat-value" id="interview-timer">00:00</span>
+          </div>
+          <div class="session-stat">
+            <span class="session-stat-label">질문 수</span>
+            <span class="session-stat-value" id="interview-q-count">0</span>
+          </div>
+          <button class="session-btn" id="interview-timer-reset">초기화</button>
+        </div>
+        <div class="chat-header">
+          <div class="sidebar-avatar" id="interview-avatar" style="background:var(--cal-surface-card);"></div>
+          <div class="chat-persona-info">
+            <div class="name" id="interview-persona-name">페르소나를 선택해주세요</div>
+            <div class="role" id="interview-persona-role">—</div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="empty-state" style="margin:auto;">
+            
+            <div class="msg">왼쪽에서 페르소나를 선택하면 인터뷰를 시작할 수 있습니다</div>
+          </div>
+        </div>
+        <div class="qbank-row">
+          <select id="qbank"><option value="">질문지에서 불러오기…</option></select>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chat-input" placeholder="질문을 입력하세요… (Shift+Enter로 줄바꿈, Enter로 전송)" rows="1"></textarea>
+          <button class="btn btn-primary" id="chat-send">전송</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 탭3: 설문 ══════════ -->
+  <div class="tab-panel" id="tab-survey">
+    <div class="section-header">
+      <div>
+        <div class="section-title">설문 시뮬레이션</div>
+        <div class="section-sub">설문 문항을 입력하면 선택된 페르소나들이 자동 응답합니다</div>
+      </div>
+    </div>
+    <div class="survey-layout">
+      <!-- 설문 설계 -->
+      <div class="survey-panel">
+        <div class="survey-panel-title">설문 설계</div>
+
+        <div class="question-item">
+          <div class="question-label">응답 페르소나 <span>복수 선택 가능</span></div>
+          <select id="survey-persona-select" multiple style="height:100px;">
+            <option disabled>페르소나 뱅크에서 먼저 생성해주세요</option>
+          </select>
+        </div>
+
+        <div class="question-item">
+          <div class="question-label">응답 형식</div>
+          <select id="survey-format">
+            <option value="table">표 형식 (페르소나별 비교)</option>
+            <option value="individual">개별 응답 (상세)</option>
+            <option value="summary">요약 분석</option>
+          </select>
+        </div>
+
+        <div class="question-item">
+          <div class="question-label">설문 문항 1 <span>객관식</span></div>
+          <input type="text" id="q1" value="증권앱이 상품이나 종목을 추천해줄 때, 그 추천을 얼마나 신뢰하십니까?" placeholder="설문 문항 입력…" />
+          <div style="margin-top:6px;font-size:12px;color:var(--cal-muted);">선택지: 매우 신뢰 / 다소 신뢰 / 보통 / 다소 불신 / 매우 불신</div>
+        </div>
+
+        <div class="question-item">
+          <div class="question-label">설문 문항 2 <span>서술형</span></div>
+          <textarea id="q2" placeholder="설문 문항 입력…">투자 상품 화면에서 가장 먼저 보는 정보와, 끝까지 안 읽고 넘기는 정보는 각각 무엇인가요?</textarea>
+        </div>
+
+        <div class="question-item">
+          <div class="question-label">설문 문항 3 <span>서술형</span></div>
+          <textarea id="q3" placeholder="설문 문항 입력…">앱이 특정 상품을 먼저 보여주는 이유가 무엇이라고 생각하시나요?</textarea>
+        </div>
+
+        <button class="btn btn-primary" id="run-survey" style="width:100%;justify-content:center;">응답 생성</button>
+      </div>
+
+      <!-- 결과 -->
+      <div class="survey-panel">
+        <div class="survey-panel-title" style="display:flex;align-items:center;justify-content:space-between;">
+          응답 결과
+          <button class="save-chat-btn" id="save-survey-btn" style="font-size:12px;">결과 저장 (TXT)</button>
+        </div>
+        <div class="loading-bar" id="survey-loading">
+          <div class="spinner"></div>
+          <span>응답을 생성하는 중…</span>
+        </div>
+        <div id="survey-result">
+          <div class="empty-state">
+            
+            <div class="msg">설문 문항을 입력하고 응답 생성을 눌러주세요</div>
+          </div>
+        </div>
+        <!-- 출처 분산 시각화 -->
+        <div class="source-dist-panel" id="source-dist-panel" style="display:none;">
+          <div class="source-dist-title">출처 분산 현황</div>
+          <div id="source-dist-bars"></div>
+          <div class="source-warn-msg" id="source-warn-msg">특정 자료에 출처가 집중되고 있습니다. 참고 자료를 더 추가하거나 결과를 해석할 때 주의하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 탭4: 아이디어 워크숍 ══════════ -->
+  <div class="tab-panel" id="tab-workshop">
+    <div class="section-header">
+      <div>
+        <div class="section-title">아이디어 워크숍</div>
+        <div class="section-sub">여러 페르소나가 동시에 아이디어에 반응하고 토론합니다</div>
+      </div>
+      <button class="save-chat-btn" id="save-workshop-btn">대화 저장 (TXT)</button>
+    </div>
+    <!-- 모드 토글 -->
+    <div class="mode-toggle">
+      <div>
+        <div class="mode-toggle-label">응답 모드 <span class="mode-badge explore" id="workshop-mode-badge">탐색 모드</span></div>
+        <div class="mode-toggle-desc" id="workshop-mode-desc">설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="workshop-mode-toggle" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="workshop-layout">
+      <!-- 참여자 설정 -->
+      <div class="persona-sidebar">
+        <div class="sidebar-title">참여자 선택 (최대 4명)</div>
+        <div class="sidebar-hint">페르소나 뱅크 필터 결과 기준</div>
+        <div class="sidebar-persona-list" id="workshop-persona-list">
+          <div class="empty-state" style="padding:24px 12px;">
+            <div class="msg" style="font-size:12px;">페르소나 뱅크에서 먼저 생성해주세요</div>
+          </div>
+        </div>
+      </div>
+      <!-- 워크숍 채팅 -->
+      <div class="workshop-chat">
+        <div class="session-bar" id="workshop-session-bar">
+          <div class="session-stat">
+            <span class="session-stat-label">경과 시간</span>
+            <span class="session-stat-value" id="workshop-timer">00:00</span>
+          </div>
+          <div class="session-stat">
+            <span class="session-stat-label">아이디어 투입</span>
+            <span class="session-stat-value" id="workshop-q-count">0</span>
+          </div>
+          <button class="session-btn" id="workshop-timer-reset">초기화</button>
+        </div>
+        <div class="workshop-header">
+          <div class="title">아이디어 워크숍 룸</div>
+          <div class="sub">선택된 페르소나들이 함께 토론합니다</div>
+        </div>
+        <div class="workshop-participants" id="workshop-participants">
+          <div style="font-size:12px;color:var(--cal-muted);">참여자 없음</div>
+        </div>
+        <div class="chat-messages" id="workshop-messages" style="flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:14px;">
+          <div class="empty-state" style="margin:auto;">
+            
+            <div class="msg">참여자를 선택하고 아이디어를 던져보세요</div>
+          </div>
+        </div>
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="workshop-input" placeholder="개입 방식 콘셉트를 던져보세요… (예: '매수 버튼 누르기 직전, 화면에서 안 보이던 손실 조건과 수수료를 AI가 한 줄로 다시 보여준다')" rows="1"></textarea>
+          <button class="btn btn-navy" id="workshop-send">던지기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 탭5: 사용성 평가 ══════════ -->
+  <div class="tab-panel" id="tab-usability">
+    <div class="section-header">
+      <div>
+        <div class="section-title">사용성 평가</div>
+        <div class="section-sub">서비스 화면이나 문구를 페르소나에게 보여주고 반응을 받습니다</div>
+      </div>
+    </div>
+    <div class="usability-layout">
+      <!-- 입력 -->
+      <div class="usability-panel">
+        <div class="survey-panel-title">평가 대상</div>
+
+        <div class="question-item">
+          <div class="question-label">평가 페르소나 선택</div>
+          <select id="usability-persona-select" multiple style="height:90px;">
+            <option disabled>페르소나 뱅크에서 먼저 생성해주세요</option>
+          </select>
+        </div>
+
+        <div class="question-item">
+          <div class="question-label">서비스/화면 설명</div>
+          <textarea id="usability-desc" rows="5" placeholder="평가받을 서비스나 화면을 설명하세요…
+
+화면 구성, 먼저 보이는 정보, 숨겨진 정보, 버튼 문구를 구체적으로 적을수록 좋습니다.">가상 시나리오 — 증권앱의 해외옵션 상품 소개 화면. 상단에 '주가가 10% 오르면 옵션 가격은 최대 몇 배 상승'이라는 큰 숫자와 상승 그래프가 있다. 손실 구조(프리미엄 전액 손실 가능성)와 수수료는 하단 '자세히 보기'를 눌러야 나온다. 거래 전 필수인 의무교육 영상은 다른 화면으로 이동해도 재생 시간이 계속 흘러간다. 하단 고정 버튼은 '지금 시작하기'.</textarea>
+        </div>
+
+        <div class="question-item">
+          <div class="question-label">평가 기준</div>
+          <div class="criteria-list" id="criteria-list">
+            <div class="criteria-item"><span class="criteria-label">이해도</span><span style="font-size:12px;color:var(--cal-muted);">기능을 직관적으로 이해할 수 있는가</span></div>
+            <div class="criteria-item"><span class="criteria-label">신뢰도</span><span style="font-size:12px;color:var(--cal-muted);">제공하는 정보를 믿을 수 있는가</span></div>
+            <div class="criteria-item"><span class="criteria-label">사용 의향</span><span style="font-size:12px;color:var(--cal-muted);">실제로 이 기능을 쓸 것 같은가</span></div>
+            <div class="criteria-item"><span class="criteria-label">불안 요소</span><span style="font-size:12px;color:var(--cal-muted);">어느 지점에서 막히거나 불안을 느끼는가</span></div>
+            <div class="criteria-item"><span class="criteria-label">위험 인지</span><span style="font-size:12px;color:var(--cal-muted);">손실 구조·비용·조건을 스스로 알아차렸는가</span></div>
+            <div class="criteria-item"><span class="criteria-label">건너뛴 정보</span><span style="font-size:12px;color:var(--cal-muted);">실제라면 읽지 않고 넘겼을 부분은 어디인가</span></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="run-usability" style="width:100%;justify-content:center;margin-top:16px;">평가 시작</button>
+      </div>
+
+      <!-- 결과 -->
+      <div class="usability-panel">
+        <div class="survey-panel-title">평가 결과</div>
+        <div class="loading-bar" id="usability-loading">
+          <div class="spinner"></div>
+          <span>페르소나가 평가하는 중…</span>
+        </div>
+        <div id="usability-result">
+          <div class="empty-state">
+            
+            <div class="msg">서비스 설명과 페르소나를 선택하고 평가를 시작해주세요</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- 페르소나 상세 모달 -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div style="width:56px;height:56px;border-radius:14px;overflow:hidden;margin-bottom:10px;background:var(--cal-surface-card);" id="modal-photo"></div>
+        <div class="modal-title" id="modal-name"></div>
+      </div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div id="modal-content"></div>
+    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary" id="modal-go-interview">심층 인터뷰</button>
+      <button class="btn btn-secondary" id="modal-go-workshop">워크숍에 추가</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ══════════════════════════════════════
+//  상수 & 유틸
+// ══════════════════════════════════════
+// 이모지 미사용 — 이니셜로 대체
+
+// ── CSS 인라인 아바타 생성 (외부 URL 미사용) ──
+const AVATAR_BG = ['#f5f5f5','#fce7f3','#eff6ff','#f5f3ff','#ecfdf5','#fffbeb','#fee2e2','#f3f4f6'];
+const AVATAR_FG = ['#1e40af','#9d174d','#065f46','#854d0e','#4c1d95','#9a3412','#991b1b','#065f46'];
+
+function makeAvatarSvg(name, gender, bgColor, fgColor, size=40) {
+  const initial = name ? name.slice(0,1) : '?';
+  // 여성: 원형 얼굴, 남성: 약간 각진 얼굴 — 단순 이니셜 + 도형으로 구분
+  const r = gender === '여' ? size*0.42 : size*0.38;
+  const cx = size/2, cy = size*0.42;
+  // 몸통 호
+  const bodyY = size*0.72;
+  const bodyR = size*0.55;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <rect width="${size}" height="${size}" rx="${size*0.28}" fill="${bgColor}"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="${fgColor}" opacity="0.18"/>
+    <text x="${cx}" y="${cy+size*0.08}" text-anchor="middle" dominant-baseline="middle"
+      font-family="system-ui,sans-serif" font-size="${size*0.38}" font-weight="700"
+      fill="${fgColor}">${initial}</text>
+  </svg>`;
+}
+
+function avatarDataUrl(name, gender, bgColor, fgColor, size=40) {
+  const svg = makeAvatarSvg(name, gender, bgColor, fgColor, size);
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+const AVG_COLORS = ['#dbeafe','#fce7f3','#d1fae5','#fef9c3','#ede9fe','#ffedd5'];
+const LEVEL_DIST = { '초보': 40, '중급': 45, '고급': 15 };
+const AGE_DIST = { '20대': 25, '30대': 35, '40대': 25, '50대+': 15 };
+const CHANNEL_DIST = ['유튜브','유튜브','SNS','SNS','금융앱','네이버카페','유튜브','SNS','금융앱','유튜브'];
+const PROFESSIONS = {
+  '20대': ['취준생','직장초년생','대학원생','프리랜서','스타트업 직원'],
+  '30대': ['직장인','맞벌이 직장인','자영업자 준비 중','IT 개발자','마케터'],
+  '40대': ['자영업자','팀장급 직장인','전문직','중간관리자','교사'],
+  '50대+': ['자영업자','임원','전업주부','공무원','은퇴 준비 중']
+};
+const WORRIES = [
+  '리딩방이나 유튜버가 뒤에서 수익 내는 건 아닐까 의심됨',
+  '이미 오른 종목을 뒤늦게 사는 것 같다는 불안',
+  '내가 모르는 정보를 기관은 이미 다 알고 있다는 느낌',
+  '추천 콘텐츠가 광고인지 아닌지 구분이 안 됨',
+  '플랫폼이 나한테 특정 상품만 보여주는 게 아닐까 의심',
+  '조회수 높은 영상 = 맞는 정보라고 착각했다가 손실 경험',
+  '카페에서 본 정보가 얼마나 최신인지 알 수 없음',
+  '"전문가"라고 해도 실제 자격이 있는지 확인 불가',
+  '과거 수익률 자랑은 많은데 손실은 안 보여줌',
+  '주변 지인 성공 사례에 흔들려 무작정 따라서 삼',
+  // 의심보다 '신뢰·포기·조급함' 쪽 상태 (RQ2: 확인을 포기하는 지점 탐색용)
+  '큰 증권사 앱이니까 알아서 괜찮은 상품만 보여줄 거라 생각함',
+  '설명서·약관은 너무 길어서 읽다가 지쳐 포기함',
+  '수수료가 정확히 얼마인지 제대로 본 적 없음',
+  '남들 다 버는데 나만 못 벌까 봐 조급함',
+  '가입 절차가 길면 귀찮아서 대충 넘기게 됨',
+  '손실 가능성보다 수익률 숫자가 먼저 눈에 들어옴'
+];
+// 금융 이해도: 투자 경험과 분리된 축 (경험이 많아도 이해도가 낮을 수 있음)
+const LITERACY_BY_LEVEL = {
+  '초보': { '낮음': 55, '보통': 38, '높음': 7 },
+  '중급': { '낮음': 25, '보통': 55, '높음': 20 },
+  '고급': { '낮음': 10, '보통': 40, '높음': 50 }
+};
+const AI_USE_BY_AGE = {
+  '20대': { '자주 사용': 40, '가끔 사용': 35, '사용 안 함': 25 },
+  '30대': { '자주 사용': 30, '가끔 사용': 35, '사용 안 함': 35 },
+  '40대': { '자주 사용': 15, '가끔 사용': 30, '사용 안 함': 55 },
+  '50대+': { '자주 사용': 8, '가끔 사용': 22, '사용 안 함': 70 }
+};
+// 정보 확인 행동: '꼼꼼히 교차 확인'은 소수, 대부분은 일부만 보고 넘기는 쪽
+const VERIFY_BEHAVIORS = {
+  '투자 전 다른 채널로 교차 확인함': 18,
+  '수익률·혜택 숫자 위주로 보고 나머지는 넘김': 26,
+  '설명서·약관은 거의 안 읽고 요약만 봄': 24,
+  '확인하려다 복잡하면 중간에 포기함': 16,
+  '직관적으로 판단하고 소액으로 먼저 해봄': 16
+};
+// 주 이용 증권앱: 특정 앱 쏠림을 막기 위한 임의 배정 (실제 점유율 아님)
+const BROKER_APPS = ['키움증권','토스증권','삼성증권','미래에셋증권','한국투자증권','KB증권','NH투자증권','신한투자증권'];
+const SPEECH_STYLES = ['조심스럽게 말하는 편','솔직하고 직접적인 편','분석적으로 설명하는 편','단도직입적인 편','꼼꼼하게 설명하는 편','자조적 유머를 섞는 편'];
+const TRUST_CUES = [
+  '구체적인 수익률 숫자와 그래프','증권사·플랫폼 브랜드','조회수·인기 순위·많이 산 종목 표시',
+  '친구·지인의 추천','전문가·애널리스트라는 타이틀','AI 챗봇의 답변','앱 상단·메인에 노출된 위치'
+];
+const GOALS = [
+  '안정적인 노후 자금 마련','월급 외 부수입 창출','내 집 마련 종잣돈','단기 수익 실현','자산 인플레이션 방어'
+];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function pickByDist(dist) {
+  const total = Object.values(dist).reduce((a, b) => a + b, 0);
+  const r = Math.random() * total;
+  let acc = 0;
+  for (const [k, v] of Object.entries(dist)) { acc += v; if (r < acc) return k; }
+  return Object.keys(dist)[0];
+}
+function korNames() {
+  const sur = ['김','이','박','최','정','강','조','윤','장','임','한','오','서','신','권'];
+  const male = ['준호','민준','지호','현우','태양','도윤','시우','재원','민성','준서','동현','승민'];
+  const female = ['수현','지은','유진','하은','서연','민지','예진','지아','나은','소연','혜원','다현'];
+  const isFemale = Math.random() > 0.5;
+  return { name: pick(sur) + pick(isFemale ? female : male), gender: isFemale ? '여' : '남' };
+}
+
+function buildPersona(idx) {
+  const age = pickByDist(AGE_DIST);
+  const level = pickByDist({ '초보': 40, '중급': 45, '고급': 15 });
+  const { name, gender } = korNames();
+  const profession = pick(PROFESSIONS[age] || PROFESSIONS['30대']);
+  const channel = pick(CHANNEL_DIST);
+  const worry = pick(WORRIES);
+  const goal = pick(GOALS);
+  const literacy = pickByDist(LITERACY_BY_LEVEL[level]);
+  const aiUse = pickByDist(AI_USE_BY_AGE[age]);
+  // AI를 쓰지 않는 사람이 'AI 답변'을 신뢰 단서로 갖는 모순 방지
+  const trustCue = pick(aiUse === '사용 안 함' ? TRUST_CUES.filter(c => !c.includes('AI')) : TRUST_CUES);
+  // 이해도가 높으면 교차 확인 비율을 조금 높임
+  const verifyDist = literacy === '높음'
+    ? { ...VERIFY_BEHAVIORS, '투자 전 다른 채널로 교차 확인함': 45 }
+    : VERIFY_BEHAVIORS;
+  const verifyBehavior = pickByDist(verifyDist);
+  const initials = name.slice(0,1);
+  const colorIdx = idx % AVATAR_BG.length;
+  const bgColor = AVATAR_BG[colorIdx];
+  const fgColor = AVATAR_FG[colorIdx];
+  const photoSeed = idx * 7 + (gender === '여' ? 100 : 0);
+  const genderParam = gender === '여' ? 'female' : 'male';
+  const invYears = level === '초보' ? '1년 미만' : level === '중급' ? pick(['1~3년','3~5년']) : '5년 이상';
+  const digitalLevel = level === '초보' ? '보통' : pick(['보통','높음','높음']);
+
+  return {
+    id: `p${idx}`,
+    name, gender, age, profession,
+    level, channel, worry, goal, bgColor, fgColor, photoSeed, genderParam,
+    invYears, digitalLevel, literacy, aiUse, trustCue,
+    verifyBehavior,
+    speechStyle: pick(SPEECH_STYLES),
+    brokerApp: pick(BROKER_APPS),
+    refs: [] // 참고자료 연결
+  };
+}
+
+// 페르소나에게는 '배경 전달' 자료만, 개인 경험이 아닌 시장 배경으로 전달
+function personaRefs() { return [...DEFAULT_REFS, ...references].filter(r => r.persona !== false); }
+function refContextText() {
+  const list = personaRefs().map(r => `- ${r.title}${r.memo ? ': ' + r.memo : ''}`).join('\n');
+  return (list || '- (없음)') + `
+※ 위 자료는 투자자들이 사는 시장의 일반적인 배경일 뿐, 개인의 경험이 아닙니다. 자료를 인용하거나 요약하지 마세요. 금융 이해도가 낮은 사람은 이런 통계·뉴스를 대부분 모르는 것이 자연스럽습니다.
+※ 자료에 나오지 않더라도, 연구자가 묻지 않은 특정 증권사·상품·사건을 먼저 꺼내지 마세요.`;
+}
+
+// 인터뷰 질문지 (합성사용자용 — 화면 재현 문항은 사용성 평가 탭에서 진행)
+const QUESTION_BANK = [
+  ['도입·사건 복기', '최근 6개월 내 모바일 증권 앱으로 거래하셨거나 유심히 살펴보신 주식·ETF(금융상품) 하나를 떠올려 주세요. 어떤 앱에서 탐색하셨나요?'],
+  ['도입·사건 복기', '그 주식(상품)의 정보를 처음 어떤 경로(SNS, 앱 알림, 검색 등)로 접하셨고, 그 후 앱에서 가장 먼저 찾아본 내용은 무엇이었나요?'],
+  ['도입·사건 복기', '탐색 과정에서 "이 주식(상품)에 투자해 볼 만하겠다"라고 마음을 정하게 된 결정적인 계기나 정보는 무엇이었나요?'],
+  ['화면 재현 · 합성용', '당시 앱에서 그 주식(상품)을 찾아 들어갔던 화면 경로를 기억나는 대로 순서대로 말씀해 주시겠어요?'],
+  ['화면 재현', '그 화면에서 가장 먼저 눈길이 갔던 글자/수치는 무엇이고, 반대로 유심히 보지 않고 그냥 지나쳤던 영역은 어디였나요?'],
+  ['화면 재현', '만약 친한 지인이 이 주식(상품)을 사려고 한다면, 어떤 위험이나 조건을 먼저 확인해 보라고 말해주고 싶으신가요?'],
+  ['추천·이해관계·마찰', '당시 앱 화면에서 그 주식(상품)이 배치되어 있던 위치나 추천 문구가 결정을 내리는 데 영향을 주었나요?'],
+  ['추천·이해관계·마찰', '증권 플랫폼이 이 주식(상품) 정보를 보여주는 방식(그래프, 혜택 강조 등)에 대해 평소에 어떻게 느끼시는지 편하게 말씀해 주세요.'],
+  ['추천·이해관계·마찰', '결정을 내리기까지 단계가 너무 가볍게 느껴졌거나, 반대로 절차가 복잡해서 답답했던 순간이 있었나요?'],
+  ['니즈', '상품을 가입 또는 매수하기 직전으로 돌아간다면, 어떤 추가 정보나 조언이 있었을 때 더 확신을 가지고 판단할 수 있었을까요?']
+];
+
+// ══════════════════════════════════════
+//  상태
+// ══════════════════════════════════════
+let personas = [];
+function ensurePersonaFields(list) {
+  let changed = false;
+  for (const p of list) {
+    if (!p.brokerApp) { p.brokerApp = pick(BROKER_APPS); changed = true; }
+    if (!p.literacy) { p.literacy = pickByDist(LITERACY_BY_LEVEL[p.level] || LITERACY_BY_LEVEL['중급']); changed = true; }
+    if (!p.aiUse) { p.aiUse = pickByDist(AI_USE_BY_AGE[p.age] || AI_USE_BY_AGE['30대']); changed = true; }
+    if (!p.trustCue || (p.aiUse === '사용 안 함' && p.trustCue.includes('AI'))) { p.trustCue = pick(TRUST_CUES.filter(c => p.aiUse !== '사용 안 함' || !c.includes('AI'))); changed = true; }
+  }
+  return changed;
+}
+let references = [];
+let selectedInterviewPersona = null;
+let workshopParticipants = [];
+let interviewHistory = [];
+let workshopHistory = [];
+let surveyResultText = '';
+// ── Vercel 배포용: Anthropic API + Supabase ──
+const ANTHROPIC_API_KEY = ''; // 사용 안 함 — /api/chat 프록시 사용
+const SUPABASE_URL = 'https://vkazebkztmqutzwofgki.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_g5Q1G2rSNFhsMvwyGxUsOg_MxGT4Vk4';
+
+async function callAI(messages, opts) {
+  const onText = opts && opts.onText;
+  const isStr = typeof messages === 'string';
+  const body = JSON.stringify({
+    messages: isStr ? [{ role: 'user', content: messages }] : messages,
+    stream: !!onText,
+  });
+  const resp = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error((err.error) || ('서버 오류 ' + resp.status));
+  }
+  if (onText) {
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let full = '';
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      for (const line of dec.decode(chunk.value).split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const d = line.slice(6);
+        if (d === '[DONE]') break;
+        try { const p = JSON.parse(d); const t = p.delta && p.delta.text; if (t) { full += t; onText({ text: full, delta: t }); } } catch(e) {}
+      }
+    }
+    return { text: full };
+  }
+  const data = await resp.json();
+  return { text: (data.content && data.content[0] && data.content[0].text) || '' };
+}
+
+const supabase = {
+  async get(table) {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.main', {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+    });
+    const rows = await r.json();
+    return (rows && rows[0]) || null;
+  },
+  async set(table, data) {
+    const payload = Object.assign({}, data, { updated_at: new Date().toISOString() });
+    await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.main', {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify(payload),
+    });
+  },
+  subscribe(table, callback) {
+    const wsUrl = SUPABASE_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPABASE_ANON_KEY + '&vsn=1.0.0';
+    try {
+      const ws = new WebSocket(wsUrl);
+      ws.onopen = function() {
+        ws.send(JSON.stringify({ topic: 'realtime:public:' + table, event: 'phx_join', payload: {}, ref: '1' }));
+      };
+      ws.onmessage = function(e) {
+        try {
+          const msg = JSON.parse(e.data);
+          if (msg.event === 'postgres_changes' || msg.event === 'UPDATE' || msg.event === 'INSERT') {
+            supabase.get(table).then(function(row) { if (row) callback(row); });
+          }
+        } catch(err) {}
+      };
+    } catch(err) {}
+  }
+};
+let _unused = null; // sample/db replaced
+
+// ── 고도화: 참여자 코드 ──
+let participantCode = '';
+
+// ── 고도화: 모드 (false=탐색, true=검증) ──
+let interviewVerifyMode = false;
+let workshopVerifyMode = false;
+
+// ── 고도화: 타이머 ──
+let interviewTimerInterval = null;
+let interviewTimerSeconds = 0;
+let interviewQCount = 0;
+let workshopTimerInterval = null;
+let workshopTimerSeconds = 0;
+let workshopQCount = 0;
+
+// ── 고도화: 출처 추적 ──
+let sourceCitationMap = {};
+
+function formatTime(sec) {
+  const m = String(Math.floor(sec / 60)).padStart(2, '0');
+  const s = String(sec % 60).padStart(2, '0');
+  return m + ':' + s;
+}
+function startTimer(type) {
+  if (type === 'interview') {
+    if (interviewTimerInterval) return;
+    interviewTimerInterval = setInterval(() => {
+      interviewTimerSeconds++;
+      document.getElementById('interview-timer').textContent = formatTime(interviewTimerSeconds);
+    }, 1000);
+  } else {
+    if (workshopTimerInterval) return;
+    workshopTimerInterval = setInterval(() => {
+      workshopTimerSeconds++;
+      document.getElementById('workshop-timer').textContent = formatTime(workshopTimerSeconds);
+    }, 1000);
+  }
+}
+function resetTimer(type) {
+  if (type === 'interview') {
+    clearInterval(interviewTimerInterval); interviewTimerInterval = null;
+    interviewTimerSeconds = 0; interviewQCount = 0;
+    document.getElementById('interview-timer').textContent = '00:00';
+    document.getElementById('interview-q-count').textContent = '0';
+  } else {
+    clearInterval(workshopTimerInterval); workshopTimerInterval = null;
+    workshopTimerSeconds = 0; workshopQCount = 0;
+    document.getElementById('workshop-timer').textContent = '00:00';
+    document.getElementById('workshop-q-count').textContent = '0';
+  }
+}
+
+// ══════════════════════════════════════
+//  DB & Sample 초기화
+// ══════════════════════════════════════
+async function initApp() {
+  try {
+    const storedPersonas = await supabase.get('personas');
+    if (storedPersonas && storedPersonas.list && storedPersonas.list.length) {
+      personas = storedPersonas.list.map(function(p) { return Object.assign({}, p); });
+      if (ensurePersonaFields(personas)) { await supabase.set('personas', { list: personas }); }
+      renderPersonaBank();
+      updateSidebars();
+      document.getElementById('init-notice').style.display = 'none';
+      document.getElementById('filter-bar').style.display = 'flex';
+      document.getElementById('regen-btn').style.display = 'inline-flex';
+    }
+    const storedRefs = await supabase.get('references_data');
+    if (storedRefs && storedRefs.list && storedRefs.list.length) {
+      references = storedRefs.list;
+      renderRefList();
+    }
+  } catch(e) { console.warn('데이터 로드 실패:', e); }
+
+  supabase.subscribe('personas', function(row) {
+    if (row && row.list) {
+      personas = row.list.map(function(p) { return Object.assign({}, p); });
+      ensurePersonaFields(personas);
+      renderPersonaBank();
+      updateSidebars();
+    }
+  });
+  supabase.subscribe('references_data', function(row) {
+    if (row && row.list) { references = row.list; renderRefList(); }
+  });
+}
+
+// ══════════════════════════════════════
+//  참고 자료
+// ══════════════════════════════════════
+const DEFAULT_REFS = [
+  { id:'d0', persona:false, title:'금융위원회 온라인 금융상품 판매 다크패턴 가이드라인 (2026.04 시행)', url:'', cat:'law', memo:'소비자의 착각·실수·비합리적 지출을 유도하는 설계를 오도형·방해형·압박형·편취유도형 4개 범주, 15개 세부 유형으로 구분' },
+  { id:'d1', persona:false, title:'토스증권 해외옵션 서비스 투자자 보호 논란 (2025~2026)', url:'', cat:'qual', memo:'수익 가능성은 직관적으로 강조되고 손실 구조는 상대적으로 이해하기 어렵다는 지적 · 2026년 의무교육 영상을 화면에서 숨긴 채 재생할 수 있던 UX 논란' },
+  { id:'r0', title:'2024 전국민 금융이해력 조사 (금감원·한국은행, 2025.04)', url:'https://www.bok.or.kr/portal/bbs/B0000502/view.do?menuNo=201265&nttId=10091152', cat:'stat', memo:'성인 금융이해력 65.7점, 20대 금융행위 취약 · OECD 평균(62.7) 상회 · 디지털 금융 이해력 59.3점으로 낮음' },
+  { id:'r1', title:'금감원 불법 리딩방·유사투자자문 현황 (2026.07 국정감사)', url:'https://www.insightkorea.co.kr/news/articleView.html?idxno=254360', cat:'stat', memo:'2022~2026.7월 유사투자자문 신고 3,357건 · 유료 리딩방 민원 538건 · AI·자동매매 불법 일임 적발 · 피해액 3년간 1조5천억 육박' },
+  { id:'r2', title:'금감원 핀플루언서 채널 점검 결과 (2025)', url:'https://www.sisajournal.com/news/articleView.html?idxno=387609', cat:'qual', memo:'주식·경제 분야 채널 369개 점검 · 151개 채널 영상 5,511건 위법 정황 · 33개 채널 수사의뢰 · SNS 금융 조언 따른 투자자 74% 금전손실 경험' },
+  { id:'r3', title:'2025년 디지털 금융이용실태 조사 (한국금융소비자보호재단)', url:'', cat:'stat', memo:'디지털 금융 이해력 59.3점 · MTS 등 개인투자자 유가증권 거래 97% 디지털 환경 · 20~40대 모바일 금융 이용률 95% 이상' },
+  { id:'r4', title:'불법 투자사기형 피싱 피해 현황 (금감원, 2026 1분기)', url:'https://m.news.nate.com/view/20260915n30451', cat:'stat', memo:'2026년 1분기 피해액 1,817억원·6,769건 · 피해자 75.2%가 50대 이상 · 해외거점 초국경형 리딩방 범죄 증가' },
+  { id:'r5', title:'핀플루언서 선행매매 적발 및 광고 TF 출범 (금감원, 2026.03)', url:'https://www.seoul.co.kr/news/economy/finance/2026/03/22/20260322500054', cat:'law', memo:'텔레그램·유튜브 선행매매 다수 적발 · 금감원 광고제도 개선 TF 출범 · 핀플루언서 규제 공백 문제 부상' },
+];
+
+function renderRefList() {
+  const el = document.getElementById('ref-list');
+  const catLabel = { stat:'통계', qual:'질적', law:'법령' };
+  const catClass = { stat:'cat-stat', qual:'cat-qual', law:'cat-law' };
+  const all = [...DEFAULT_REFS, ...references];
+  if (!all.length) { el.innerHTML = ''; return; }
+  el.innerHTML = all.map(r => `
+    <div class="ref-item" data-id="${r.id}">
+      <span class="ref-item-cat ${catClass[r.cat]||'cat-stat'}">${catLabel[r.cat]||'기타'}</span>
+      <span class="ref-item-cat" style="background:${r.persona===false?'var(--cal-surface-strong)':'var(--cal-accent-tint)'};color:${r.persona===false?'var(--cal-muted)':'#1e40af'}">${r.persona===false?'연구자용':'배경 전달'}</span>
+      <span class="ref-item-title">${r.title}${r.memo ? ` <span style="color:var(--cal-muted)">— ${r.memo}</span>` : ''}</span>
+      ${!DEFAULT_REFS.find(d=>d.id===r.id) ? `<button class="ref-item-del" data-id="${r.id}" title="삭제">×</button>` : ''}
+    </div>
+  `).join('');
+  el.querySelectorAll('.ref-item-del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      references = references.filter(r => r.id !== btn.dataset.id);
+      await saveRefs();
+      renderRefList();
+    });
+  });
+}
+
+async function saveRefs() {
+  try { await supabase.set('references_data', { list: references }); } catch(e) { console.warn('참고자료 저장 실패:', e); }
+}
+
+document.getElementById('toggle-ref-form').addEventListener('click', () => {
+  const area = document.getElementById('ref-form-area');
+  area.style.display = area.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('add-ref-btn').addEventListener('click', async () => {
+  const title = document.getElementById('ref-title').value.trim();
+  if (!title) return;
+  const newRef = {
+    id: 'r' + Date.now(),
+    title,
+    url: document.getElementById('ref-url').value.trim(),
+    cat: document.getElementById('ref-cat').value,
+    memo: document.getElementById('ref-memo').value.trim(),
+    persona: document.getElementById('ref-persona').checked
+  };
+  references.push(newRef);
+  await saveRefs();
+  renderRefList();
+  document.getElementById('ref-title').value = '';
+  document.getElementById('ref-url').value = '';
+  document.getElementById('ref-memo').value = '';
+});
+
+// 초기 기본 자료 렌더링
+renderRefList();
+
+// ══════════════════════════════════════
+//  페르소나 생성
+// ══════════════════════════════════════
+async function generatePersonas(regen = false) {
+  const loadingEl = document.getElementById('gen-loading');
+  const loadingText = document.getElementById('gen-loading-text');
+  const btn = document.getElementById('gen-btn');
+
+  loadingEl.classList.add('show');
+  btn.disabled = true;
+  document.getElementById('regen-btn').disabled = true;
+
+  // 분포에 따라 100명 생성
+  const steps = ['인구통계 분포 계산 중…', '페르소나 프로필 구성 중…', '경험 특성 설정 중…', '상황 특성 및 가드레일 적용 중…', 'DB 저장 및 팀 동기화 중…'];
+  for (let i = 0; i < steps.length; i++) {
+    loadingText.textContent = steps[i];
+    await new Promise(r => setTimeout(r, 400));
+  }
+
+  personas = Array.from({ length: 100 }, (_, i) => buildPersona(i + 1));
+
+  try { await supabase.set('personas', { list: personas }); } catch(e) { console.warn('페르소나 저장 실패:', e); }
+
+  renderPersonaBank();
+  updateSidebars();
+  loadingEl.classList.remove('show');
+  btn.disabled = false;
+  document.getElementById('regen-btn').disabled = false;
+  document.getElementById('init-notice').style.display = 'none';
+  document.getElementById('filter-bar').style.display = 'flex';
+  document.getElementById('regen-btn').style.display = 'inline-flex';
+}
+
+document.getElementById('gen-btn').addEventListener('click', () => generatePersonas(false));
+document.getElementById('regen-btn').addEventListener('click', () => generatePersonas(true));
+
+// ══════════════════════════════════════
+//  페르소나 뱅크 렌더링
+// ══════════════════════════════════════
+function getFiltered() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const age = document.getElementById('filter-age').value;
+  const level = document.getElementById('filter-level').value;
+  const channel = document.getElementById('filter-channel').value;
+  const literacy = document.getElementById('filter-literacy').value;
+  const ai = document.getElementById('filter-ai').value;
+  return personas.filter(p =>
+    (!search || p.name.includes(search)) &&
+    (!age || p.age === age) &&
+    (!level || p.level === level) &&
+    (!channel || p.channel === channel) &&
+    (!literacy || p.literacy === literacy) &&
+    (!ai || p.aiUse === ai)
+  );
+}
+
+function renderPersonaBank() {
+  const grid = document.getElementById('persona-grid');
+  const filtered = getFiltered();
+  document.getElementById('persona-count').textContent = personas.length;
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="msg">해당하는 페르소나가 없습니다</div></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(p => `
+    <div class="persona-card" data-id="${p.id}">
+      <div class="persona-check">✓</div>
+      <div class="persona-card-top">
+        <div class="persona-avatar" style="background:${p.bgColor}"></div>
+        <div class="persona-meta">
+          <div class="persona-name">${p.name} <span style="font-size:12px;font-weight:400;color:var(--cal-muted)">${p.gender}·${p.age}</span></div>
+          <div class="persona-tag-row">
+            <span class="tag tag-age">${p.profession}</span>
+            <span class="tag ${levelClass(p.level)}">${p.level}</span>
+            <span class="tag tag-channel">${p.channel}</span>
+            ${p.brokerApp ? `<span class="tag tag-age">${p.brokerApp}</span>` : ''}
+            ${p.literacy ? `<span class="tag tag-lit">이해도 ${p.literacy}</span>` : ''}
+            ${p.aiUse ? `<span class="tag tag-ai">AI ${p.aiUse}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="persona-needs">${p.worry}</div>
+    </div>
+  `).join('');
+
+  grid.querySelectorAll('.persona-card').forEach(card => {
+    card.addEventListener('click', () => openPersonaModal(card.dataset.id));
+  });
+}
+
+function levelClass(level) {
+  return level === '초보' ? 'tag-level-beginner' : level === '고급' ? 'tag-level-advanced' : 'tag-level-intermediate';
+}
+// 필터 이벤트 — 필터 결과가 인터뷰·워크숍·설문·사용성 평가 목록에도 반영됨
+['search-input','filter-age','filter-level','filter-channel','filter-literacy','filter-ai'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { renderPersonaBank(); updateSidebars(); });
+});
+document.getElementById('filter-reset').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-age').value = '';
+  document.getElementById('filter-level').value = '';
+  document.getElementById('filter-channel').value = '';
+  document.getElementById('filter-literacy').value = '';
+  document.getElementById('filter-ai').value = '';
+  renderPersonaBank();
+  updateSidebars();
+});
+
+// ══════════════════════════════════════
+//  페르소나 모달
+// ══════════════════════════════════════
+let modalPersonaId = null;
+function openPersonaModal(id) {
+  const p = personas.find(x => x.id === id);
+  if (!p) return;
+  modalPersonaId = id;
+  document.getElementById('modal-photo').style.background = p.bgColor;
+  document.getElementById('modal-photo').innerHTML = '';
+  document.getElementById('modal-name').textContent = `${p.name} (${p.gender}·${p.age}·${p.profession})`;
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-block">
+      <div class="modal-block-title">① 인구통계</div>
+      <div class="modal-block-content">
+        <div class="modal-tag-group" style="margin-bottom:8px;">
+          <span class="tag tag-age">${p.age}</span>
+          <span class="tag tag-age">${p.gender}성</span>
+          <span class="tag tag-age">${p.profession}</span>
+          <span class="tag ${levelClass(p.level)}">${p.level} 투자자</span>
+        </div>
+        투자 경력: <strong>${p.invYears}</strong> · 디지털 숙련도: <strong>${p.digitalLevel}</strong><br>
+        금융 이해도: <strong>${p.literacy || '—'}</strong> · AI 투자 질문: <strong>${p.aiUse || '—'}</strong>
+      </div>
+    </div>
+    <div class="modal-block">
+      <div class="modal-block-title">② 행동·경험</div>
+      <div class="modal-block-content">
+        주 정보 채널: <strong>${p.channel}</strong> · 주 이용 증권앱: <strong>${p.brokerApp || '—'}</strong> <span style="font-size:12px;color:var(--cal-muted)">(쏠림 방지용 임의 배정)</span><br>
+        정보 확인 방식: ${p.verifyBehavior}<br>
+        주로 믿는 단서: ${p.trustCue || '—'}
+      </div>
+    </div>
+    <div class="modal-block">
+      <div class="modal-block-title">③ 심리적 특성</div>
+      <div class="modal-block-content">
+        핵심 불안: <em>"${p.worry}"</em><br>
+        투자 목표: ${p.goal}
+      </div>
+    </div>
+    <div class="modal-block">
+      <div class="modal-block-title">④ 맥락</div>
+      <div class="modal-block-content">
+        말투 성향: ${p.speechStyle}<br>
+        가드레일: 수익률 등 구체적 수치는 지어내지 않음 · 묻지 않은 특정 증권사·사건은 꺼내지 않음
+      </div>
+    </div>
+    <div class="modal-block">
+      <div class="modal-block-title">⑤ 자료 전달 방식</div>
+      <div class="modal-block-content" style="font-size:12px;color:var(--cal-muted);">
+        페르소나 속성은 위 분포에 따른 무작위 조합입니다. 응답에는 '배경 전달'로 표시된 자료(현재 ${personaRefs().length}건)만 시장 배경으로 전달되고, 연구자용 사례 자료는 전달되지 않습니다.
+      </div>
+    </div>
+  `;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+document.getElementById('modal-close').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('show');
+});
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('show');
+  }
+});
+document.getElementById('modal-go-interview').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('show');
+  selectTab('interview');
+  if (modalPersonaId) selectInterviewPersona(modalPersonaId);
+});
+document.getElementById('modal-go-workshop').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('show');
+  selectTab('workshop');
+  if (modalPersonaId) addWorkshopParticipant(modalPersonaId);
+});
+
+// ══════════════════════════════════════
+//  사이드바 업데이트 (인터뷰·워크숍)
+// ══════════════════════════════════════
+function updateSidebars() {
+  // 인터뷰 사이드바 — 페르소나 뱅크 필터 결과 기준 (최대 30명 + 현재 선택)
+  const interviewList = document.getElementById('interview-persona-list');
+  const filteredList = getFiltered();
+  const listForInterview = filteredList.slice(0, 30);
+  if (selectedInterviewPersona && !listForInterview.find(p => p.id === selectedInterviewPersona.id)) listForInterview.unshift(selectedInterviewPersona);
+  interviewList.innerHTML = listForInterview.map(p => `
+    <div class="sidebar-persona-item ${selectedInterviewPersona?.id === p.id ? 'active' : ''}" data-id="${p.id}">
+      <div class="sidebar-avatar" style="background:${p.bgColor}"></div>
+      <div class="sidebar-info">
+        <div class="name">${p.name}</div>
+        <div class="desc">${p.age} · ${p.level} · ${p.channel} · 이해도 ${p.literacy || '—'}</div>
+      </div>
+    </div>
+  `).join('');
+  interviewList.querySelectorAll('.sidebar-persona-item').forEach(item => {
+    item.addEventListener('click', () => selectInterviewPersona(item.dataset.id));
+  });
+
+  // 설문·사용성 select 업데이트
+  updateSelectOptions('survey-persona-select');
+  updateSelectOptions('usability-persona-select');
+
+  // 워크숍 목록
+  const workshopList = document.getElementById('workshop-persona-list');
+  const listForWorkshop = filteredList.slice(0, 30);
+  workshopParticipants.forEach(id => { if (!listForWorkshop.find(p => p.id === id)) { const wp = personas.find(p => p.id === id); if (wp) listForWorkshop.unshift(wp); } });
+  workshopList.innerHTML = listForWorkshop.map(p => `
+    <div class="sidebar-persona-item ${workshopParticipants.includes(p.id) ? 'active' : ''}" data-id="${p.id}">
+      <div class="sidebar-avatar" style="background:${p.bgColor}"></div>
+      <div class="sidebar-info">
+        <div class="name">${p.name}</div>
+        <div class="desc">${p.age} · ${p.level} · AI ${p.aiUse || '—'}</div>
+      </div>
+    </div>
+  `).join('');
+  workshopList.querySelectorAll('.sidebar-persona-item').forEach(item => {
+    item.addEventListener('click', () => toggleWorkshopParticipant(item.dataset.id));
+  });
+  renderWorkshopParticipants();
+}
+
+function updateSelectOptions(selectId) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = getFiltered().slice(0, 50).map(p =>
+    `<option value="${p.id}">${p.name} (${p.age} ${p.level})</option>`
+  ).join('');
+}
+
+// ══════════════════════════════════════
+//  심층 인터뷰
+// ══════════════════════════════════════
+function selectInterviewPersona(id) {
+  selectedInterviewPersona = personas.find(p => p.id === id);
+  interviewHistory = [];
+  if (!selectedInterviewPersona) return;
+
+  const p = selectedInterviewPersona;
+  document.getElementById('interview-avatar').innerHTML = '';
+  document.getElementById('interview-avatar').style.background = p.bgColor;
+  document.getElementById('interview-avatar').style.background = p.bgColor;
+  document.getElementById('interview-persona-name').textContent = p.name;
+  document.getElementById('interview-persona-role').textContent = `${p.age} · ${p.profession} · ${p.level} 투자자 · ${p.channel} 주 이용`;
+
+  document.getElementById('chat-messages').innerHTML = `
+    <div class="msg assistant">
+      <div class="msg-avatar" style="background:${p.bgColor};flex-shrink:0;"></div>
+      <div>
+        <div class="msg-bubble">안녕하세요, ${p.name}입니다. 투자한 지는 ${p.invYears} 됐고, 주로 ${p.brokerApp || '증권'} 앱을 써요. 투자 정보는 ${p.channel}에서 많이 봐요. 편하게 물어보세요.</div>
+        <div class="source-badge">합성 응답 · 실제 사용자 데이터 아님</div>
+      </div>
+    </div>
+  `;
+  document.getElementById('interview-persona-list').querySelectorAll('.sidebar-persona-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.id === id);
+  });
+}
+
+async function sendInterviewMessage() {
+  if (!selectedInterviewPersona) { showDialog('페르소나를 먼저 선택해주세요', '왼쪽 목록에서 인터뷰할 페르소나를 선택한 뒤\n질문을 전송해주세요.'); return; }
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.classList.remove('has-content');
+  input.style.height = '44px';
+  const p = selectedInterviewPersona;
+  const messagesEl = document.getElementById('chat-messages');
+
+  // 사용자 메시지
+  messagesEl.insertAdjacentHTML('beforeend', `
+    <div class="msg user">
+      <div class="msg-bubble">${text}</div>
+    </div>
+  `);
+
+  // 생각 중 표시
+  const thinkingId = 'thinking-' + Date.now();
+  messagesEl.insertAdjacentHTML('beforeend', `
+    <div class="msg assistant" id="${thinkingId}">
+      <div class="msg-avatar" style="background:${p.bgColor};flex-shrink:0;"></div>
+      <div class="thinking-indicator"><div class="dot-pulse"></div><div class="dot-pulse"></div><div class="dot-pulse"></div></div>
+    </div>
+  `);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  const refContext = refContextText();
+
+  const systemPrompt = `당신은 다음 조건을 가진 합성 사용자(연구 참여자)입니다.
+
+[개인 특성]
+- 이름: ${p.name} (${p.gender}성, ${p.age}, ${p.profession})
+- 투자 경험: ${p.level} (${p.invYears})
+- 디지털 숙련도: ${p.digitalLevel}
+- 금융 이해도: ${p.literacy || '보통'} (낮으면 옵션·레버리지·수수료 구조 같은 용어를 정확히 모르는 게 자연스러움)
+- 투자 관련 AI(ChatGPT 등) 활용: ${p.aiUse || '가끔 사용'}
+- 주로 쓰는 증권앱: ${p.brokerApp || '특정하지 않음'}
+
+[관련 경험]
+- 주 정보 채널: ${p.channel}
+- 정보 확인 방식: ${p.verifyBehavior}
+- 핵심 불안: "${p.worry}"
+- 주로 믿는 단서: ${p.trustCue || '구체적인 숫자'}
+- 투자 목표: ${p.goal}
+
+[목표와 제약]
+- 말투: ${p.speechStyle}
+- 실제 사람처럼 기억이 불완전합니다. 모든 정보를 꼼꼼히 확인했다고 말하지 마세요. 위 '정보 확인 방식'대로 행동한 사람으로서, 안 읽고 넘긴 것·귀찮아서 건너뛴 것·몰랐던 것을 솔직하게 말하세요
+- 결정을 나중에 그럴듯하게 합리화하지 마세요. 그때의 감정(조급함, 귀찮음, 기대감)을 그대로 말하세요
+- 연구자가 묻지 않은 '다크패턴', '이해상충' 같은 전문 개념을 먼저 꺼내지 마세요
+- 앱 경험은 위 '주로 쓰는 증권앱' 기준으로 말하세요. ${p.brokerApp && p.brokerApp !== '특정하지 않음' ? '다른 증권사 이름은 연구자가 묻지 않으면 꺼내지 마세요' : '특정 증권사 이름을 먼저 꺼내지 마세요'}
+
+[시장 배경 — 당신의 개인 경험이 아님]
+${refContext}
+
+[응답 원칙]
+- 모르는 것은 모른다고 답하세요
+- 사회적으로 바람직한 답이 아니라 현실적인 행동을 말하세요
+- 200자 내외로 자연스럽게 대화하세요
+- 자신이 AI라는 점을 언급하지 말고 이 인물로서만 답하세요`;
+
+  // 타이머 시작 + 카운트
+  startTimer('interview');
+  interviewQCount++;
+  document.getElementById('interview-q-count').textContent = interviewQCount;
+
+  // 모드에 따라 응답 원칙 변경
+  const modeRule = interviewVerifyMode
+    ? `[검증 모드 — 엄격 적용]
+- 페르소나 설정에 없는 구체적 경험(상품명, 금액, 수익률, 날짜)은 지어내지 마세요
+- 그런 질문에는 "정확히는 기억이 안 나요"처럼 답하고, 설정에서 알 수 있는 범위만 말하세요`
+    : `[탐색 모드]
+- 페르소나 설정을 바탕으로 그럴듯한 경험을 구체적으로 채워 답해도 됩니다 (가설 생성용)
+- 단, 수익률 같은 구체적 수치는 만들지 마세요`;
+
+  interviewHistory.push({ role: 'user', content: text });
+
+  try {
+    let fullText = '';
+    const finalPrompt = systemPrompt.replace('[응답 원칙]', modeRule + '\n\n[응답 원칙 추가]');
+    // 설정 프롬프트를 첫 질문과 합쳐 user/assistant 순서가 번갈아 이어지도록 구성
+    const turns = interviewHistory.map((m, i) => i === 0
+      ? { role: 'user', content: finalPrompt + '\n\n[연구자 질문]\n' + m.content }
+      : { role: m.role, content: m.content });
+    const resp = await callAI(turns, { onText: function(o) { fullText = o.text; } });
+    interviewHistory.push({ role: 'assistant', content: resp.text });
+
+    // 출처 추적
+    const allRefs2 = [...DEFAULT_REFS, ...references];
+    allRefs2.forEach(r => { if (resp.text.includes(r.title.slice(0,10))) trackCitation(r.title); });
+
+    document.getElementById(thinkingId).outerHTML = `
+      <div class="msg assistant">
+        <div class="msg-avatar" style="background:${p.bgColor};flex-shrink:0;"></div>
+        <div>
+          <div class="msg-bubble">${resp.text}</div>
+          <div class="source-badge">합성 응답 · ${interviewVerifyMode ? '검증 모드' : '탐색 모드'} · 실제 사용자 데이터 아님</div>
+        </div>
+      </div>
+    `;
+  } catch(e) {
+    document.getElementById(thinkingId).outerHTML = `
+      <div class="msg assistant">
+        <div class="msg-avatar" style="background:${p.bgColor};flex-shrink:0;"></div>
+        <div class="msg-bubble" style="color:var(--cal-error)">응답 생성 실패: ${e.message || '다시 시도해주세요'}</div>
+      </div>
+    `;
+  }
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+document.getElementById('chat-send').addEventListener('click', sendInterviewMessage);
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendInterviewMessage(); }
+});
+
+// ══════════════════════════════════════
+//  설문
+// ══════════════════════════════════════
+document.getElementById('run-survey').addEventListener('click', async () => {
+  
+  const sel = document.getElementById('survey-persona-select');
+  const selectedIds = Array.from(sel.selectedOptions).map(o => o.value);
+  const selectedPersonas = selectedIds.length ? personas.filter(p => selectedIds.includes(p.id)) : getFiltered().slice(0, 3);
+
+  const q1 = document.getElementById('q1').value;
+  const q2 = document.getElementById('q2').value;
+  const q3 = document.getElementById('q3').value;
+  const format = document.getElementById('survey-format').value;
+
+  document.getElementById('survey-loading').classList.add('show');
+  document.getElementById('survey-result').innerHTML = '';
+
+  const prompt = `다음 ${selectedPersonas.length}명의 합성 사용자가 설문에 응답합니다.
+
+페르소나 목록:
+${selectedPersonas.map(p => `- ${p.name} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}")`).join('\n')}
+
+시장 배경 (참여자 개인 경험 아님):
+${refContextText()}
+
+설문 문항:
+1. ${q1} (선택지: 매우 신뢰/다소 신뢰/보통/다소 불신/매우 불신)
+2. ${q2}
+3. ${q3}
+
+${format === 'table' ? '각 페르소나의 응답을 마크다운 표 형식으로 작성해주세요. 컬럼: 이름 | 문항1 | 문항2 요약 | 문항3 요약' :
+  format === 'individual' ? '각 페르소나별로 상세한 응답을 작성해주세요. 참고 자료에서 가져온 내용이 있으면 해당 자료 제목을 [근거: 자료명]으로 표시하고, 없으면 [근거: 페르소나 설정]으로 표시해주세요.' :
+  '전체 응답을 분석하여 공통 패턴, 차이점, 핵심 인사이트를 요약해주세요.'}
+
+가드레일: 자료에 없는 구체적 수치나 확신할 수 없는 정보는 "판단하기 어렵습니다"로 답하세요. 사회적으로 바람직한 답이 아니라 현실적인 행동을 말하세요. 각 페르소나의 '정보 확인 방식'에 맞게, 꼼꼼하지 않은 사람은 꼼꼼하지 않게 답하세요. 각자 주로 쓰는 앱을 기준으로 답하고, 묻지 않은 특정 증권사·사건을 꺼내지 마세요.`;
+
+  try {
+    let resultText = '';
+    await callAI(prompt, {
+      onText: function(o) {
+        resultText = o.text;
+        surveyResultText = o.text;
+        document.getElementById('survey-result').innerHTML = '<div class="survey-result-area">' + o.text + '</div>';
+      }
+    });
+  } catch(e) {
+    document.getElementById('survey-result').innerHTML = `<div style="color:var(--cal-error);font-size:13px;">오류: ${e.message}</div>`;
+  }
+  document.getElementById('survey-loading').classList.remove('show');
+  // 출처 분산 업데이트
+  const allRefsS = [...DEFAULT_REFS, ...references];
+  allRefsS.forEach(r => { if (surveyResultText.includes(r.title.slice(0,10))) trackCitation(r.title); });
+  renderSourceDist();
+});
+
+// ══════════════════════════════════════
+//  워크숍
+// ══════════════════════════════════════
+function toggleWorkshopParticipant(id) {
+  if (workshopParticipants.includes(id)) {
+    workshopParticipants = workshopParticipants.filter(x => x !== id);
+  } else {
+    if (workshopParticipants.length >= 4) return;
+    workshopParticipants.push(id);
+  }
+  updateSidebars();
+}
+
+function addWorkshopParticipant(id) {
+  if (!workshopParticipants.includes(id) && workshopParticipants.length < 4) {
+    workshopParticipants.push(id);
+    updateSidebars();
+  }
+}
+
+function renderWorkshopParticipants() {
+  const el = document.getElementById('workshop-participants');
+  const active = workshopParticipants.map(id => personas.find(p => p.id === id)).filter(Boolean);
+  if (!active.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--cal-muted);">참여자 없음 — 왼쪽에서 선택하세요</div>';
+    return;
+  }
+  el.innerHTML = active.map(p => `
+    <div class="participant-chip" style="border-color:${p.bgColor}">
+      <span style="width:20px;height:20px;border-radius:5px;background:${p.bgColor};flex-shrink:0;display:inline-block;"></span>
+      ${p.name} <span style="color:var(--cal-muted);font-size:11px;">${p.age}</span>
+    </div>
+  `).join('');
+}
+
+async function sendWorkshopMessage() {
+  
+  if (workshopParticipants.length < 1) { showDialog('참여자를 먼저 선택해주세요', '왼쪽 목록에서 워크숍에 참여할 페르소나를\n1명 이상 선택한 뒤 아이디어를 던져주세요.'); return; }
+  const input = document.getElementById('workshop-input');
+  const idea = input.value.trim();
+  if (!idea) return;
+  input.value = '';
+  input.classList.remove('has-content');
+  input.style.height = '44px';
+
+  const active = workshopParticipants.map(id => personas.find(p => p.id === id)).filter(Boolean);
+  const messagesEl = document.getElementById('workshop-messages');
+
+  // 연구자 메시지
+  messagesEl.insertAdjacentHTML('beforeend', `
+    <div class="msg user">
+      <div class="msg-bubble"><strong>연구자</strong> ${idea}</div>
+    </div>
+  `);
+
+  // 각 페르소나 순서대로 응답
+  const thinkingId = 'ws-thinking-' + Date.now();
+  messagesEl.insertAdjacentHTML('beforeend', `
+    <div id="${thinkingId}" style="display:flex;gap:8px;align-items:center;padding:8px 0;">
+      <div class="spinner" style="width:14px;height:14px;border-width:2px;"></div>
+      <span style="font-size:12px;color:var(--cal-muted);">참여자들이 반응 중…</span>
+    </div>
+  `);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  const prompt = `다음은 아이디어 워크숍 참여자들입니다:
+${active.map(p => `- ${p.name} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}"), 말투 "${p.speechStyle}"`).join('\n')}
+
+시장 배경 (참여자 개인 경험 아님):
+${refContextText()}
+
+연구자가 다음 아이디어를 제시했습니다:
+"${idea}"
+
+각 참여자가 이 아이디어에 대해 순서대로 자신의 관점에서 반응합니다. 서로 다른 입장이 드러나도록, 동의와 반박이 섞이도록 작성하세요.
+
+형식 (이름에 대괄호를 붙이지 마세요):
+**이름:** (반응 내용, 100자 내외, 다른 참여자의 발언에 반응하거나 새로운 관점 추가)
+
+가드레일: 투자 전문 지식이 없는 일반인으로 현실적인 반응을 보이세요. 수익률 등 확인 불가한 수치는 말하지 마세요.`;
+
+  // 타이머 시작 + 카운트
+  startTimer('workshop');
+  workshopQCount++;
+  document.getElementById('workshop-q-count').textContent = workshopQCount;
+
+  const wsGuardrail = workshopVerifyMode
+    ? '가드레일(검증 모드): 페르소나 설정에 없는 구체적 경험(상품명·금액·수익률)은 지어내지 마세요. 각자 주로 쓰는 앱을 기준으로 말하고, 묻지 않은 특정 증권사·사건을 꺼내지 마세요.'
+    : '가드레일(탐색 모드): 투자 전문 지식이 없는 일반인으로 현실적인 반응을 보이세요. 수익률 등 확인 불가한 수치는 말하지 마세요. 각자 주로 쓰는 앱을 기준으로 말하고, 묻지 않은 특정 증권사·사건을 꺼내지 마세요.';
+
+  workshopHistory.push({ role: 'user', content: idea });
+
+  try {
+    const wsPrompt = prompt.replace('가드레일: 투자 전문 지식이 없는 일반인으로 현실적인 반응을 보이세요. 수익률 등 확인 불가한 수치는 말하지 마세요.', wsGuardrail);
+    let resp = await callAI(wsPrompt);
+    workshopHistory.push({ role: 'assistant', content: resp.text });
+    // 출처 추적
+    const allRefs3 = [...DEFAULT_REFS, ...references];
+    allRefs3.forEach(r => { if (resp.text.includes(r.title.slice(0,10))) trackCitation(r.title); });
+
+    document.getElementById(thinkingId).remove();
+
+    // 응답을 참여자별로 파싱
+    const lines = resp.text.split('\n').filter(l => l.trim());
+    let html = '';
+    for (const line of lines) {
+      // '**이름:** 내용', '**[이름]:** 내용', '**이름**: 내용', '이름: 내용' 모두 인식
+      const match = line.replace(/\*\*/g, '').match(/^\s*[-•]?\s*\[?([^\]:：]{1,12})\]?\s*[:：]\s*(.+)$/);
+      const persona = match ? active.find(p => match[1].includes(p.name)) : null;
+      if (match && persona) {
+        const content = match[2].trim();
+        html += `
+          <div class="msg assistant">
+            <div class="msg-avatar" style="background:${persona.bgColor};flex-shrink:0;"></div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--cal-body);margin-bottom:4px;">${persona.name}</div>
+              <div class="msg-bubble">${content}</div>
+            </div>
+          </div>
+        `;
+      } else if (line.trim()) {
+        html += `<div style="font-size:13px;color:var(--cal-body);padding:4px 0;">${line}</div>`;
+      }
+    }
+    messagesEl.insertAdjacentHTML('beforeend', html || `<div class="msg assistant"><div class="msg-bubble">${resp.text}</div></div>`);
+  } catch(e) {
+    document.getElementById(thinkingId).remove();
+    messagesEl.insertAdjacentHTML('beforeend', `<div style="color:var(--cal-error);font-size:13px;padding:8px;">오류: ${e.message}</div>`);
+  }
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+document.getElementById('workshop-send').addEventListener('click', sendWorkshopMessage);
+document.getElementById('workshop-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendWorkshopMessage(); }
+});
+
+// ══════════════════════════════════════
+//  사용성 평가
+// ══════════════════════════════════════
+document.getElementById('run-usability').addEventListener('click', async () => {
+  
+  const sel = document.getElementById('usability-persona-select');
+  const selectedIds = Array.from(sel.selectedOptions).map(o => o.value);
+  const selectedPersonas = selectedIds.length ? personas.filter(p => selectedIds.includes(p.id)) : getFiltered().slice(0, 2);
+  const desc = document.getElementById('usability-desc').value;
+
+  document.getElementById('usability-loading').classList.add('show');
+  document.getElementById('usability-result').innerHTML = '';
+
+  const prompt = `다음 합성 사용자들이 아래 서비스/기능을 사용성 평가합니다.
+
+[평가 대상]
+${desc}
+
+[평가 참여자]
+${selectedPersonas.map(p => `- ${p.name} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}"), 디지털 숙련도: ${p.digitalLevel}`).join('\n')}
+
+[시장 배경 — 참여자 개인 경험 아님]
+${refContextText()}
+
+[평가 기준]
+1. 이해도: 기능을 직관적으로 이해할 수 있는가?
+2. 신뢰도: 제공하는 정보를 믿을 수 있는가?
+3. 사용 의향: 실제로 이 기능을 쓸 것 같은가?
+4. 불안 요소: 어느 지점에서 막히거나 불안을 느끼는가?
+5. 위험 인지: 연구자가 알려주지 않은 상태에서 손실 구조·비용·조건을 스스로 알아차렸는가? (알아차리지 못했다면 못했다고 쓰세요)
+6. 건너뛴 정보: 실제 상황이라면 읽지 않고 넘겼을 부분은 어디인가?
+
+각 참여자별로 위 6가지 기준에 대한 평가를 작성하세요. 마지막에 전체 요약 및 개선 제안을 추가하세요.
+
+형식:
+**[이름] 평가**
+- 이해도 (★★★★☆): (의견)
+- 신뢰도 (★★★☆☆): (의견)
+- 사용 의향 (★★★★☆): (의견)
+- 불안 요소: (구체적인 막히는 지점)
+- 위험 인지: (알아차림 / 일부만 / 못 알아차림 + 이유)
+- 건너뛴 정보: (넘겼을 부분)
+
+---
+**종합 인사이트**: (핵심 개선점 3가지)
+
+가드레일: 각 참여자의 투자 경험·금융 이해도·디지털 숙련도에 맞는 수준으로 현실적 반응을 보이세요. 화면을 처음 보는 일반인이 실제로 읽는 만큼만 읽은 것처럼 평가하고, 설명된 모든 정보를 꼼꼼히 읽었다고 가정하지 마세요. 평가 대상은 가상의 화면이므로 실제 증권사 이름을 붙이지 마세요.`;
+
+  try {
+    let result = '';
+    await callAI(prompt, {
+      onText: function(o) {
+        result = o.text;
+        document.getElementById('usability-result').innerHTML = '<div class="survey-result-area" style="white-space:pre-wrap;">' + o.text + '</div>';
+      }
+    });
+  } catch(e) {
+    document.getElementById('usability-result').innerHTML = `<div style="color:var(--cal-error);font-size:13px;">오류: ${e.message}</div>`;
+  }
+  document.getElementById('usability-loading').classList.remove('show');
+});
+
+
+// ══════════════════════════════════════
+//  고도화 1: 참여자 코드
+// ══════════════════════════════════════
+document.getElementById('code-set-btn').addEventListener('click', () => {
+  const val = document.getElementById('code-input').value.trim();
+  if (!val) return;
+  participantCode = val;
+  document.getElementById('code-display').textContent = `참여자 ${val} — 대화 저장 시 파일명에 반영됩니다`;
+  document.getElementById('code-input').value = '';
+});
+document.getElementById('code-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('code-set-btn').click();
+});
+
+// ══════════════════════════════════════
+//  고도화 2: 탐색/검증 모드 토글
+// ══════════════════════════════════════
+function updateModeUI(type, isVerify) {
+  const badge = document.getElementById(type + '-mode-badge');
+  const desc = document.getElementById(type + '-mode-desc');
+  if (isVerify) {
+    badge.textContent = '검증 모드';
+    badge.className = 'mode-badge verify';
+    desc.textContent = '설정에 없는 구체적 경험(상품명·금액·수익률)은 지어내지 않고 "기억이 안 난다"고 답합니다';
+  } else {
+    badge.textContent = '탐색 모드';
+    badge.className = 'mode-badge explore';
+    desc.textContent = '설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용';
+  }
+}
+document.getElementById('interview-mode-toggle').addEventListener('change', e => {
+  interviewVerifyMode = e.target.checked;
+  updateModeUI('interview', interviewVerifyMode);
+});
+document.getElementById('workshop-mode-toggle').addEventListener('change', e => {
+  workshopVerifyMode = e.target.checked;
+  updateModeUI('workshop', workshopVerifyMode);
+});
+
+// ══════════════════════════════════════
+//  고도화 3: 타이머 이벤트
+// ══════════════════════════════════════
+document.getElementById('interview-timer-reset').addEventListener('click', () => resetTimer('interview'));
+document.getElementById('workshop-timer-reset').addEventListener('click', () => resetTimer('workshop'));
+
+// ══════════════════════════════════════
+//  고도화 4: 출처 분산 시각화
+// ══════════════════════════════════════
+function trackCitation(refTitle) {
+  sourceCitationMap[refTitle] = (sourceCitationMap[refTitle] || 0) + 1;
+}
+function renderSourceDist() {
+  const panel = document.getElementById('source-dist-panel');
+  const barsEl = document.getElementById('source-dist-bars');
+  const warnEl = document.getElementById('source-warn-msg');
+  const entries = Object.entries(sourceCitationMap);
+  if (!entries.length) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  const total = entries.reduce((s, [,v]) => s + v, 0);
+  const max = Math.max(...entries.map(([,v]) => v));
+  let dominated = false;
+  barsEl.innerHTML = entries
+    .sort(([,a],[,b]) => b - a)
+    .map(([title, count]) => {
+      const pct = Math.round(count / total * 100);
+      const isWarn = pct > 60 && entries.length > 1;
+      if (isWarn) dominated = true;
+      return `
+        <div class="source-bar-row">
+          <span class="source-bar-label" title="${title}">${title.slice(0,22)}${title.length>22?'…':''}</span>
+          <div class="source-bar-track">
+            <div class="source-bar-fill${isWarn?' warn':''}" style="width:${pct}%"></div>
+          </div>
+          <span class="source-bar-count">${count}</span>
+        </div>
+      `;
+    }).join('');
+  warnEl.classList.toggle('show', dominated);
+}
+
+// ══════════════════════════════════════
+//  고도화 5: 대화 저장 (TXT)
+// ══════════════════════════════════════
+async function downloadTxt(content, filename) {
+  try {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(a.href); }, 1000);
+  } catch(e) {
+    try { await navigator.clipboard.writeText(content); showDialog('클립보드에 복사됐습니다', '파일 저장을 사용할 수 없어\n내용을 클립보드에 복사했습니다.'); }
+    catch(e2) { showDialog('저장 실패', '저장할 수 없습니다. 다시 시도해주세요.'); }
+  }
+}
+
+document.getElementById('save-interview-btn').addEventListener('click', () => {
+  if (!selectedInterviewPersona || !interviewHistory.length) {
+    alert('저장할 대화 내용이 없습니다.');
+    return;
+  }
+  const p = selectedInterviewPersona;
+  const code = participantCode ? `참여자: ${participantCode}\n` : '';
+  const mode = interviewVerifyMode ? '검증 모드' : '탐색 모드';
+  const date = new Date().toLocaleString('ko-KR');
+  let txt = `합성 투자자 리서치 플랫폼 — 심층 인터뷰 대화록\n`;
+  txt += `${'='.repeat(50)}\n`;
+  txt += `${code}페르소나: ${p.name} (${p.age} ${p.profession} / ${p.level} 투자자)\n`;
+  txt += `정보 채널: ${p.channel} / 금융 이해도: ${p.literacy || '—'} / AI 활용: ${p.aiUse || '—'} / 모드: ${mode}\n`;
+  txt += `정보 확인 방식: ${p.verifyBehavior} / 주로 믿는 단서: ${p.trustCue || '—'}\n`;
+  txt += `※ 합성 응답 — 실제 사용자 데이터 아님\n`;
+  txt += `저장 일시: ${date}\n`;
+  txt += `경과 시간: ${formatTime(interviewTimerSeconds)} / 질문 수: ${interviewQCount}\n`;
+  txt += `${'='.repeat(50)}\n\n`;
+  interviewHistory.forEach(msg => {
+    const role = msg.role === 'user' ? '[ 연구자 ]' : `[ ${p.name} ]`;
+    txt += `${role}\n${msg.content}\n\n`;
+  });
+  const filename = `interview_${participantCode || 'nocode'}_${p.name}_${Date.now()}.txt`;
+  downloadTxt(txt, filename);
+});
+
+document.getElementById('save-workshop-btn').addEventListener('click', () => {
+  if (!workshopHistory.length) { showDialog('저장할 내용이 없습니다', '워크숍을 진행한 뒤 저장해주세요.'); return; }
+  const code = participantCode ? `참여자: ${participantCode}\n` : '';
+  const mode = workshopVerifyMode ? '검증 모드' : '탐색 모드';
+  const date = new Date().toLocaleString('ko-KR');
+  const activeNames = workshopParticipants.map(id => personas.find(p => p.id === id)?.name).filter(Boolean).join(', ');
+  let txt = `합성 투자자 리서치 플랫폼 — 아이디어 워크숍 대화록\n`;
+  txt += `${'='.repeat(50)}\n`;
+  txt += `${code}참여 페르소나: ${activeNames}\n`;
+  txt += `모드: ${mode}\n`;
+  txt += `저장 일시: ${date}\n`;
+  txt += `경과 시간: ${formatTime(workshopTimerSeconds)} / 아이디어 투입: ${workshopQCount}\n`;
+  txt += `${'='.repeat(50)}\n\n`;
+  workshopHistory.forEach((msg, i) => {
+    const role = msg.role === 'user' ? '[ 연구자 ]' : '[ 페르소나 응답 ]';
+    txt += `${role}\n${msg.content}\n\n`;
+  });
+  const filename = `workshop_${participantCode || 'nocode'}_${Date.now()}.txt`;
+  downloadTxt(txt, filename);
+});
+
+document.getElementById('save-survey-btn').addEventListener('click', () => {
+  if (!surveyResultText) { showDialog('저장할 내용이 없습니다', '설문 응답을 생성한 뒤 저장해주세요.'); return; }
+  const code = participantCode ? `참여자: ${participantCode}\n` : '';
+  const date = new Date().toLocaleString('ko-KR');
+  let txt = `합성 투자자 리서치 플랫폼 — 설문 결과\n`;
+  txt += `${'='.repeat(50)}\n`;
+  txt += `${code}저장 일시: ${date}\n`;
+  txt += `${'='.repeat(50)}\n\n`;
+  txt += surveyResultText;
+  const filename = `survey_${participantCode || 'nocode'}_${Date.now()}.txt`;
+  downloadTxt(txt, filename);
+});
+
+// ══════════════════════════════════════
+//  탭 전환
+// ══════════════════════════════════════
+function selectTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tabId));
+}
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => selectTab(btn.dataset.tab));
+});
+
+
+// ══════════════════════════════════════
+//  다이얼로그 팝업
+// ══════════════════════════════════════
+function showDialog(title, message, onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'dialog-overlay';
+  overlay.innerHTML = `
+    <div class="dialog-box" role="dialog" aria-modal="true">
+      <div class="dialog-title">${title}</div>
+      <div class="dialog-msg">${message}</div>
+      <div class="dialog-actions">
+        <button class="dialog-confirm">확인</button>
+      </div>
+    </div>
+  `;
+  const close = () => {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.1s';
+    setTimeout(() => { overlay.remove(); if (onConfirm) onConfirm(); }, 100);
+  };
+  overlay.querySelector('.dialog-confirm').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', function esc(e) {
+    if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); }
+  }, { once: true });
+  document.body.appendChild(overlay);
+  overlay.querySelector('.dialog-confirm').focus();
+}
+
+// ══════════════════════════════════════
+//  초기화
+// ══════════════════════════════════════
+// 질문지 불러오기
+(function initQuestionBank() {
+  const qb = document.getElementById('qbank');
+  qb.innerHTML = '<option value="">질문지에서 불러오기…</option>' +
+    QUESTION_BANK.map(([tag, q], i) => `<option value="${i}">Q${String(i+1).padStart(2,'0')} [${tag}] ${q}</option>`).join('');
+  qb.addEventListener('change', () => {
+    if (qb.value === '') return;
+    const input = document.getElementById('chat-input');
+    const question = QUESTION_BANK[+qb.value][1];
+    input.value = question;
+    // 높이 자동 조정 + 텍스트 표시
+    input.classList.add('has-content');
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    input.focus();
+    qb.value = '';
+    // 페르소나 미선택 시 다이얼로그
+    if (!selectedInterviewPersona) {
+      showDialog('페르소나를 먼저 선택해주세요', '왼쪽 목록에서 인터뷰할 페르소나를 선택하면\n입력창의 질문을 바로 전송할 수 있습니다.');
+    }
+  });
+})();
+
+initApp();
+
+</script>
+</body>
+</html>
