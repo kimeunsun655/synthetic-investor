@@ -1983,6 +1983,7 @@ async function callAI(messages, opts) {
   };
   if (opts && opts.system) payload.system = opts.system;
   if (opts && opts.maxTokens) payload.max_tokens = opts.maxTokens;
+  if (opts && opts.cache) payload.cache = true;
   const body = JSON.stringify(payload);
   const resp = await fetch('/api/chat', {
     method: 'POST',
@@ -1997,7 +1998,7 @@ async function callAI(messages, opts) {
   const text = (data.content && data.content[0] && data.content[0].text) || '';
   // onText가 있으면 완성된 텍스트를 한 번에 전달
   if (onText) onText({ text: text, delta: text });
-  return { text };
+  return { text, usage: data.usage || null };
 }
 
 const supabase = {
@@ -3094,6 +3095,34 @@ const IV_FIX_FLAGS = ['leading_risk', 'textbook', 'thin', 'ambiguous'];
 const IV_TYPE_LABEL = { main: '기본 질문', followup: '추가 질문', probe: '이어서 묻기', transition: '넘어가기', close: '마무리', direct: '직접 질문' };
 const IV_ICON = '<svg class="iv-ic" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5" cy="5" r="1.5" fill="currentColor"/></svg>';
 const IV_STORE_TABLE = 'interview_sessions';
+// API 사용량 — 응답의 usage를 모아 비용을 추정한다 (claude-sonnet-4-6, 100만 토큰당 달러)
+const IV_PRICE = { input: 3, cacheWrite: 3.75, cacheRead: 0.30, output: 15 };
+function ivAddUsage(a, u) {
+  a = a || { calls: 0, input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
+  if (!u) return a;
+  a.calls += 1;
+  a.input += u.input_tokens || 0;
+  a.cacheWrite += u.cache_creation_input_tokens || 0;
+  a.cacheRead += u.cache_read_input_tokens || 0;
+  a.output += u.output_tokens || 0;
+  return a;
+}
+function ivSumUsage(list) {
+  const t = { calls: 0, input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
+  list.forEach(u => { if (u) Object.keys(t).forEach(k => { t[k] += u[k] || 0; }); });
+  return t;
+}
+function ivUsageCost(u) {
+  if (!u) return 0;
+  return (u.input * IV_PRICE.input + u.cacheWrite * IV_PRICE.cacheWrite + u.cacheRead * IV_PRICE.cacheRead + u.output * IV_PRICE.output) / 1e6;
+}
+// 세션 하나의 사용량 합계 (모더레이터 · 페르소나 · 리뷰 요약)
+function ivSessionUsage(s) {
+  const parts = [];
+  s.turns.forEach(t => { if (t.usage) { parts.push(t.usage.mod); parts.push(t.usage.persona); } });
+  if (s.review && s.review.summaryUsage) parts.push(s.review.summaryUsage);
+  return ivSumUsage(parts);
+}
 
 const IV = {
   mode: 'suggest',
@@ -3307,11 +3336,14 @@ function ivParseModerator(text) {
   return obj;
 }
 async function ivModeratorNext(s) {
-  let lastErr;
+  let lastErr, usage = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      const resp = await callAI(s.modHistory, { system: ivModeratorSystem(s), maxTokens: 900 });
-      return ivParseModerator(resp.text);
+      const resp = await callAI(s.modHistory, { system: ivModeratorSystem(s), maxTokens: 900, cache: true });
+      usage = ivAddUsage(usage, resp.usage);   // JSON 형식이 틀려 다시 받은 호출도 비용에 포함
+      const obj = ivParseModerator(resp.text);
+      Object.defineProperty(obj, '_usage', { value: usage, enumerable: false });   // 대화 기록(JSON)에는 넣지 않는다
+      return obj;
     } catch (e) { lastErr = e; if (attempt < 2) await ivSleep(1500 * (attempt + 1)); }
   }
   throw lastErr;
@@ -3362,13 +3394,15 @@ async function ivPersonaAnswer(s, question) {
   const p = personas.find(x => x.id === s.personaId);
   if (!p) throw new Error('페르소나를 찾을 수 없습니다');
   const hist = s.personaHistory.concat([{ role: 'user', content: question }]);
-  let lastErr;
+  let lastErr, usage = null;
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const r = await callAI(hist, { system: ivPersonaSystem(p), maxTokens: 700 });
+      const r = await callAI(hist, { system: ivPersonaSystem(p), maxTokens: 700, cache: true });
+      usage = ivAddUsage(usage, r.usage);
       const text = String(r.text || '').trim();
       if (!text) throw new Error('빈 응답');
       s.personaHistory = hist.concat([{ role: 'assistant', content: text }]);
+      s._personaUsage = usage;
       return text;
     } catch (e) { lastErr = e; if (attempt < 1) await ivSleep(1500); }
   }
@@ -3387,6 +3421,7 @@ function ivRecordTurn(s, obj, meta) {
     aiUtterance: obj.utterance,
     action, editReason: meta.reason || '',
     note: obj.note || {}, answer: null, answerSource: null, rating: null, at: Date.now(),
+    usage: { mod: obj._usage || null, persona: null },
   };
   if (!meta.noMod) s.modHistory.push({ role: 'assistant', content: JSON.stringify(Object.assign({}, obj, { utterance: t.utterance })) });
   if (typeof t.note.ai_user === 'boolean') s.aiUser = t.note.ai_user;
@@ -3410,6 +3445,7 @@ async function ivAskAndAnswer(s, t) {
   if (t.type === 'close') { ivFinish(s, 'done', '인터뷰 종료'); return; }
   if (s.kind !== 'synthetic') return;
   const ans = await ivPersonaAnswer(s, t.utterance);
+  t.usage = Object.assign({ mod: null }, t.usage, { persona: s._personaUsage || null });
   ivPushAnswer(s, t, ans, 'persona');
   if (ivCapped(s)) ivFinish(s, 'capped', `질문 ${IV_MAX_TURNS}개를 다 써서 중단`);
 }
@@ -4147,6 +4183,14 @@ function ivAutoRightHtml() {
       <div class="iv-stat"><span>자주 빠진 주제</span><b>${missing && missing.c < n ? ivEsc(missing.x) : '—'}</b></div>
       <div class="iv-stat"><span>질문 ${IV_MAX_TURNS}개를 다 써서 중단</span><b>${capped.length}명${capped.length ? ` (${capped.map(s => ivEsc(s.profile.code)).join(', ')})` : ''}</b></div>
       <div class="iv-stat"><span>아직 리뷰 안 한 인터뷰</span><b>${unreviewed}건</b></div>
+      ${(() => {
+        const all = b ? b.items.map(it => IV.sessions[it.sessionId]).filter(Boolean) : sessions;
+        const u = ivSumUsage(all.map(ivSessionUsage));
+        if (!u.calls) return '';
+        const cacheable = u.input + u.cacheWrite + u.cacheRead;
+        return `<div class="iv-stat"><span>API 비용 (추정)</span><b>$${ivUsageCost(u).toFixed(2)}</b></div>
+          <div class="iv-stat"><span>캐시에서 읽은 입력</span><b>${cacheable ? Math.round(u.cacheRead / cacheable * 100) : 0}%</b></div>`;
+      })()}
     </div></div>`;
 }
 
@@ -4266,6 +4310,8 @@ function ivTranscriptTxt(s) {
   txt += `참여자 코드: ${p.code} (${ivProfileLine(s)}${p.segment ? ' · ' + p.segment : ''})\n`;
   txt += `진행 방식: ${ivModeLabel(s.mode)}${s.kind === 'synthetic' ? ` · 합성 응답(${p.answerMode || IV_ANSWER_MODE}) — 실제 사용자 데이터 아님` : ' · 실제 참가자'}\n`;
   txt += `질문 ${ivAsked(s).length}개 / 상한 ${IV_MAX_TURNS}개 · 경과 ${ivFmtTime(s.elapsedSec)} · 상태: ${s.endReason || '진행 중'}\n`;
+  const usage = ivSessionUsage(s);
+  if (usage.calls) txt += `API 사용량: 호출 ${usage.calls}번 · 입력 ${usage.input.toLocaleString()} · 캐시 쓰기 ${usage.cacheWrite.toLocaleString()} · 캐시 읽기 ${usage.cacheRead.toLocaleString()} · 출력 ${usage.output.toLocaleString()} 토큰 · 추정 비용 $${ivUsageCost(usage).toFixed(2)}\n`;
   txt += `저장 일시: ${new Date().toLocaleString('ko-KR')}\n${'='.repeat(50)}\n\n`;
   s.turns.forEach(t => {
     const tag = `${t.qid || '—'} · ${IV_TYPE_LABEL[t.type] || t.type}${t.action === 'edited' ? ' · 수정함' : t.action === 'skipped' ? ' · 건너뜀' : ''}`;
@@ -4288,15 +4334,29 @@ function ivDownloadCsv(rows, filename) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 function ivAiLogRows(list) {
-  const rows = [['코드', '진행 방식', '응답 모드', '세그먼트', '턴', '단계', '질문 ID', '유형', '처리', '질문', 'AI 원래 질문', '수정 이유', '답변', '답변 입력', '적절성', '태그', '주장', '플래그', '탐색 수준', 'covered', 'skipped', 'ai_user', '고른 이유']];
+  const rows = [['코드', '진행 방식', '응답 모드', '세그먼트', '턴', '단계', '질문 ID', '유형', '처리', '질문', 'AI 원래 질문', '수정 이유', '답변', '답변 입력', '적절성', '태그', '주장', '플래그', '탐색 수준', 'covered', 'skipped', 'ai_user', '고른 이유',
+    '모더레이터 호출', '모더레이터 입력', '모더레이터 캐시 쓰기', '모더레이터 캐시 읽기', '모더레이터 출력',
+    '페르소나 입력', '페르소나 캐시 쓰기', '페르소나 캐시 읽기', '페르소나 출력', '추정 비용($)']];
+  const u4 = u => (u ? [u.input, u.cacheWrite, u.cacheRead, u.output] : ['', '', '', '']);
   list.forEach(s => s.turns.forEach(t => {
     const n = t.note || {};
+    const um = t.usage && t.usage.mod, up = t.usage && t.usage.persona;
     rows.push([s.profile.code, ivModeLabel(s.mode), s.kind === 'real' ? '실제 참가자' : (s.profile.answerMode || IV_ANSWER_MODE), s.profile.segment || ivProfileLine(s), t.n, t.stage, t.qid, IV_TYPE_LABEL[t.type] || t.type,
       { asked: '그대로', edited: '수정', skipped: '건너뜀' }[t.action], t.utterance, t.action === 'edited' ? t.aiUtterance : '', t.editReason,
       t.answer, t.answerSource === 'persona' ? '합성 응답' : t.answerSource === 'participant' ? '참가자 직접 작성' : t.answerSource === 'proxy' ? '연구자 대리 입력' : '',
       t.rating === 'good' ? '적절' : t.rating === 'bad' ? '부적절' : '', n.prev_answer_tags, n.claims, n.flags, n.level, n.covered, n.skipped,
-      n.ai_user == null ? '' : n.ai_user, n.reason]);
+      n.ai_user == null ? '' : n.ai_user, n.reason,
+      um ? um.calls : '', ...u4(um), ...u4(up), (um || up) ? (ivUsageCost(um) + ivUsageCost(up)).toFixed(4) : '']);
   }));
+  // 세션마다 리뷰 요약 호출과 합계 줄을 덧붙인다
+  list.forEach(s => {
+    const su = s.review && s.review.summaryUsage;
+    const tot = ivSessionUsage(s);
+    if (!tot.calls) return;
+    const blank = new Array(23).fill('');
+    if (su) rows.push([s.profile.code, '리뷰 요약', ...blank.slice(2), su.calls, ...u4(su), '', '', '', '', ivUsageCost(su).toFixed(4)]);
+    rows.push([s.profile.code, '합계', ...blank.slice(2), tot.calls, tot.input, tot.cacheWrite, tot.cacheRead, tot.output, '', '', '', '', ivUsageCost(tot).toFixed(4)]);
+  });
   return rows;
 }
 function ivEditLogRows(s) {
@@ -4404,6 +4464,7 @@ ${crits.map(c => `${c.key}. ${c.title} — ${c.need}`).join('\n')}
 ${transcript || '(대화 없음)'}`;
   try {
     const r = await callAI(prompt, { maxTokens: 1200 });
+    s.review.summaryUsage = ivAddUsage(null, r.usage);
     const t = r.text; const a = t.indexOf('{'), b = t.lastIndexOf('}');
     s.review.summaries = JSON.parse(t.slice(a, b + 1));
     ivSave(s);
