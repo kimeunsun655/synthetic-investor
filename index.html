@@ -1217,6 +1217,8 @@
   .iv-pick.active { border-color: transparent; background: var(--cal-surface-soft); }
   .iv-pick.active .iv-code { background: var(--cal-primary); color: var(--cal-on-primary); }
   .iv-link:disabled { color: var(--cal-muted-soft); cursor: default; text-decoration: none; }
+  .iv-save { font-size: 12px; color: var(--cal-success); }
+  .iv-save.warn { color: #b45309; }
   .iv-more { font-size: 12px; color: var(--cal-muted); padding: 2px 12px 12px; }
 
   .iv-center { display: flex; flex-direction: column; min-height: 640px; overflow: hidden; }
@@ -2814,6 +2816,7 @@ function selectTab(tabId) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tabId));
   document.querySelector('.main').classList.toggle('wide', tabId === 'interview');
   if (tabId === 'interview') ivRenderAll();
+  try { localStorage.setItem('last_tab', tabId); } catch (e) { /* 무시 */ }
 }
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => selectTab(btn.dataset.tab));
@@ -3248,7 +3251,9 @@ async function ivStoreUpsert(s) {
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     IV.storeOk = true;
-  } catch (e) { ivStoreFailed(e.message); }
+    s._savedAt = Date.now(); s._saveFail = false;
+  } catch (e) { s._saveFail = true; ivStoreFailed(e.message); }
+  if (document.getElementById('iv-control-right')) ivRenderControl();
 }
 async function ivStoreLoad() {
   try {
@@ -3875,6 +3880,7 @@ function ivSetHtml(el, html) { if (el._ivHtml !== html) { el.innerHTML = html; e
 function ivRenderAll() {
   if (!document.getElementById('iv-left')) return;
   ivRenderHead(); ivRenderControl(); ivRenderLeft(); ivRenderCenter(); ivRenderRight(); ivSetHeaderCode();
+  ivRememberCurrent();
 }
 
 function ivRenderHead() {
@@ -3904,9 +3910,9 @@ function ivRenderControl() {
     else btns = `<button class="iv-btn dark" data-act="batch-pause">${b.paused ? '재개' : '일시정지'}</button><button class="iv-btn ghost" data-act="batch-stop">중지</button>`;
     ivSetHtml(el, `<span>전체 ${done} / ${total} 완료</span>${btns}`);
   } else if (IV.mode === 'real') {
-    ivSetHtml(el, `<span>경과 ${ivFmtTime(s ? s.elapsedSec : 0)} / ${IV_TOTAL_MINUTES}분</span>`);
+    ivSetHtml(el, `${ivSaveBadge(s)}<span>경과 ${ivFmtTime(s ? s.elapsedSec : 0)} / ${IV_TOTAL_MINUTES}분</span>`);
   } else {
-    ivSetHtml(el, `<span>경과 ${ivFmtTime(s ? s.elapsedSec : 0)}</span><span class="gap">질문 ${s ? ivAsked(s).length : 0} / ${IV_MAX_TURNS}개</span>`);
+    ivSetHtml(el, `${ivSaveBadge(s)}<span>경과 ${ivFmtTime(s ? s.elapsedSec : 0)}</span><span class="gap">질문 ${s ? ivAsked(s).length : 0} / ${IV_MAX_TURNS}개</span>`);
   }
   ivRenderStages();
 }
@@ -4045,7 +4051,7 @@ function ivRenderLeft() {
         <label class="iv-field">손실 경험<select data-real="loss">${opt(['있음', '없음'], r.loss)}</select></label>
         <button class="iv-btn dark" style="width:100%;margin-top:4px;" data-act="real-start">인터뷰 시작</button>
       </div>`;
-  el.innerHTML = `
+  el.innerHTML = `${s ? '' : ivPastRealHtml()}
     <div class="iv-panel"><div class="iv-panel-head plain">답변 입력 방식</div><div class="iv-panel-body">
       <div class="iv-seg full small"><button class="${inputMode === 'proxy' ? 'active' : ''}" data-act="input-mode" data-v="proxy">연구자 대리 입력</button><button class="${inputMode === 'link' ? 'active' : ''}" data-act="input-mode" data-v="link">참가자 링크</button></div>
       <div class="iv-linkrow"><button class="iv-btn" data-act="copy-link">참가자 링크 복사</button><span id="iv-link-code">${ivEsc(code)} 전용</span></div>
@@ -4053,11 +4059,27 @@ function ivRenderLeft() {
       <div class="iv-seg full small"><button class="${flow !== 'solo' ? 'active' : ''}" data-act="flow" data-v="attended">연구자 확인</button><button class="${flow === 'solo' ? 'active' : ''}" data-act="flow" data-v="solo">참가자 단독</button></div>` : ''}
       <div class="iv-muted" style="margin-top:10px;">${inputMode !== 'link' ? '연구자가 참가자의 답을 요약해 입력합니다.' : flow === 'solo' ? 'AI가 고른 질문이 연구자 확인 없이 바로 참가자에게 갑니다. 이 화면에서 지켜보다가 언제든 이어받을 수 있습니다.' : '참가자가 링크로 답을 적으면 이 화면에 실시간으로 나타납니다. 질문은 연구자가 확인한 뒤 보냅니다.'}</div>
     </div></div>
-    <div class="iv-panel"><div class="iv-panel-head">참가자 정보</div>${info}</div>
+    <div class="iv-panel"><div class="iv-panel-head" style="display:flex;justify-content:space-between;align-items:center;">참가자 정보${s ? '<button class="iv-link" style="margin:0;font-weight:400;" data-act="real-close">지난 인터뷰 목록</button>' : ''}</div>${info}</div>
+
     <div class="iv-panel"><div class="iv-panel-head plain">동의 확인</div><div class="iv-panel-body">
       <label class="iv-check"><input type="checkbox" data-real="consentRec" ${(s ? s.consent.rec : r.consentRec) ? 'checked' : ''} ${s ? 'disabled' : ''}> 녹음·화면 캡처</label>
       <label class="iv-check"><input type="checkbox" data-real="consentAi" ${(s ? s.consent.ai : r.consentAi) ? 'checked' : ''} ${s ? 'disabled' : ''}> 답변 요약 AI 도구 입력</label>
     </div></div>`;
+}
+
+// 지난 실제 인터뷰 목록 (팀원이 진행한 인터뷰 포함 — 저장소 기준)
+function ivPastRealHtml() {
+  const list = Object.values(IV.sessions).filter(x => x.kind === 'real').sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  const fmt = d => { d = new Date(d); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
+  const rows = list.slice(0, 12).map(x => {
+    const state = x.endedAt ? (x.review && x.review.status === 'done' ? '끝남 · 리뷰 완료' : '끝남 · 리뷰 전') : (x.flow === 'solo' ? '참가자 단독 진행 중' : '진행 중');
+    return `<div class="iv-pitem" data-act="real-open" data-id="${ivEsc(x.id)}">
+      <div class="iv-code">${ivEsc(x.profile.code)}</div>
+      <div><div class="iv-pmain">${fmt(x.createdAt)} · 질문 ${ivAsked(x).length}개</div><div class="iv-psub ${x.endedAt ? '' : 'run'}">${state}</div></div></div>`;
+  }).join('');
+  if (!rows) return '';
+  return `<div class="iv-panel"><div class="iv-panel-head plain">지난 인터뷰 <span class="aside">${list.length}건 · 자동 저장</span></div>
+    <div class="iv-plist" style="padding-top:2px;max-height:260px;">${rows}</div></div>`;
 }
 
 // ── 가운데 ──
@@ -4318,6 +4340,8 @@ function ivInitEvents() {
     else if (act === 'copy-link') ivCopyLink();
     else if (act === 'flow') ivSetFlow(el.dataset.v);
     else if (act === 'real-start') ivStartReal();
+    else if (act === 'real-open') ivOpenRealSession(el.dataset.id);
+    else if (act === 'real-close') ivCloseRealSession();
     else if (act === 'real-save') ivSaveRealAnswer();
     else if (act === 'rate') { IV.answerRating = IV.answerRating === el.dataset.v ? null : el.dataset.v; ivRenderComposer(); }
   });
@@ -4857,20 +4881,66 @@ function paInit(id) {
 // ══════════════════════════════════════
 //  심층 인터뷰 — 시작
 // ══════════════════════════════════════
+// 진행 방식마다 열려 있던 인터뷰를 기억한다 — 새로고침하거나 탭을 다시 열어도 이어서 볼 수 있게
+function ivRememberCurrent() {
+  try {
+    const ids = {};
+    ['direct', 'suggest', 'real'].forEach(m => { if (IV.current[m]) ids[m] = IV.current[m].id; });
+    localStorage.setItem('iv_current_v1', JSON.stringify(ids));
+  } catch (e) { /* 무시 */ }
+}
+function ivRestoreCurrent() {
+  let ids = {};
+  try { ids = JSON.parse(localStorage.getItem('iv_current_v1') || '{}'); } catch (e) { /* 무시 */ }
+  let changed = false;
+  ['direct', 'suggest', 'real'].forEach(m => {
+    if (!IV.current[m] && ids[m] && IV.sessions[ids[m]]) { IV.current[m] = IV.sessions[ids[m]]; changed = true; }
+  });
+  return changed;
+}
+// 지난 실제 인터뷰를 다시 연다 — 저장소의 최신 내용(참가자가 링크로 이어간 부분 포함)으로 맞춘 뒤 이어서 진행
+async function ivOpenRealSession(id) {
+  const s = IV.sessions[id];
+  if (!s) return;
+  IV.current.real = s;
+  ivResetDrafts();
+  ivRenderAll();
+  try { await ivRefreshFromStore(s); } catch (e) { /* 저장소 없음 — 이 브라우저의 기록으로 연다 */ }
+  if (IV.current.real === s) { ivRenderAll(); ivSyncPoll(); }
+}
+function ivCloseRealSession() { IV.current.real = null; ivResetDrafts(); ivSyncPoll(); ivRenderAll(); }
+function ivSaveBadge(s) {
+  if (!s || !s.turns.length) return '';
+  if (s._saveFail || IV.storeOk === false) return '<span class="iv-save warn">이 브라우저에만 저장됨</span>';
+  const t = s._savedAt ? new Date(s._savedAt) : null;
+  return `<span class="iv-save">자동 저장됨${t ? ` · ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}` : ''}</span>`;
+}
+
 function ivInit() {
   try { const m = localStorage.getItem('iv_mode'); if (m && ['direct', 'suggest', 'auto', 'real'].includes(m)) IV.mode = m; } catch (e) { /* 무시 */ }
   ivLocalRestore();
+  ivRestoreCurrent();
   ivInitEvents();
   ivInitReviewEvents();
   ivInitGuideEvents();
   ivRenderAll();
-  ivStoreLoad().then(() => { if (IV.mode === 'auto') ivRenderAll(); });
+  ivStoreLoad().then(async () => {
+    ivRestoreCurrent();
+    const r = IV.current.real;
+    if (r) { try { await ivRefreshFromStore(r); } catch (e) { /* 무시 */ } }
+    ivRenderAll();
+    ivSyncPoll();
+  });
 }
 
 // 참가자 링크로 열린 경우 참가자 화면만 띄운다
 const IV_PARTICIPANT_ID = new URLSearchParams(location.search).get('answer');
 if (IV_PARTICIPANT_ID) paInit(IV_PARTICIPANT_ID);
-else { ivInit(); initApp(); }
+else {
+  ivInit(); initApp();
+  // 새로고침해도 보던 탭으로 돌아온다
+  try { const t = localStorage.getItem('last_tab'); if (t && t !== 'bank' && document.getElementById('tab-' + t)) selectTab(t); } catch (e) { /* 무시 */ }
+}
 
 </script>
 </body>
