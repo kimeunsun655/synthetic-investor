@@ -10,12 +10,13 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'API 키가 설정되지 않았습니다.' }), { status: 500 });
   }
 
-  const { messages, stream, system, max_tokens } = await req.json();
+  const { messages, stream, system, max_tokens, cache } = await req.json();
 
-  // 프롬프트 캐싱 — 시스템 프롬프트와 대화의 마지막 메시지에 캐시 지점을 둔다.
+  // 프롬프트 캐싱 — 대화가 이어지는 호출(cache: true)에만 시스템 프롬프트와 마지막 메시지에 캐시 지점을 둔다.
   // 같은 인터뷰 안에서 다음 턴을 요청할 때 앞부분을 캐시에서 읽어 입력 비용이 줄어든다.
+  // 한 번만 보내고 끝나는 호출(설문·워크숍·사용성 평가·리뷰 요약)은 다시 읽을 일이 없어 캐시 쓰기 할증만 생기므로 걸지 않는다.
   const cachedMessages = (messages || []).map((m, i, arr) => {
-    if (i !== arr.length - 1) return m;
+    if (!cache || i !== arr.length - 1) return m;
     const blocks = typeof m.content === 'string' ? [{ type: 'text', text: m.content }] : m.content;
     if (!Array.isArray(blocks) || !blocks.length) return m;
     const last = { ...blocks[blocks.length - 1], cache_control: { type: 'ephemeral' } };
@@ -30,7 +31,7 @@ export default async function handler(req) {
   };
   if (system) {
     body.system = typeof system === 'string'
-      ? [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }]
+      ? [cache ? { type: 'text', text: system, cache_control: { type: 'ephemeral' } } : { type: 'text', text: system }]
       : system;
   }
 
