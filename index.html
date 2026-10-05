@@ -1179,7 +1179,6 @@
   .iv-progress i { display: block; height: 100%; background: var(--cal-primary); }
   .iv-store-warn { display: none; font-size: 12px; color: #92400e; background: var(--cal-warning-tint); border: 1px solid #fcd34d; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; line-height: 1.6; }
   .iv-store-warn.show { display: block; }
-  #iv-verify-row { margin-bottom: 16px; }
 
   .iv-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
   .iv-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
@@ -1531,18 +1530,6 @@
     </div>
 
     <div class="iv-store-warn" id="iv-store-warn"></div>
-
-    <!-- 탐색/검증 모드 — 합성 응답에만 적용 (2차 검토 전까지 유지) -->
-    <div class="mode-toggle" id="iv-verify-row">
-      <div>
-        <div class="mode-toggle-label">페르소나 응답 모드 <span class="mode-badge explore" id="interview-mode-badge">탐색 모드</span></div>
-        <div class="mode-toggle-desc" id="interview-mode-desc">설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용</div>
-      </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="interview-mode-toggle" />
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
 
     <div class="iv-layout">
       <aside class="iv-col" id="iv-left"></aside>
@@ -2050,7 +2037,6 @@ let _unused = null; // sample/db replaced
 let participantCode = '';
 
 // ── 고도화: 모드 (false=탐색, true=검증) ──
-let interviewVerifyMode = false;
 let workshopVerifyMode = false;
 
 // ── 고도화: 타이머 ──
@@ -2685,10 +2671,6 @@ function updateModeUI(type, isVerify) {
     desc.textContent = '설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용';
   }
 }
-document.getElementById('interview-mode-toggle').addEventListener('change', e => {
-  interviewVerifyMode = e.target.checked;
-  updateModeUI('interview', interviewVerifyMode);
-});
 document.getElementById('workshop-mode-toggle').addEventListener('change', e => {
   workshopVerifyMode = e.target.checked;
   updateModeUI('workshop', workshopVerifyMode);
@@ -3148,8 +3130,9 @@ function ivNewSession(mode, extra) {
   IV.sessions[id] = s;
   return s;
 }
+const IV_ANSWER_MODE = '탐색 모드';   // 합성 페르소나 응답 모드 (고정)
 function ivPersonaProfile(p) {
-  return { code: pCode(p), age: p.age, level: p.level, experience: `${p.level} (${p.invYears})`, aiUse: p.aiUse || '가끔 사용', channel: p.channel };
+  return { code: pCode(p), age: p.age, level: p.level, experience: `${p.level} (${p.invYears})`, aiUse: p.aiUse || '가끔 사용', channel: p.channel, answerMode: IV_ANSWER_MODE };
 }
 function ivFinish(s, status, reason) {
   if (s.endedAt) return;
@@ -3280,11 +3263,8 @@ async function ivModeratorNext(s) {
 
 // ── 페르소나 응답 ──
 function ivPersonaSystem(p) {
-  const modeRule = interviewVerifyMode
-    ? `[검증 모드 — 엄격 적용]
-- 페르소나 설정에 없는 구체적 경험(상품명, 금액, 수익률, 날짜)은 지어내지 마세요
-- 그런 질문에는 "정확히는 기억이 안 나요"처럼 답하고, 설정에서 알 수 있는 범위만 말하세요`
-    : `[탐색 모드]
+  // 심층 인터뷰는 탐색 모드로 고정 — ③ 결정적 사건을 구체적으로 말해야 질문지를 점검할 수 있다
+  const modeRule = `[탐색 모드]
 - 페르소나 설정을 바탕으로 그럴듯한 경험을 구체적으로 채워 답해도 됩니다 (가설 생성용)
 - 단, 수익률 같은 구체적 수치는 만들지 마세요`;
   return `당신은 다음 조건을 가진 합성 사용자(연구 참여자)입니다. 인터뷰 진행자의 질문에 이 인물로서 답합니다.
@@ -3705,7 +3685,6 @@ function ivSetHtml(el, html) { if (el._ivHtml !== html) { el.innerHTML = html; e
 function ivRenderAll() {
   if (!document.getElementById('iv-left')) return;
   ivRenderHead(); ivRenderControl(); ivRenderLeft(); ivRenderCenter(); ivRenderRight(); ivSetHeaderCode();
-  document.getElementById('iv-verify-row').style.display = IV.mode === 'real' ? 'none' : '';
 }
 
 function ivRenderHead() {
@@ -4173,7 +4152,7 @@ function ivTranscriptTxt(s) {
   const p = s.profile;
   let txt = `합성 투자자 리서치 플랫폼 — 심층 인터뷰 대화록\n${'='.repeat(50)}\n`;
   txt += `참여자 코드: ${p.code} (${ivProfileLine(s)}${p.segment ? ' · ' + p.segment : ''})\n`;
-  txt += `진행 방식: ${ivModeLabel(s.mode)}${s.kind === 'synthetic' ? ' · 합성 응답 — 실제 사용자 데이터 아님' : ' · 실제 참가자'}\n`;
+  txt += `진행 방식: ${ivModeLabel(s.mode)}${s.kind === 'synthetic' ? ` · 합성 응답(${p.answerMode || IV_ANSWER_MODE}) — 실제 사용자 데이터 아님` : ' · 실제 참가자'}\n`;
   txt += `질문 ${ivAsked(s).length}개 / 상한 ${IV_MAX_TURNS}개 · 경과 ${ivFmtTime(s.elapsedSec)} · 상태: ${s.endReason || '진행 중'}\n`;
   txt += `저장 일시: ${new Date().toLocaleString('ko-KR')}\n${'='.repeat(50)}\n\n`;
   s.turns.forEach(t => {
@@ -4197,10 +4176,10 @@ function ivDownloadCsv(rows, filename) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 function ivAiLogRows(list) {
-  const rows = [['코드', '진행 방식', '세그먼트', '턴', '단계', '질문 ID', '유형', '처리', '질문', 'AI 원래 질문', '수정 이유', '답변', '답변 입력', '적절성', '태그', '주장', '플래그', '탐색 수준', 'covered', 'skipped', 'ai_user', '고른 이유']];
+  const rows = [['코드', '진행 방식', '응답 모드', '세그먼트', '턴', '단계', '질문 ID', '유형', '처리', '질문', 'AI 원래 질문', '수정 이유', '답변', '답변 입력', '적절성', '태그', '주장', '플래그', '탐색 수준', 'covered', 'skipped', 'ai_user', '고른 이유']];
   list.forEach(s => s.turns.forEach(t => {
     const n = t.note || {};
-    rows.push([s.profile.code, ivModeLabel(s.mode), s.profile.segment || ivProfileLine(s), t.n, t.stage, t.qid, IV_TYPE_LABEL[t.type] || t.type,
+    rows.push([s.profile.code, ivModeLabel(s.mode), s.kind === 'real' ? '실제 참가자' : (s.profile.answerMode || IV_ANSWER_MODE), s.profile.segment || ivProfileLine(s), t.n, t.stage, t.qid, IV_TYPE_LABEL[t.type] || t.type,
       { asked: '그대로', edited: '수정', skipped: '건너뜀' }[t.action], t.utterance, t.action === 'edited' ? t.aiUtterance : '', t.editReason,
       t.answer, t.answerSource === 'persona' ? '합성 응답' : t.answerSource === 'participant' ? '참가자 직접 작성' : t.answerSource === 'proxy' ? '연구자 대리 입력' : '',
       t.rating === 'good' ? '적절' : t.rating === 'bad' ? '부적절' : '', n.prev_answer_tags, n.claims, n.flags, n.level, n.covered, n.skipped,
