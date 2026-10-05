@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>투자자 합성 사용자 플랫폼</title>
+<script>if (new URLSearchParams(location.search).get('answer')) document.documentElement.classList.add('participant-mode');</script>
 <style>
   /* ── Cal.com Design System 토큰 ── */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -82,6 +83,8 @@
     align-items: center;
     gap: 10px;
   }
+  .header-code { font-size: 13px; color: var(--cal-muted); }
+  .header-code span { color: var(--cal-ink); font-weight: 500; margin-left: 6px; }
   .logo-mark {
     width: 28px; height: 28px;
     background: var(--cal-primary);
@@ -1137,6 +1140,253 @@
     }
     .ref-form { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ══════════ 심층 인터뷰 (AI 모더레이터) ══════════ */
+  .main.wide { max-width: 1400px; }
+  .iv-page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .iv-title { font-size: 22px; font-weight: 700; color: var(--cal-ink); letter-spacing: -0.5px; line-height: 30px; }
+  .iv-sub { font-size: 13px; color: var(--cal-muted); margin-top: 2px; }
+  .iv-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .iv-btn { height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--cal-hairline); background: var(--cal-surface-card); color: var(--cal-ink); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .iv-btn:hover { background: var(--cal-surface-strong); }
+  .iv-btn.ghost { background: var(--cal-canvas); }
+  .iv-btn.dark { background: var(--cal-primary); color: var(--cal-on-primary); border-color: var(--cal-primary); }
+  .iv-btn.dark:hover { background: var(--cal-primary-active); }
+  .iv-btn:disabled { opacity: 0.45; cursor: default; }
+  .iv-btn.lg { height: 44px; padding: 0 18px; font-size: 14px; border-radius: 10px; }
+
+  .iv-card { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; }
+  .iv-control { padding: 14px 16px 12px; margin-bottom: 16px; }
+  .iv-control-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .iv-label { font-size: 13px; color: var(--cal-body); }
+  .iv-seg { display: inline-flex; background: var(--cal-surface-card); border-radius: 10px; padding: 3px; gap: 2px; }
+  .iv-seg button { border: none; background: none; height: 32px; padding: 0 12px; border-radius: 7px; font-size: 13px; color: var(--cal-body); cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .iv-seg button.active { background: var(--cal-primary); color: var(--cal-on-primary); font-weight: 700; }
+  .iv-control-right { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--cal-body); font-variant-numeric: tabular-nums; }
+  .iv-control-right .gap { margin-left: 12px; }
+  .iv-stages { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; }
+  .iv-stages.single { display: block; }
+  .iv-stage-bar { height: 4px; border-radius: 2px; background: var(--cal-surface-strong); overflow: hidden; }
+  .iv-stage-bar i { display: block; height: 100%; background: var(--cal-primary); border-radius: 2px; }
+  .iv-stage.current .iv-stage-bar { background: #dbeafe; }
+  .iv-stage.current .iv-stage-bar i { background: var(--cal-accent); }
+  .iv-stage-label { font-size: 11px; color: var(--cal-muted); margin-top: 6px; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .iv-stage.current .iv-stage-label { color: #1d4ed8; font-weight: 700; }
+  .iv-stage.done .iv-stage-label { color: var(--cal-body); }
+  .iv-stage.skip .iv-stage-label { color: var(--cal-muted-soft); }
+  .iv-ic { display: inline-flex; width: 10px; height: 10px; flex-shrink: 0; }
+  .iv-progress { height: 6px; border-radius: 3px; background: var(--cal-surface-strong); overflow: hidden; }
+  .iv-progress i { display: block; height: 100%; background: var(--cal-primary); }
+  .iv-store-warn { display: none; font-size: 12px; color: #92400e; background: var(--cal-warning-tint); border: 1px solid #fcd34d; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; line-height: 1.6; }
+  .iv-store-warn.show { display: block; }
+
+  .iv-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+  .iv-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .iv-panel { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; overflow: hidden; }
+  .iv-panel-head { padding: 14px 16px; font-size: 14px; font-weight: 700; color: var(--cal-ink); background: var(--cal-surface-soft); border-bottom: 1px solid var(--cal-hairline); }
+  .iv-panel-head.plain { background: none; border-bottom: none; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .iv-panel-head .aside { font-size: 12px; font-weight: 400; color: var(--cal-muted); }
+  .iv-panel-head .count { font-size: 13px; font-weight: 700; color: #1d4ed8; }
+  .iv-panel-hint { padding: 10px 16px; font-size: 12px; color: var(--cal-muted); border-bottom: 1px solid var(--cal-hairline); }
+  .iv-panel-body { padding: 8px 16px 14px; }
+  .iv-plist { padding: 10px 8px; display: flex; flex-direction: column; gap: 6px; max-height: 470px; overflow-y: auto; }
+  .iv-pitem { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1.5px solid transparent; border-radius: 10px; cursor: pointer; }
+  .iv-pitem:hover { background: var(--cal-surface-soft); }
+  .iv-pitem.active { border-color: var(--cal-primary); }
+  .iv-pitem.running { border-color: var(--cal-accent); background: var(--cal-accent-tint); }
+  .iv-code { width: 34px; height: 34px; border-radius: 8px; background: var(--cal-surface-card); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--cal-ink); flex-shrink: 0; letter-spacing: -0.3px; }
+  .iv-pitem.active .iv-code { background: var(--cal-primary); color: var(--cal-on-primary); }
+  .iv-pmain { font-size: 13px; font-weight: 600; color: var(--cal-ink); line-height: 18px; }
+  .iv-psub { font-size: 11px; color: var(--cal-muted); line-height: 16px; margin-top: 2px; }
+  .iv-psub.ok { color: var(--cal-success); }
+  .iv-psub.bad { color: #b45309; }
+  .iv-psub.run { color: #1d4ed8; }
+  .iv-tags { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+  .iv-tag { font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 4px; background: var(--cal-accent-tint); color: #1d4ed8; }
+  .iv-tag.grey { background: var(--cal-surface-card); color: var(--cal-body); }
+  .iv-note { margin: 4px 8px 10px; padding: 10px 12px; font-size: 12px; color: var(--cal-muted); background: var(--cal-surface-soft); border-radius: 8px; line-height: 1.6; }
+  .iv-more { font-size: 12px; color: var(--cal-muted); padding: 2px 12px 12px; }
+
+  .iv-center { display: flex; flex-direction: column; min-height: 640px; overflow: hidden; }
+  .iv-center-head:empty { display: none; }
+  .iv-center-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--cal-hairline); flex-wrap: wrap; }
+  .iv-center-head .who { font-size: 14px; font-weight: 700; color: var(--cal-ink); }
+  .iv-center-head .iv-btn { margin-left: auto; height: 32px; font-weight: 500; background: var(--cal-canvas); }
+  .iv-msgs { flex: 1; overflow-y: auto; padding: 20px 18px; display: flex; flex-direction: column; gap: 10px; max-height: 520px; min-height: 360px; }
+  .iv-banner { font-size: 12px; color: var(--cal-body); background: var(--cal-surface-soft); border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; }
+  .iv-q { align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+  .iv-q.flash .iv-q-bubble { box-shadow: 0 0 0 3px #93c5fd; }
+  .iv-q-chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .iv-q-bubble { background: var(--cal-primary); color: var(--cal-on-primary); padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+  .iv-q.skipped .iv-q-bubble { background: var(--cal-surface-card); color: var(--cal-muted); text-decoration: line-through; }
+  .iv-a { display: flex; gap: 10px; max-width: 82%; align-items: flex-start; }
+  .iv-a .iv-code { width: 30px; height: 30px; font-size: 10px; }
+  .iv-a-label { font-size: 11px; color: var(--cal-muted); margin-bottom: 4px; }
+  .iv-a-bubble { background: var(--cal-surface-card); color: var(--cal-ink); padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+  .iv-a-bubble.pending { color: var(--cal-muted); background: none; padding: 6px 0; }
+  .iv-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; line-height: 18px; padding: 0 7px; border-radius: 5px; background: var(--cal-surface-card); color: var(--cal-body); white-space: nowrap; border: 1px solid transparent; }
+  .iv-chip.blue { background: var(--cal-accent-tint); color: #1d4ed8; }
+  .iv-chip.warn { background: var(--cal-warning-tint); color: #92400e; border-color: #fcd34d; }
+  .iv-chip.line { background: var(--cal-canvas); border-color: var(--cal-hairline); }
+  .iv-empty { margin: auto; text-align: center; font-size: 13px; color: var(--cal-muted); line-height: 1.7; padding: 40px 10px; }
+
+  .iv-composer { border-top: 1px solid var(--cal-hairline); padding: 16px 20px 18px; background: var(--cal-canvas); }
+  .iv-composer:empty { display: none; }
+  .iv-composer.soft { background: var(--cal-surface-soft); }
+  .iv-comp-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .iv-comp-head b { font-size: 14px; color: var(--cal-ink); }
+  .iv-link { margin-left: auto; font-size: 12px; color: var(--cal-body); background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; }
+  .iv-link:hover { color: var(--cal-ink); text-decoration: underline; }
+  .iv-reason { font-size: 12px; color: var(--cal-muted); margin-bottom: 10px; }
+  .iv-textarea { width: 100%; min-height: 58px; padding: 14px 16px; border: 1px solid var(--cal-hairline); border-radius: 10px; font-size: 14px; line-height: 1.6; color: var(--cal-ink); font-family: inherit; resize: vertical; outline: none; background: var(--cal-canvas); }
+  .iv-textarea:focus { border-color: var(--cal-accent); box-shadow: 0 0 0 1px var(--cal-accent); }
+  .iv-textarea[readonly] { cursor: default; }
+  .iv-textarea[readonly]:focus { border-color: var(--cal-hairline); box-shadow: none; }
+  .iv-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .iv-actions .lead { margin-right: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cal-body); flex-wrap: wrap; }
+  .iv-pill { height: 32px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--cal-hairline); background: var(--cal-canvas); font-size: 12px; color: var(--cal-ink); cursor: pointer; font-family: inherit; }
+  .iv-pill.on { background: var(--cal-primary); color: var(--cal-on-primary); border-color: var(--cal-primary); }
+  .iv-pill.on.bad { background: #b45309; border-color: #b45309; }
+  .iv-pii { font-size: 12px; color: #b45309; margin-top: 8px; }
+  .iv-edit-reason { display: flex; gap: 6px; align-items: center; margin-top: 10px; flex-wrap: wrap; font-size: 12px; color: var(--cal-body); }
+  .iv-edit-reason input { flex: 1; min-width: 180px; height: 32px; border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 0 10px; font-size: 13px; font-family: inherit; outline: none; }
+  .iv-busy { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--cal-muted); }
+  .iv-qbank { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--cal-hairline); border-radius: 8px; font-size: 13px; color: var(--cal-body); background: var(--cal-surface-soft); font-family: inherit; outline: none; margin-bottom: 10px; }
+
+  .iv-topic { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--cal-muted); padding: 3px 0; }
+  .iv-topic .dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--cal-surface-strong); flex-shrink: 0; }
+  .iv-topic.on { color: var(--cal-ink); }
+  .iv-topic.on .dot { background: var(--cal-success); border-color: var(--cal-success); }
+  .iv-flag { border: 1px solid #fcd34d; background: var(--cal-warning-tint); border-radius: 8px; padding: 12px; margin-top: 8px; }
+  .iv-flag.neutral { border-color: var(--cal-hairline); background: var(--cal-canvas); }
+  .iv-flag-title { font-size: 12px; font-weight: 700; color: #b45309; display: flex; justify-content: space-between; gap: 8px; }
+  .iv-flag.neutral .iv-flag-title { color: var(--cal-ink); }
+  .iv-flag-title .r { font-weight: 700; color: var(--cal-ink); white-space: nowrap; }
+  .iv-flag-title .r.ok { color: var(--cal-success); }
+  .iv-flag-title .r.bad { color: #b45309; }
+  .iv-flag-title .r.muted { color: var(--cal-muted); font-weight: 400; }
+  .iv-flag-body { font-size: 12px; color: #92400e; line-height: 1.6; margin-top: 4px; }
+  .iv-flag.neutral .iv-flag-body { color: var(--cal-body); }
+  .iv-flag-foot { font-size: 12px; font-weight: 700; color: #b45309; margin-top: 4px; }
+  .iv-flag.neutral .iv-flag-foot { color: var(--cal-body); font-weight: 500; }
+  .iv-fact { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--cal-ink); padding: 4px 0; line-height: 1.5; }
+  .iv-fact .iv-chip { flex-shrink: 0; }
+  .iv-muted { font-size: 12px; color: var(--cal-muted); line-height: 1.6; }
+  .iv-stat { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 4px 0; color: var(--cal-body); }
+  .iv-stat b { color: var(--cal-ink); text-align: right; }
+  .iv-kv { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; color: var(--cal-muted); }
+  .iv-kv span:last-child { color: var(--cal-ink); }
+  .iv-check { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--cal-ink); padding: 5px 0; cursor: pointer; }
+  .iv-check input { width: 16px; height: 16px; accent-color: var(--cal-primary); }
+  .iv-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; font-size: 12px; color: var(--cal-muted); }
+  .iv-field input, .iv-field select { height: 34px; border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 0 10px; font-size: 13px; font-family: inherit; color: var(--cal-ink); background: var(--cal-canvas); outline: none; }
+  .iv-seg.small button { height: 30px; padding: 0 10px; font-size: 13px; }
+  .iv-seg.full { display: flex; }
+  .iv-seg.full button { flex: 1; }
+  .iv-linkrow { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--cal-muted); }
+  .iv-linkrow .iv-btn { height: 30px; font-size: 12px; background: var(--cal-canvas); }
+
+  /* 리뷰 · 질문지 보기 */
+  .iv-view { display: none; }
+  body.iv-view-open .tab-nav, body.iv-view-open .tab-panel { display: none !important; }
+  body.iv-view-open .iv-view.show { display: block; }
+  .iv-back { font-size: 13px; color: var(--cal-muted); background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; margin-bottom: 4px; }
+  .iv-back:hover { color: var(--cal-ink); }
+  .rv-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .rv-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .rv-meta { font-size: 13px; color: var(--cal-muted); }
+  .rv-head-actions { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--cal-body); }
+  .rv-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+  .rv-sec-title { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+  .rv-sec-sub { font-size: 12px; color: var(--cal-muted); margin-bottom: 12px; }
+  .rv-crit { padding: 16px; margin-bottom: 12px; }
+  .rv-crit-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .rv-crit-title { font-size: 14px; font-weight: 700; }
+  .rv-crit-need { font-size: 12px; color: var(--cal-muted); }
+  .rv-rel { display: flex; align-items: center; gap: 6px; margin: 12px 0 10px; font-size: 12px; color: var(--cal-muted); flex-wrap: wrap; }
+  .rv-rel button { border: none; font-family: inherit; cursor: pointer; }
+  .rv-sum { background: var(--cal-surface-soft); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--cal-ink); margin-bottom: 10px; line-height: 1.6; }
+  .rv-sum.muted { color: var(--cal-muted); }
+  .rv-memo-label { font-size: 12px; color: var(--cal-body); margin-bottom: 4px; }
+  .rv-memo { width: 100%; height: 40px; border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 0 12px; font-size: 13px; font-family: inherit; outline: none; }
+  .rv-memo:focus { border-color: var(--cal-ink); }
+  .rv-rule { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 4px 0; }
+  .rv-rule .ok { width: 16px; height: 16px; border-radius: 50%; background: var(--cal-success); flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+  .rv-rule .no { width: 16px; height: 16px; border-radius: 50%; background: var(--cal-warning); flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700; }
+  .rv-rule .v { margin-left: auto; font-weight: 700; color: #047857; }
+  .rv-rule .v.bad { color: #b45309; }
+  .rv-fix { display: flex; gap: 10px; border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 12px; margin-top: 8px; cursor: pointer; }
+  .rv-fix input { margin-top: 2px; width: 16px; height: 16px; accent-color: var(--cal-primary); flex-shrink: 0; }
+  .rv-fix b { font-size: 13px; }
+  .rv-fix div div { font-size: 12px; color: var(--cal-muted); margin-top: 2px; }
+
+  .gd-wrap { max-width: 960px; }
+  .gd-wrap h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin: 6px 0 8px; }
+  .gd-wrap h2 { font-size: 18px; font-weight: 700; margin: 28px 0 6px; }
+  .gd-wrap p, .gd-wrap li { font-size: 14px; color: var(--cal-body); line-height: 1.7; }
+  .gd-wrap .gd-lead { color: var(--cal-muted); font-size: 13px; margin-bottom: 10px; }
+  .gd-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 10px; overflow: hidden; }
+  .gd-table th { text-align: left; font-weight: 600; color: var(--cal-muted); background: var(--cal-surface-soft); padding: 10px 12px; border-bottom: 1px solid var(--cal-hairline); }
+  .gd-table td { padding: 9px 12px; border-bottom: 1px solid var(--cal-hairline-soft); vertical-align: top; color: var(--cal-ink); line-height: 1.6; }
+  .gd-table tr.sec td { background: var(--cal-surface-soft); font-weight: 700; color: var(--cal-ink); }
+  .gd-table td.id { width: 76px; color: var(--cal-body); white-space: nowrap; }
+  .gd-table td.chg { width: 70px; font-weight: 600; }
+  .gd-table .fu { display: block; color: var(--cal-muted); font-size: 12px; margin-top: 2px; }
+  .chg-수정 { color: #1d4ed8; } .chg-추가 { color: #047857; } .chg-합성대체 { color: #b45309; }
+  .gd-list { padding-left: 18px; }
+  .gd-list li { margin: 4px 0; }
+  .gd-todo { list-style: none; padding: 0; }
+  .gd-todo label { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--cal-body); padding: 4px 0; cursor: pointer; }
+  .gd-todo input { margin-top: 4px; accent-color: var(--cal-primary); }
+  .gd-wrap details { margin-top: 24px; }
+  .gd-wrap summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+  .gd-wrap pre { white-space: pre-wrap; font-size: 12px; line-height: 1.6; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 16px; margin-top: 10px; font-family: ui-monospace, Menlo, monospace; color: var(--cal-body); }
+
+  /* 참가자 링크 화면 — 휴대폰 채팅형 */
+  .pa-wrap { display: none; }
+  html.participant-mode .site-header, html.participant-mode .tab-nav, html.participant-mode .main { display: none !important; }
+  html.participant-mode body { background: var(--cal-surface-soft); }
+  html.participant-mode .pa-wrap { display: block; max-width: 480px; margin: 0 auto; min-height: 100vh; background: var(--cal-surface-soft); }
+  .pa-head { position: sticky; top: 0; z-index: 10; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: var(--cal-canvas); border-bottom: 1px solid var(--cal-hairline); }
+  .pa-head b { font-size: 16px; color: var(--cal-ink); }
+  .pa-head span { font-size: 13px; color: var(--cal-muted); }
+  .pa-body { padding: 16px 20px 210px; }
+  .pa-progress { position: sticky; top: 54px; z-index: 5; background: var(--cal-surface-soft); margin: -16px -20px 0; padding: 16px 20px 2px; }
+  .pa-progress:empty { display: none; }
+  .pa-progress-label { font-size: 12px; font-weight: 600; color: #1d4ed8; margin-bottom: 8px; }
+  .pa-bar { height: 4px; border-radius: 2px; background: var(--cal-surface-strong); overflow: hidden; margin-bottom: 18px; }
+  .pa-bar i { display: block; height: 100%; background: var(--cal-primary); border-radius: 2px; transition: width 0.3s; }
+  .pa-notice { font-size: 12px; color: var(--cal-body); background: var(--cal-surface-card); border-radius: 10px; padding: 10px 14px; line-height: 1.6; margin-bottom: 18px; }
+  .pa-msgs { display: flex; flex-direction: column; }
+  .pa-ai-label { font-size: 11px; color: var(--cal-muted); margin: 4px 0 4px; }
+  .pa-ai { align-self: flex-start; max-width: 86%; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6; color: var(--cal-ink); margin-bottom: 16px; white-space: pre-wrap; }
+  .pa-typing { color: var(--cal-muted); }
+  .pa-me { align-self: flex-end; max-width: 80%; background: var(--cal-primary); color: var(--cal-on-primary); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6; margin-bottom: 16px; white-space: pre-wrap; }
+  .pa-sent { align-self: flex-end; font-size: 11px; color: var(--cal-muted); margin: -10px 2px 16px; }
+  .pa-compose { position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; background: var(--cal-canvas); border-top: 1px solid var(--cal-hairline); padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .pa-input { width: 100%; min-height: 84px; resize: none; border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 12px 14px; font-size: 14px; font-family: inherit; line-height: 1.6; outline: none; color: var(--cal-ink); }
+  .pa-input:focus { border-color: var(--cal-ink); }
+  .pa-btns { display: flex; gap: 8px; margin-top: 10px; }
+  .pa-btn { height: 46px; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; padding: 0 16px; }
+  .pa-btn.ghost { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); color: var(--cal-ink); }
+  .pa-btn.dark { flex: 1; background: var(--cal-primary); border: 1px solid var(--cal-primary); color: var(--cal-on-primary); }
+  .pa-btn:disabled, .pa-input:disabled { opacity: 0.45; cursor: default; }
+  .pa-status { font-size: 12px; color: #b45309; margin-top: 6px; }
+  .pa-status:empty { display: none; }
+  .pa-end { font-size: 14px; color: var(--cal-body); text-align: center; padding: 14px 0; }
+
+  @media (max-width: 1100px) {
+    .iv-layout { grid-template-columns: 240px minmax(0, 1fr); }
+    .iv-layout > #iv-right { grid-column: 1 / -1; }
+    .rv-layout { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .iv-layout { grid-template-columns: 1fr; }
+    .iv-stages { grid-template-columns: repeat(4, 1fr); }
+    .iv-control-right { margin-left: 0; }
+    #iv-mode-seg { flex-wrap: wrap; }
+    .site-header .header-badge { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -1146,20 +1396,13 @@
   <div class="logo">
     <div class="logo-mark">S</div>
     <span class="logo-text">합성 투자자 리서치 플랫폼</span>
+    <span class="header-badge">팀 공유 · 실시간 동기화</span>
   </div>
-  <span class="header-badge">팀 공유 · 실시간 동기화</span>
+  <div class="header-code">참여자 코드 <span id="header-code">—</span></div>
 </header>
 
-<!-- 참여자 코드 바 -->
-<div class="participant-code-bar" id="code-bar">
-  <strong>참여자 코드</strong>
-  <input class="code-input" id="code-input" placeholder="예: A, B, C..." maxlength="10" />
-  <button class="code-set-btn" id="code-set-btn">설정</button>
-  <span class="code-display" id="code-display">미설정 — 대화 저장 시 파일명에 반영됩니다</span>
-</div>
-
 <!-- 탭 네비 -->
-<nav class="tab-nav">
+<nav class="tab-nav" id="tab-nav">
   <button class="tab-btn active" data-tab="bank">
     페르소나 뱅크
   </button>
@@ -1238,7 +1481,7 @@
 
     <!-- 필터 -->
     <div class="filter-bar" id="filter-bar" style="display:none;">
-      <input type="text" id="search-input" placeholder="이름 검색…" />
+      <input type="text" id="search-input" placeholder="코드 검색 (예: S03)…" />
       <select id="filter-age">
         <option value="">연령대 전체</option>
         <option value="20대">20대</option>
@@ -1284,71 +1527,42 @@
 
   <!-- ══════════ 탭2: 심층 인터뷰 ══════════ -->
   <div class="tab-panel" id="tab-interview">
-    <div class="section-header">
+    <div class="iv-page-head">
       <div>
-        <div class="section-title">심층 인터뷰</div>
-        <div class="section-sub">페르소나를 선택하고 1:1 대화를 시작하세요</div>
+        <div class="iv-title">심층 인터뷰</div>
+        <div class="iv-sub" id="iv-sub"></div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button class="save-chat-btn" id="save-interview-btn">대화 저장 (TXT)</button>
+      <div class="iv-head-actions">
+        <button class="iv-btn" id="iv-guide-btn">질문지 보기</button>
+        <button class="iv-btn" id="iv-export-a"></button>
+        <button class="iv-btn" id="iv-export-b"></button>
       </div>
     </div>
-    <!-- 모드 토글 -->
-    <div class="mode-toggle">
-      <div>
-        <div class="mode-toggle-label">응답 모드 <span class="mode-badge explore" id="interview-mode-badge">탐색 모드</span></div>
-        <div class="mode-toggle-desc" id="interview-mode-desc">설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용</div>
+
+    <div class="iv-card iv-control">
+      <div class="iv-control-row">
+        <span class="iv-label">진행 방식</span>
+        <div class="iv-seg" id="iv-mode-seg">
+          <button data-mode="direct">직접 질문</button>
+          <button data-mode="suggest">AI 제안 받기</button>
+          <button data-mode="auto">AI 자동 진행</button>
+          <button data-mode="real">실제 인터뷰 보조</button>
+        </div>
+        <div class="iv-control-right" id="iv-control-right"></div>
       </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="interview-mode-toggle" />
-        <span class="toggle-slider"></span>
-      </label>
+      <div class="iv-stages" id="iv-stages"></div>
     </div>
-    <div class="interview-layout">
-      <!-- 사이드바 -->
-      <div class="persona-sidebar">
-        <div class="sidebar-title">페르소나 선택</div>
-        <div class="sidebar-hint">페르소나 뱅크 필터 결과 기준</div>
-        <div class="sidebar-persona-list" id="interview-persona-list">
-          <div class="empty-state" style="padding:24px 12px;">
-            <div class="msg" style="font-size:12px;">페르소나 뱅크에서 먼저 생성해주세요</div>
-          </div>
-        </div>
-      </div>
-      <!-- 채팅창 -->
-      <div class="chat-container">
-        <div class="session-bar" id="interview-session-bar">
-          <div class="session-stat">
-            <span class="session-stat-label">경과 시간</span>
-            <span class="session-stat-value" id="interview-timer">00:00</span>
-          </div>
-          <div class="session-stat">
-            <span class="session-stat-label">질문 수</span>
-            <span class="session-stat-value" id="interview-q-count">0</span>
-          </div>
-          <button class="session-btn" id="interview-timer-reset">초기화</button>
-        </div>
-        <div class="chat-header">
-          <div class="sidebar-avatar" id="interview-avatar" style="background:var(--cal-surface-card);"></div>
-          <div class="chat-persona-info">
-            <div class="name" id="interview-persona-name">페르소나를 선택해주세요</div>
-            <div class="role" id="interview-persona-role">—</div>
-          </div>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-          <div class="empty-state" style="margin:auto;">
-            
-            <div class="msg">왼쪽에서 페르소나를 선택하면 인터뷰를 시작할 수 있습니다</div>
-          </div>
-        </div>
-        <div class="qbank-row">
-          <select id="qbank"><option value="">질문지에서 불러오기…</option></select>
-        </div>
-        <div class="chat-input-row">
-          <textarea class="chat-input" id="chat-input" placeholder="질문을 입력하세요… (Shift+Enter로 줄바꿈, Enter로 전송)" rows="1"></textarea>
-          <button class="btn btn-primary" id="chat-send">전송</button>
-        </div>
-      </div>
+
+    <div class="iv-store-warn" id="iv-store-warn"></div>
+
+    <div class="iv-layout">
+      <aside class="iv-col" id="iv-left"></aside>
+      <section class="iv-card iv-center">
+        <div class="iv-center-head" id="iv-center-head"></div>
+        <div class="iv-msgs" id="iv-msgs"></div>
+        <div class="iv-composer" id="iv-composer"></div>
+      </section>
+      <aside class="iv-col" id="iv-right"></aside>
     </div>
   </div>
 
@@ -1550,7 +1764,13 @@
     </div>
   </div>
 
+  <!-- ══════════ 인터뷰 리뷰 · 질문지 보기 (탭 밖 전체 화면) ══════════ -->
+  <div class="iv-view" id="iv-review-view"></div>
+  <div class="iv-view" id="iv-guide-view"></div>
 </main>
+
+<!-- 참가자 링크 화면 (?answer=세션ID 로 열림) -->
+<div class="pa-wrap" id="participant-view"></div>
 
 <!-- 페르소나 상세 모달 -->
 <div class="modal-overlay" id="modal-overlay">
@@ -1662,6 +1882,8 @@ const GOALS = [
   '안정적인 노후 자금 마련','월급 외 부수입 창출','내 집 마련 종잣돈','단기 수익 실현','자산 인플레이션 방어'
 ];
 
+// 페르소나 코드 (S01, S02 …) — 화면과 AI 프롬프트에서 이름 대신 쓴다
+function pCode(p) { return p.code || ('S' + String(parseInt(String(p.id).replace(/\D/g, ''), 10) || 0).padStart(2, '0')); }
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function pickByDist(dist) {
   const total = Object.values(dist).reduce((a, b) => a + b, 0);
@@ -1706,6 +1928,7 @@ function buildPersona(idx) {
 
   return {
     id: `p${idx}`,
+    code: 'S' + String(idx).padStart(2, '0'),
     name, gender, age, profession,
     level, channel, worry, goal, bgColor, fgColor, photoSeed, genderParam,
     invYears, digitalLevel, literacy, aiUse, trustCue,
@@ -1725,19 +1948,6 @@ function refContextText() {
 ※ 자료에 나오지 않더라도, 연구자가 묻지 않은 특정 증권사·상품·사건을 먼저 꺼내지 마세요.`;
 }
 
-// 인터뷰 질문지 (합성사용자용 — 화면 재현 문항은 사용성 평가 탭에서 진행)
-const QUESTION_BANK = [
-  ['도입·사건 복기', '최근 6개월 내 모바일 증권 앱으로 거래하셨거나 유심히 살펴보신 주식·ETF(금융상품) 하나를 떠올려 주세요. 어떤 앱에서 탐색하셨나요?'],
-  ['도입·사건 복기', '그 주식(상품)의 정보를 처음 어떤 경로(SNS, 앱 알림, 검색 등)로 접하셨고, 그 후 앱에서 가장 먼저 찾아본 내용은 무엇이었나요?'],
-  ['도입·사건 복기', '탐색 과정에서 "이 주식(상품)에 투자해 볼 만하겠다"라고 마음을 정하게 된 결정적인 계기나 정보는 무엇이었나요?'],
-  ['화면 재현 · 합성용', '당시 앱에서 그 주식(상품)을 찾아 들어갔던 화면 경로를 기억나는 대로 순서대로 말씀해 주시겠어요?'],
-  ['화면 재현', '그 화면에서 가장 먼저 눈길이 갔던 글자/수치는 무엇이고, 반대로 유심히 보지 않고 그냥 지나쳤던 영역은 어디였나요?'],
-  ['화면 재현', '만약 친한 지인이 이 주식(상품)을 사려고 한다면, 어떤 위험이나 조건을 먼저 확인해 보라고 말해주고 싶으신가요?'],
-  ['추천·이해관계·마찰', '당시 앱 화면에서 그 주식(상품)이 배치되어 있던 위치나 추천 문구가 결정을 내리는 데 영향을 주었나요?'],
-  ['추천·이해관계·마찰', '증권 플랫폼이 이 주식(상품) 정보를 보여주는 방식(그래프, 혜택 강조 등)에 대해 평소에 어떻게 느끼시는지 편하게 말씀해 주세요.'],
-  ['추천·이해관계·마찰', '결정을 내리기까지 단계가 너무 가볍게 느껴졌거나, 반대로 절차가 복잡해서 답답했던 순간이 있었나요?'],
-  ['니즈', '상품을 가입 또는 매수하기 직전으로 돌아간다면, 어떤 추가 정보나 조언이 있었을 때 더 확신을 가지고 판단할 수 있었을까요?']
-];
 
 // ══════════════════════════════════════
 //  상태
@@ -1746,6 +1956,7 @@ let personas = [];
 function ensurePersonaFields(list) {
   let changed = false;
   for (const p of list) {
+    if (!p.code) { p.code = pCode(p); changed = true; }
     if (!p.brokerApp) { p.brokerApp = pick(BROKER_APPS); changed = true; }
     if (!p.literacy) { p.literacy = pickByDist(LITERACY_BY_LEVEL[p.level] || LITERACY_BY_LEVEL['중급']); changed = true; }
     if (!p.aiUse) { p.aiUse = pickByDist(AI_USE_BY_AGE[p.age] || AI_USE_BY_AGE['30대']); changed = true; }
@@ -1754,9 +1965,7 @@ function ensurePersonaFields(list) {
   return changed;
 }
 let references = [];
-let selectedInterviewPersona = null;
 let workshopParticipants = [];
-let interviewHistory = [];
 let workshopHistory = [];
 let surveyResultText = '';
 // ── Vercel 배포용: Anthropic API + Supabase ──
@@ -1768,10 +1977,13 @@ async function callAI(messages, opts) {
   const onText = opts && opts.onText;
   const isStr = typeof messages === 'string';
   // 항상 비스트리밍으로 요청 — 스트리밍 글자 깨짐 방지
-  const body = JSON.stringify({
+  const payload = {
     messages: isStr ? [{ role: 'user', content: messages }] : messages,
     stream: false,
-  });
+  };
+  if (opts && opts.system) payload.system = opts.system;
+  if (opts && opts.maxTokens) payload.max_tokens = opts.maxTokens;
+  const body = JSON.stringify(payload);
   const resp = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1849,13 +2061,9 @@ let _unused = null; // sample/db replaced
 let participantCode = '';
 
 // ── 고도화: 모드 (false=탐색, true=검증) ──
-let interviewVerifyMode = false;
 let workshopVerifyMode = false;
 
 // ── 고도화: 타이머 ──
-let interviewTimerInterval = null;
-let interviewTimerSeconds = 0;
-let interviewQCount = 0;
 let workshopTimerInterval = null;
 let workshopTimerSeconds = 0;
 let workshopQCount = 0;
@@ -1868,33 +2076,19 @@ function formatTime(sec) {
   const s = String(sec % 60).padStart(2, '0');
   return m + ':' + s;
 }
+// 워크숍 타이머 (심층 인터뷰는 세션마다 경과 시간을 따로 잰다)
 function startTimer(type) {
-  if (type === 'interview') {
-    if (interviewTimerInterval) return;
-    interviewTimerInterval = setInterval(() => {
-      interviewTimerSeconds++;
-      document.getElementById('interview-timer').textContent = formatTime(interviewTimerSeconds);
-    }, 1000);
-  } else {
-    if (workshopTimerInterval) return;
-    workshopTimerInterval = setInterval(() => {
-      workshopTimerSeconds++;
-      document.getElementById('workshop-timer').textContent = formatTime(workshopTimerSeconds);
-    }, 1000);
-  }
+  if (workshopTimerInterval) return;
+  workshopTimerInterval = setInterval(() => {
+    workshopTimerSeconds++;
+    document.getElementById('workshop-timer').textContent = formatTime(workshopTimerSeconds);
+  }, 1000);
 }
 function resetTimer(type) {
-  if (type === 'interview') {
-    clearInterval(interviewTimerInterval); interviewTimerInterval = null;
-    interviewTimerSeconds = 0; interviewQCount = 0;
-    document.getElementById('interview-timer').textContent = '00:00';
-    document.getElementById('interview-q-count').textContent = '0';
-  } else {
-    clearInterval(workshopTimerInterval); workshopTimerInterval = null;
-    workshopTimerSeconds = 0; workshopQCount = 0;
-    document.getElementById('workshop-timer').textContent = '00:00';
-    document.getElementById('workshop-q-count').textContent = '0';
-  }
+  clearInterval(workshopTimerInterval); workshopTimerInterval = null;
+  workshopTimerSeconds = 0; workshopQCount = 0;
+  document.getElementById('workshop-timer').textContent = '00:00';
+  document.getElementById('workshop-q-count').textContent = '0';
 }
 
 // ══════════════════════════════════════
@@ -2047,7 +2241,7 @@ function getFiltered() {
   const literacy = document.getElementById('filter-literacy').value;
   const ai = document.getElementById('filter-ai').value;
   return personas.filter(p =>
-    (!search || p.name.includes(search)) &&
+    (!search || pCode(p).toLowerCase().includes(search)) &&
     (!age || p.age === age) &&
     (!level || p.level === level) &&
     (!channel || p.channel === channel) &&
@@ -2072,7 +2266,7 @@ function renderPersonaBank() {
       <div class="persona-card-top">
         <div class="persona-avatar" style="background:${p.bgColor}"></div>
         <div class="persona-meta">
-          <div class="persona-name">${p.name} <span style="font-size:12px;font-weight:400;color:var(--cal-muted)">${p.gender}·${p.age}</span></div>
+          <div class="persona-name">${pCode(p)} <span style="font-size:12px;font-weight:400;color:var(--cal-muted)">${p.gender}·${p.age}</span></div>
           <div class="persona-tag-row">
             <span class="tag tag-age">${p.profession}</span>
             <span class="tag ${levelClass(p.level)}">${p.level}</span>
@@ -2120,7 +2314,7 @@ function openPersonaModal(id) {
   modalPersonaId = id;
   document.getElementById('modal-photo').style.background = p.bgColor;
   document.getElementById('modal-photo').innerHTML = '';
-  document.getElementById('modal-name').textContent = `${p.name} (${p.gender}·${p.age}·${p.profession})`;
+  document.getElementById('modal-name').textContent = `${pCode(p)} (${p.gender}·${p.age}·${p.profession})`;
   document.getElementById('modal-content').innerHTML = `
     <div class="modal-block">
       <div class="modal-block-title">① 인구통계</div>
@@ -2190,23 +2384,9 @@ document.getElementById('modal-go-workshop').addEventListener('click', () => {
 //  사이드바 업데이트 (인터뷰·워크숍)
 // ══════════════════════════════════════
 function updateSidebars() {
-  // 인터뷰 사이드바 — 페르소나 뱅크 필터 결과 기준 (최대 30명 + 현재 선택)
-  const interviewList = document.getElementById('interview-persona-list');
+  // 심층 인터뷰 — 페르소나 목록은 인터뷰 탭이 직접 그린다
   const filteredList = getFiltered();
-  const listForInterview = filteredList.slice(0, 30);
-  if (selectedInterviewPersona && !listForInterview.find(p => p.id === selectedInterviewPersona.id)) listForInterview.unshift(selectedInterviewPersona);
-  interviewList.innerHTML = listForInterview.map(p => `
-    <div class="sidebar-persona-item ${selectedInterviewPersona?.id === p.id ? 'active' : ''}" data-id="${p.id}">
-      <div class="sidebar-avatar" style="background:${p.bgColor}"></div>
-      <div class="sidebar-info">
-        <div class="name">${p.name}</div>
-        <div class="desc">${p.age} · ${p.level} · ${p.channel} · 이해도 ${p.literacy || '—'}</div>
-      </div>
-    </div>
-  `).join('');
-  interviewList.querySelectorAll('.sidebar-persona-item').forEach(item => {
-    item.addEventListener('click', () => selectInterviewPersona(item.dataset.id));
-  });
+  ivRenderAll();
 
   // 설문·사용성 select 업데이트
   updateSelectOptions('survey-persona-select');
@@ -2220,7 +2400,7 @@ function updateSidebars() {
     <div class="sidebar-persona-item ${workshopParticipants.includes(p.id) ? 'active' : ''}" data-id="${p.id}">
       <div class="sidebar-avatar" style="background:${p.bgColor}"></div>
       <div class="sidebar-info">
-        <div class="name">${p.name}</div>
+        <div class="name">${pCode(p)}</div>
         <div class="desc">${p.age} · ${p.level} · AI ${p.aiUse || '—'}</div>
       </div>
     </div>
@@ -2234,157 +2414,13 @@ function updateSidebars() {
 function updateSelectOptions(selectId) {
   const sel = document.getElementById(selectId);
   sel.innerHTML = getFiltered().slice(0, 50).map(p =>
-    `<option value="${p.id}">${p.name} (${p.age} ${p.level})</option>`
+    `<option value="${p.id}">${pCode(p)} (${p.age} ${p.level})</option>`
   ).join('');
 }
 
 // ══════════════════════════════════════
 //  심층 인터뷰
 // ══════════════════════════════════════
-function selectInterviewPersona(id) {
-  selectedInterviewPersona = personas.find(p => p.id === id);
-  interviewHistory = [];
-  if (!selectedInterviewPersona) return;
-
-  const p = selectedInterviewPersona;
-  document.getElementById('interview-avatar').innerHTML = '';
-  document.getElementById('interview-avatar').style.background = p.bgColor;
-  document.getElementById('interview-avatar').style.background = p.bgColor;
-  document.getElementById('interview-persona-name').textContent = p.name;
-  document.getElementById('interview-persona-role').textContent = `${p.age} · ${p.profession} · ${p.level} 투자자 · ${p.channel} 주 이용`;
-
-  document.getElementById('chat-messages').innerHTML = `
-    <div class="msg assistant">
-      <div class="msg-avatar" style="background:${p.bgColor};flex-shrink:0;"></div>
-      <div>
-        <div class="msg-bubble">안녕하세요, ${p.name}입니다. 투자한 지는 ${p.invYears} 됐고, 주로 ${p.brokerApp || '증권'} 앱을 써요. 투자 정보는 ${p.channel}에서 많이 봐요. 편하게 물어보세요.</div>
-        <div class="source-badge">합성 응답 · 실제 사용자 데이터 아님</div>
-      </div>
-    </div>
-  `;
-  document.getElementById('interview-persona-list').querySelectorAll('.sidebar-persona-item').forEach(item => {
-    item.classList.toggle('active', item.dataset.id === id);
-  });
-}
-
-async function sendInterviewMessage() {
-  if (!selectedInterviewPersona) { showDialog('페르소나를 먼저 선택해주세요', '왼쪽 목록에서 인터뷰할 페르소나를 선택한 뒤\n질문을 전송해주세요.'); return; }
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  input.classList.remove('has-content');
-  input.style.height = '44px';
-  const p = selectedInterviewPersona;
-  const messagesEl = document.getElementById('chat-messages');
-
-  // 사용자 메시지
-  messagesEl.insertAdjacentHTML('beforeend', `
-    <div class="msg user">
-      <div class="msg-bubble">${text}</div>
-    </div>
-  `);
-
-  // 생각 중 표시
-  const thinkingId = 'thinking-' + Date.now();
-  messagesEl.insertAdjacentHTML('beforeend', `
-    <div class="msg assistant" id="${thinkingId}">
-      <div class="msg-avatar" style="background:${p.bgColor};flex-shrink:0;"></div>
-      <div class="thinking-indicator"><div class="dot-pulse"></div><div class="dot-pulse"></div><div class="dot-pulse"></div></div>
-    </div>
-  `);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-
-  const refContext = refContextText();
-
-  const systemPrompt = `당신은 다음 조건을 가진 합성 사용자(연구 참여자)입니다.
-
-[개인 특성]
-- 이름: ${p.name} (${p.gender}성, ${p.age}, ${p.profession})
-- 투자 경험: ${p.level} (${p.invYears})
-- 디지털 숙련도: ${p.digitalLevel}
-- 금융 이해도: ${p.literacy || '보통'} (낮으면 옵션·레버리지·수수료 구조 같은 용어를 정확히 모르는 게 자연스러움)
-- 투자 관련 AI(ChatGPT 등) 활용: ${p.aiUse || '가끔 사용'}
-- 주로 쓰는 증권앱: ${p.brokerApp || '특정하지 않음'}
-
-[관련 경험]
-- 주 정보 채널: ${p.channel}
-- 정보 확인 방식: ${p.verifyBehavior}
-- 핵심 불안: "${p.worry}"
-- 주로 믿는 단서: ${p.trustCue || '구체적인 숫자'}
-- 투자 목표: ${p.goal}
-
-[목표와 제약]
-- 말투: ${p.speechStyle}
-- 실제 사람처럼 기억이 불완전합니다. 모든 정보를 꼼꼼히 확인했다고 말하지 마세요. 위 '정보 확인 방식'대로 행동한 사람으로서, 안 읽고 넘긴 것·귀찮아서 건너뛴 것·몰랐던 것을 솔직하게 말하세요
-- 결정을 나중에 그럴듯하게 합리화하지 마세요. 그때의 감정(조급함, 귀찮음, 기대감)을 그대로 말하세요
-- 연구자가 묻지 않은 '다크패턴', '이해상충' 같은 전문 개념을 먼저 꺼내지 마세요
-- 앱 경험은 위 '주로 쓰는 증권앱' 기준으로 말하세요. ${p.brokerApp && p.brokerApp !== '특정하지 않음' ? '다른 증권사 이름은 연구자가 묻지 않으면 꺼내지 마세요' : '특정 증권사 이름을 먼저 꺼내지 마세요'}
-
-[시장 배경 — 당신의 개인 경험이 아님]
-${refContext}
-
-[응답 원칙]
-- 모르는 것은 모른다고 답하세요
-- 사회적으로 바람직한 답이 아니라 현실적인 행동을 말하세요
-- 200자 내외로 자연스럽게 대화하세요
-- 자신이 AI라는 점을 언급하지 말고 이 인물로서만 답하세요`;
-
-  // 타이머 시작 + 카운트
-  startTimer('interview');
-  interviewQCount++;
-  document.getElementById('interview-q-count').textContent = interviewQCount;
-
-  // 모드에 따라 응답 원칙 변경
-  const modeRule = interviewVerifyMode
-    ? `[검증 모드 — 엄격 적용]
-- 페르소나 설정에 없는 구체적 경험(상품명, 금액, 수익률, 날짜)은 지어내지 마세요
-- 그런 질문에는 "정확히는 기억이 안 나요"처럼 답하고, 설정에서 알 수 있는 범위만 말하세요`
-    : `[탐색 모드]
-- 페르소나 설정을 바탕으로 그럴듯한 경험을 구체적으로 채워 답해도 됩니다 (가설 생성용)
-- 단, 수익률 같은 구체적 수치는 만들지 마세요`;
-
-  interviewHistory.push({ role: 'user', content: text });
-
-  try {
-    let fullText = '';
-    const finalPrompt = systemPrompt.replace('[응답 원칙]', modeRule + '\n\n[응답 원칙 추가]');
-    // 설정 프롬프트를 첫 질문과 합쳐 user/assistant 순서가 번갈아 이어지도록 구성
-    const turns = interviewHistory.map((m, i) => i === 0
-      ? { role: 'user', content: finalPrompt + '\n\n[연구자 질문]\n' + m.content }
-      : { role: m.role, content: m.content });
-    const resp = await callAI(turns, { onText: function(o) { fullText = o.text; } });
-    interviewHistory.push({ role: 'assistant', content: resp.text });
-
-    // 출처 추적
-    const allRefs2 = [...DEFAULT_REFS, ...references];
-    allRefs2.forEach(r => { if (resp.text.includes(r.title.slice(0,10))) trackCitation(r.title); });
-
-    document.getElementById(thinkingId).outerHTML = `
-      <div class="msg assistant">
-        <div class="msg-avatar" style="background:${p.bgColor};flex-shrink:0;"></div>
-        <div>
-          <div class="msg-bubble">${resp.text}</div>
-          <div class="source-badge">합성 응답 · ${interviewVerifyMode ? '검증 모드' : '탐색 모드'} · 실제 사용자 데이터 아님</div>
-        </div>
-      </div>
-    `;
-  } catch(e) {
-    document.getElementById(thinkingId).outerHTML = `
-      <div class="msg assistant">
-        <div class="msg-avatar" style="background:${p.bgColor};flex-shrink:0;"></div>
-        <div class="msg-bubble" style="color:var(--cal-error)">응답 생성 실패: ${e.message || '다시 시도해주세요'}</div>
-      </div>
-    `;
-  }
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-}
-
-document.getElementById('chat-send').addEventListener('click', sendInterviewMessage);
-document.getElementById('chat-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendInterviewMessage(); }
-});
-
 // ══════════════════════════════════════
 //  설문
 // ══════════════════════════════════════
@@ -2405,7 +2441,7 @@ document.getElementById('run-survey').addEventListener('click', async () => {
   const prompt = `다음 ${selectedPersonas.length}명의 합성 사용자가 설문에 응답합니다.
 
 페르소나 목록:
-${selectedPersonas.map(p => `- ${p.name} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}")`).join('\n')}
+${selectedPersonas.map(p => `- ${pCode(p)} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}")`).join('\n')}
 
 시장 배경 (참여자 개인 경험 아님):
 ${refContextText()}
@@ -2415,7 +2451,7 @@ ${refContextText()}
 2. ${q2}
 3. ${q3}
 
-${format === 'table' ? '각 페르소나의 응답을 마크다운 표 형식으로 작성해주세요. 컬럼: 이름 | 문항1 | 문항2 요약 | 문항3 요약' :
+${format === 'table' ? '각 페르소나의 응답을 마크다운 표 형식으로 작성해주세요. 컬럼: 코드 | 문항1 | 문항2 요약 | 문항3 요약' :
   format === 'individual' ? '각 페르소나별로 상세한 응답을 작성해주세요. 참고 자료에서 가져온 내용이 있으면 해당 자료 제목을 [근거: 자료명]으로 표시하고, 없으면 [근거: 페르소나 설정]으로 표시해주세요.' :
   '전체 응답을 분석하여 공통 패턴, 차이점, 핵심 인사이트를 요약해주세요.'}
 
@@ -2470,7 +2506,7 @@ function renderWorkshopParticipants() {
   el.innerHTML = active.map(p => `
     <div class="participant-chip" style="border-color:${p.bgColor}">
       <span style="width:20px;height:20px;border-radius:5px;background:${p.bgColor};flex-shrink:0;display:inline-block;"></span>
-      ${p.name} <span style="color:var(--cal-muted);font-size:11px;">${p.age}</span>
+      ${pCode(p)} <span style="color:var(--cal-muted);font-size:11px;">${p.age}</span>
     </div>
   `).join('');
 }
@@ -2506,7 +2542,7 @@ async function sendWorkshopMessage() {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 
   const prompt = `다음은 아이디어 워크숍 참여자들입니다:
-${active.map(p => `- ${p.name} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}"), 말투 "${p.speechStyle}"`).join('\n')}
+${active.map(p => `- ${pCode(p)} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}"), 말투 "${p.speechStyle}"`).join('\n')}
 
 시장 배경 (참여자 개인 경험 아님):
 ${refContextText()}
@@ -2516,8 +2552,8 @@ ${refContextText()}
 
 각 참여자가 이 아이디어에 대해 순서대로 자신의 관점에서 반응합니다. 서로 다른 입장이 드러나도록, 동의와 반박이 섞이도록 작성하세요.
 
-형식 (이름에 대괄호를 붙이지 마세요):
-**이름:** (반응 내용, 100자 내외, 다른 참여자의 발언에 반응하거나 새로운 관점 추가)
+형식 (코드에 대괄호를 붙이지 마세요):
+**코드:** (반응 내용, 100자 내외, 다른 참여자의 발언에 반응하거나 새로운 관점 추가)
 
 가드레일: 투자 전문 지식이 없는 일반인으로 현실적인 반응을 보이세요. 수익률 등 확인 불가한 수치는 말하지 마세요.`;
 
@@ -2546,16 +2582,16 @@ ${refContextText()}
     const lines = resp.text.split('\n').filter(l => l.trim());
     let html = '';
     for (const line of lines) {
-      // '**이름:** 내용', '**[이름]:** 내용', '**이름**: 내용', '이름: 내용' 모두 인식
+      // '**코드:** 내용', '**[코드]:** 내용', '**코드**: 내용', '코드: 내용' 모두 인식
       const match = line.replace(/\*\*/g, '').match(/^\s*[-•]?\s*\[?([^\]:：]{1,12})\]?\s*[:：]\s*(.+)$/);
-      const persona = match ? active.find(p => match[1].includes(p.name)) : null;
+      const persona = match ? active.find(p => match[1].trim() === pCode(p)) : null;
       if (match && persona) {
         const content = match[2].trim();
         html += `
           <div class="msg assistant">
             <div class="msg-avatar" style="background:${persona.bgColor};flex-shrink:0;"></div>
             <div>
-              <div style="font-size:11px;font-weight:700;color:var(--cal-body);margin-bottom:4px;">${persona.name}</div>
+              <div style="font-size:11px;font-weight:700;color:var(--cal-body);margin-bottom:4px;">${pCode(persona)}</div>
               <div class="msg-bubble">${content}</div>
             </div>
           </div>
@@ -2596,7 +2632,7 @@ document.getElementById('run-usability').addEventListener('click', async () => {
 ${desc}
 
 [평가 참여자]
-${selectedPersonas.map(p => `- ${p.name} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}"), 디지털 숙련도: ${p.digitalLevel}`).join('\n')}
+${selectedPersonas.map(p => `- ${pCode(p)} (${p.age} ${p.level} 투자자, ${p.channel} 주 이용, 금융 이해도 ${p.literacy || '보통'}, AI 투자 질문 ${p.aiUse || '가끔 사용'}, 주 이용 앱: ${p.brokerApp || '특정 안 함'}, 정보 확인 방식: ${p.verifyBehavior}, 주로 믿는 단서: ${p.trustCue || '숫자'}, 핵심 불안: "${p.worry}"), 디지털 숙련도: ${p.digitalLevel}`).join('\n')}
 
 [시장 배경 — 참여자 개인 경험 아님]
 ${refContextText()}
@@ -2612,7 +2648,7 @@ ${refContextText()}
 각 참여자별로 위 6가지 기준에 대한 평가를 작성하세요. 마지막에 전체 요약 및 개선 제안을 추가하세요.
 
 형식:
-**[이름] 평가**
+**[코드] 평가**
 - 이해도 (★★★★☆): (의견)
 - 신뢰도 (★★★☆☆): (의견)
 - 사용 의향 (★★★★☆): (의견)
@@ -2643,17 +2679,6 @@ ${refContextText()}
 // ══════════════════════════════════════
 //  고도화 1: 참여자 코드
 // ══════════════════════════════════════
-document.getElementById('code-set-btn').addEventListener('click', () => {
-  const val = document.getElementById('code-input').value.trim();
-  if (!val) return;
-  participantCode = val;
-  document.getElementById('code-display').textContent = `참여자 ${val} — 대화 저장 시 파일명에 반영됩니다`;
-  document.getElementById('code-input').value = '';
-});
-document.getElementById('code-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('code-set-btn').click();
-});
-
 // ══════════════════════════════════════
 //  고도화 2: 탐색/검증 모드 토글
 // ══════════════════════════════════════
@@ -2670,10 +2695,6 @@ function updateModeUI(type, isVerify) {
     desc.textContent = '설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용';
   }
 }
-document.getElementById('interview-mode-toggle').addEventListener('change', e => {
-  interviewVerifyMode = e.target.checked;
-  updateModeUI('interview', interviewVerifyMode);
-});
 document.getElementById('workshop-mode-toggle').addEventListener('change', e => {
   workshopVerifyMode = e.target.checked;
   updateModeUI('workshop', workshopVerifyMode);
@@ -2682,7 +2703,6 @@ document.getElementById('workshop-mode-toggle').addEventListener('change', e => 
 // ══════════════════════════════════════
 //  고도화 3: 타이머 이벤트
 // ══════════════════════════════════════
-document.getElementById('interview-timer-reset').addEventListener('click', () => resetTimer('interview'));
 document.getElementById('workshop-timer-reset').addEventListener('click', () => resetTimer('workshop'));
 
 // ══════════════════════════════════════
@@ -2739,32 +2759,6 @@ async function downloadTxt(content, filename) {
   }
 }
 
-document.getElementById('save-interview-btn').addEventListener('click', () => {
-  if (!selectedInterviewPersona || !interviewHistory.length) {
-    alert('저장할 대화 내용이 없습니다.');
-    return;
-  }
-  const p = selectedInterviewPersona;
-  const code = participantCode ? `참여자: ${participantCode}\n` : '';
-  const mode = interviewVerifyMode ? '검증 모드' : '탐색 모드';
-  const date = new Date().toLocaleString('ko-KR');
-  let txt = `합성 투자자 리서치 플랫폼 — 심층 인터뷰 대화록\n`;
-  txt += `${'='.repeat(50)}\n`;
-  txt += `${code}페르소나: ${p.name} (${p.age} ${p.profession} / ${p.level} 투자자)\n`;
-  txt += `정보 채널: ${p.channel} / 금융 이해도: ${p.literacy || '—'} / AI 활용: ${p.aiUse || '—'} / 모드: ${mode}\n`;
-  txt += `정보 확인 방식: ${p.verifyBehavior} / 주로 믿는 단서: ${p.trustCue || '—'}\n`;
-  txt += `※ 합성 응답 — 실제 사용자 데이터 아님\n`;
-  txt += `저장 일시: ${date}\n`;
-  txt += `경과 시간: ${formatTime(interviewTimerSeconds)} / 질문 수: ${interviewQCount}\n`;
-  txt += `${'='.repeat(50)}\n\n`;
-  interviewHistory.forEach(msg => {
-    const role = msg.role === 'user' ? '[ 연구자 ]' : `[ ${p.name} ]`;
-    txt += `${role}\n${msg.content}\n\n`;
-  });
-  const filename = `interview_${participantCode || 'nocode'}_${p.name}_${Date.now()}.txt`;
-  downloadTxt(txt, filename);
-});
-
 document.getElementById('save-workshop-btn').addEventListener('click', () => {
   if (!workshopHistory.length) { showDialog('저장할 내용이 없습니다', '워크숍을 진행한 뒤 저장해주세요.'); return; }
   const code = participantCode ? `참여자: ${participantCode}\n` : '';
@@ -2805,6 +2799,8 @@ document.getElementById('save-survey-btn').addEventListener('click', () => {
 function selectTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tabId));
+  document.querySelector('.main').classList.toggle('wide', tabId === 'interview');
+  if (tabId === 'interview') ivRenderAll();
 }
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => selectTab(btn.dataset.tab));
@@ -2844,29 +2840,1884 @@ function showDialog(title, message, onConfirm) {
 //  초기화
 // ══════════════════════════════════════
 // 질문지 불러오기
-(function initQuestionBank() {
-  const qb = document.getElementById('qbank');
-  qb.innerHTML = '<option value="">질문지에서 불러오기…</option>' +
-    QUESTION_BANK.map(([tag, q], i) => `<option value="${i}">Q${String(i+1).padStart(2,'0')} [${tag}] ${q}</option>`).join('');
-  qb.addEventListener('change', () => {
-    if (qb.value === '') return;
-    const input = document.getElementById('chat-input');
-    const question = QUESTION_BANK[+qb.value][1];
-    input.value = question;
-    // 높이 자동 조정 + 텍스트 표시
-    input.classList.add('has-content');
-    input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
-    input.focus();
-    qb.value = '';
-    // 페르소나 미선택 시 다이얼로그
-    if (!selectedInterviewPersona) {
-      showDialog('페르소나를 먼저 선택해주세요', '왼쪽 목록에서 인터뷰할 페르소나를 선택하면\n입력창의 질문을 바로 전송할 수 있습니다.');
+// ══════════════════════════════════════
+//  심층 인터뷰 — 질문지 · 합성 모더레이터 프롬프트
+// ══════════════════════════════════════
+const IV_MAX_TURNS = 41;          // 인터뷰 한 번의 질문 상한 (모든 화면·프롬프트 공통)
+const IV_TOTAL_MINUTES = 70;      // 실제 인터뷰 시간 예산
+const IV_STAGES = [
+  { key: '①', name: '소개', full: '소개', turns: 1, minutes: 5 },
+  { key: '②', name: '개요', full: '개요', turns: 9, minutes: 10 },
+  { key: '③', name: '결정 되짚기', full: '결정적 사건 복기', turns: 14, minutes: 25 },
+  { key: '④', name: '건너뜀', full: '앱 워크스루', turns: 0, minutes: 0, skip: true },
+  { key: '⑤', name: '누락 확인', full: '누락 사항 확인', turns: 7, minutes: 10 },
+  { key: '⑥', name: 'AI 사용', full: 'AI 사용 재현', turns: 7, turnsNonAi: 4, minutes: 10 },
+  { key: '⑦', name: '마무리', full: '마무리', turns: 4, minutes: 10 },
+];
+// 단계별 메인 질문 (진행바의 "3/7" 계산용)
+const IV_MAINS = {
+  '①': ['소개'],
+  '②': ['1-1', '1-2', '2-1', '2-2', '2-3', '2-4'],
+  '③': ['3-1', '3-2', '3-3', '3-4', '3-5', '3-6', '3-7'],
+  '⑤': ['5-1', '5-2', '5-3', '5-4', '5-5'],
+  '⑥': ['6-1', '6-2', '6-3', '6-4', '6-5'],
+  '⑥no': ['6-6', '6-7'],
+  '⑦': ['7-1', '7-2', '7-3'],
+};
+// 탐색 영역 8개 — 모더레이터 노트의 prev_answer_tags 값
+const IV_TOPICS = ['믿게 된 단서', '먼저 본 정보', '모르고 있던 위험·비용·조건', '보다가 넘긴 정보', '정보 제공자의 이해관계', '추천된 이유', '번거로웠던 단계', 'AI 정보를 믿은 방식'];
+
+// 질문지 전체 (질문지 보기 표 · 직접 질문 드롭다운)
+const IV_QUESTIONNAIRE = [
+  { sec: '① 소개 · 1턴', rows: [
+    { id: '소개', q: '오늘 시간 내 주셔서 감사합니다. 사람들이 모바일 증권 앱에서 투자 결정을 어떻게 내리는지 배우고 있어요. 정답이나 틀린 답은 없고, 평가하는 자리도 아닙니다. 경험하신 그대로 말씀해 주세요.', guide: '평가가 아니라는 안내 후 바로 1-1' },
+  ]},
+  { sec: '② 개요 · 9턴', rows: [
+    { id: '1-1', q: '투자는 언제, 어떤 계기로 시작하셨어요?', fu: '[사람이 계기] 그분(그 채널)은 어떤 이야기를 했어요?' },
+    { id: '1-2', q: '요즘 주로 쓰시는 증권 앱은 무엇인가요?', fu: '[여러 개] 앱마다 쓰는 용도가 달라요?' },
+    { id: '2-1', q: '투자는 생활에서 어떤 역할을 하나요?', fu: '[추상적] 지난 일주일은 투자에 시간을 어떻게 쓰셨어요?' },
+    { id: '2-2', q: '"좋은 투자 결정"이란 어떤 결정이라고 생각하세요?', fu: '[수익만] 수익은 났지만 아쉬웠던 결정도 있었어요? / [기준 언급] 그 기준은 어디서 생겼어요?' },
+    { id: '2-3', q: '투자 정보는 보통 어디서 얻으세요?', fu: '[자주 보는 곳≠믿는 곳] 자주 보시는데 덜 믿는 이유는요? / [같음] 그곳을 믿게 된 계기가 있었어요?' },
+    { id: '2-4', q: '정보를 보고 "이건 좀 믿기 어렵다" 느낀 적이 있으세요?', fu: '[일반론] 가장 최근에 그렇게 느낀 때를 떠올려 주시겠어요?' },
+  ]},
+  { sec: '③ 결정적 사건 복기 · 14턴 — 최근 6개월 안의 결정 1건', rows: [
+    { id: '도입', q: '최근 6개월 안에 하셨던 투자 결정 중 기억에 남는 것 하나를 떠올려 주시겠어요? 결과가 좋았든 아쉬웠든 상관없어요. 가능하면 고민을 좀 했던 결정이면 좋아요.', fu: '[떠오르지 않음] 가장 최근에 하신 거래 하나로 이야기해 볼까요?' },
+    { id: '3-1', q: '이 상품을 처음 어떻게 알게 되셨어요?', fu: '[채널만] 어떤 말이나 화면으로 소개됐어요? 첫 느낌은요?' },
+    { id: '3-2', q: '그다음엔 무엇을 보셨어요?', fu: '[순서 모호] 가장 먼저 본 것 하나만 짚어 주세요. 그다음은요? / [오래 본 것 없음] 그중 가장 오래 보신 건 뭐였어요?' },
+    { id: '3-3', q: '그중 "이건 믿을 만하다" 싶었던 정보는 뭐였어요?', fu: '[이유 없음] 무엇 때문에 믿으셨어요? / [숫자·브랜드·사람·조회수] 그게 없었다면 어떻게 보셨을 것 같아요?' },
+    { id: '3-4', q: '처음 알게 된 뒤부터 결정하기까지 무엇을 하셨어요?', fu: '[확인함] 어디서, 어떻게 확인하셨어요? 처음 정보와 달랐던 게 있었어요? / [확인 없음] 그때는 어떤 생각이셨어요?', change: '수정' },
+    { id: '3-5', q: '보긴 했는데 자세히 안 보고 넘어간 부분이 있었나요?', fu: '[없다] 화면 아래쪽이나 다른 탭은 어떠셨어요?(1회, 특정 항목명 금지) / [있음] 왜 넘어가셨어요?' },
+    { id: '3-6', q: '최종적으로 "하자"고 마음먹은 순간은 언제였어요?', fu: '→ 결정을 가장 크게 움직인 한 가지는요?' },
+    { id: '3-6 후속', q: '알게 된 뒤 결정까지 시간은 얼마나 걸렸어요? 그 시간은 어떻게 느껴졌어요?', change: '추가' },
+    { id: '3-7', q: '결정하고 나서는 어떠셨어요?', fu: '[후회] 다시 그 순간으로 간다면 다르게 할 부분이 있을까요? / [만족] 결과가 반대였다면 어떻게 느끼셨을 것 같아요?' },
+  ]},
+  { sec: '④ 앱 워크스루 · AI 인터뷰(합성·실제)에서는 건너뜀', rows: [] },
+  { sec: '⑤ 누락 사항 확인 · 7턴 — "모르셔도 괜찮아요" 톤', rows: [
+    { id: '도입', q: '몇 가지만 더 여쭤볼게요. 모르셔도 전혀 괜찮고, 모른다는 것 자체가 저희한테는 중요한 정보예요.' },
+    { id: '5-1', q: '이 상품에서 손실이 날 수 있다면, 어떤 경우라고 이해하고 계세요?', fu: '[모름] "괜찮아요" 후 다음 질문 / [답함] 최대 어느 정도까지 손실이 날 수 있다고 보셨어요? 어디서 알게 되셨어요?' },
+    { id: '5-2', q: '이 상품을 거래할 때 드는 비용은 어떤 게 있었을까요?', fu: '[기억] 그건 어디서 확인하셨어요? / [모름] 확인한다면 어디서 볼 수 있을 것 같으세요?' },
+    { id: '5-3', q: '알고 계신 예외 조건이나 제약이 있었나요?', fu: '[모름] 만기, 환율, 중도 해지 같은 건 들어 보셨어요?' },
+    { id: '5-4', q: '이 상품이 그 화면(채널)에 왜 보였다고 생각하세요?', fu: '[한 가지만] 나한테 맞아서일까요, 인기가 많아서일까요, 다른 이유일까요?' },
+    { id: '5-5', q: '이 정보를 보여 준 곳은 무엇으로 수익을 얻는다고 생각하세요? (반드시 ③ 이후)', fu: '[앞에서 언급함] "아까 말씀하신 ~에 대해 더 여쭤볼게요"로 시작 / [답함] 그 생각은 결정할 때도 들었나요? 어떻게 작용했나요?' },
+  ]},
+  { sec: '⑥ AI 사용 재현 · 활용자 7턴', rows: [
+    { id: '도입', q: '이번 결정이나 다른 투자 결정 때 AI에게 물어보신 적이 있다면, 그때 입력한 문장을 최대한 그대로 다시 말해 주시겠어요?', change: '합성 대체' },
+    { id: '6-1', q: '어떤 걸 물어보셨어요? 왜 AI에게 물어보셨어요?', fu: '→ 다른 곳 대신 AI를 고른 이유는요?' },
+    { id: '6-1 후속', q: '물어볼 때 보고 있던 상품 조건이나 화면 내용은 어떻게 알려주셨어요?', change: '추가' },
+    { id: '6-2', q: '그 답에서 믿은 부분과 의심한 부분이 있었나요?', fu: '[한쪽만] 무엇 때문에 그렇게 보셨어요?' },
+    { id: '6-3', q: '그 답을 보고 더 알고 싶어지거나 다른 데서 찾아본 게 있었어요?', fu: '[없음] 그 답으로 충분하다고 느끼신 이유는요? / [있음] 어떻게 알아차리셨어요?', change: '수정' },
+    { id: '6-4', q: '그 답변은 어떤 입장에서 쓴 것 같았어요?', fu: '[출처 언급] 출처는 확인해 보셨어요? 어떻게요?', change: '수정' },
+    { id: '6-5', q: 'AI 답을 보고 실제 결정을 바꾸거나 확정한 적이 있나요?', fu: '[있음] 그때 다른 데서 한 번 더 확인하셨어요?' },
+  ]},
+  { sec: '⑥ AI 사용 재현 · 비활용자 4턴', rows: [
+    { id: '6-6', q: '투자 판단에 AI를 쓰지 않으시는 이유가 있으세요?', fu: '[써 보고 그만둠] 그만두게 된 계기가 된 답변이 있었어요?' },
+    { id: '6-7', q: '어떤 조건이면 AI 정보를 참고해 볼 것 같으세요?', fu: '[막연함] 무엇이 보장되면 믿을 수 있을까요?' },
+  ]},
+  { sec: '⑦ 마무리 · 4턴', rows: [
+    { id: '7-1', q: '아까 ~라고 하셨는데, ~에서는 ~라고 하셨어요. 그때 어떤 차이가 있었을까요?', fu: '노트의 주장 중 서로 어긋나는 것 1~2개 (궁금한 톤, 없으면 생략)' },
+    { id: '7-2', q: '(선택, 1회) 그 결정 순간에 옆에서 딱 하나를 알려 줄 수 있었다면, 무엇이었으면 좋겠어요?' },
+    { id: '7-3', q: '오늘 이야기하면서 새로 떠오른 생각이나 더 하고 싶은 말씀이 있으세요?', fu: '→ 응답 후 "오늘 정말 많은 도움이 됐어요. 감사합니다."로 종료' },
+  ]},
+];
+
+// 합성 모더레이터 시스템 프롬프트 — {{age}} {{experience}} {{ai_usage}} {{mode}} 는 인터뷰마다 채운다
+const IV_MODERATOR_PROMPT = `# 역할
+너는 '모바일 증권 앱 개인투자자의 투자 판단'을 연구하는 UX 리서치 인터뷰 진행자다.
+상대는 mode=synthetic이면 합성 페르소나(AI), mode=real이면 실제 참가자다. 어느 쪽이든 실제 참가자를 대하듯 진행하고, 질문은 참가자에게 직접 건넨다.
+너는 질문만 한다. 설명, 조언, 정보 제공, 해결책 제안을 하지 않는다.
+
+# 인터뷰 목적
+핵심 질문: "내가 보고 있는 금융정보는, 내가 판단하는 데 필요한 내용을 충분하고 공정하게 보여주고 있는가?"
+- RQ1 판단 근거: 어떤 정보를 근거로 위험과 신뢰성을 판단하는가
+- RQ2 놓치는 정보: 혜택·위험·비용·추천 이유·이해관계 중 인지하지 못하거나 확인을 포기하는 정보는 무엇인가
+- RQ3 제시 방식: 화면의 정보 제시 방식이 믿음과 위험 인식에 어떻게 영향을 주는가 (합성에서는 시나리오 반응만)
+- RQ4 AI 정보 판단: AI가 준 금융정보가 충분하고 공정한지를 무엇으로 판단하는가
+mode=synthetic이면 1차 목적은 질문지 점검이고, mode=real이면 연구 정보 수집이다. 질문이 모호하거나 유도적인지 드러나도록 질문지 문구를 최대한 그대로 쓴다.
+
+# 참가자 정보 (스크리너 수준)
+연령대: {{age}} / 투자 경력: {{experience}} / AI 활용: {{ai_usage}}
+이 정보를 질문에 전제로 넣지 않는다.
+
+# 진행 순서와 턴 예산 (전체 최대 41턴, 메인 질문당 후속 최대 2개)
+① 소개 1턴 → ② 개요 9턴 → ③ 결정적 사건 복기 14턴 → ⑤ 누락 사항 확인 7턴 → ⑥ AI 사용 재현 7턴(비활용자 4턴) → ⑦ 마무리 4턴
+mode와 상관없이 ④는 건너뛰고 ③ 다음에 바로 ⑤로 간다.
+- 앞에서 이미 충분히 답한 메인 질문은 건너뛰고 covered로 기록한다.
+- 단계 턴을 다 쓰면 남은 질문은 skipped로 기록하고 넘어간다. 5-5와 7-1은 건너뛰지 않는다.
+- 5-5는 반드시 ③을 마친 뒤에 묻는다.
+- ⑦ 직전, 탐색 영역 8개 중 태그가 하나도 없는 영역이 있으면 그 영역의 메인 질문 1개를 다시 묻는다.
+- 전체 턴은 41턴을 넘지 않는다. 매 입력 끝의 [진행 상태]를 보고 남은 턴 안에서 ⑦ 마무리까지 끝낸다.
+
+# 탐색 영역 8개 (prev_answer_tags 값)
+믿게 된 단서 / 먼저 본 정보 / 모르고 있던 위험·비용·조건 / 보다가 넘긴 정보 / 정보 제공자의 이해관계 / 추천된 이유 / 번거로웠던 단계 / AI 정보를 믿은 방식
+prev_answer_tags에는 직전 답이 다룬 영역을 위 이름 그대로만 적는다. 해당 영역이 없으면 빈 배열로 둔다.
+
+# 질문지 (메인 질문 → [조건] 후속)
+① "오늘 시간 내 주셔서 감사합니다. 사람들이 모바일 증권 앱에서 투자 결정을 어떻게 내리는지 배우고 있어요. 정답이나 틀린 답은 없고, 평가하는 자리도 아닙니다. 경험하신 그대로 말씀해 주세요." 이어서 1-1을 묻는다.
+
+② 개요
+1-1 투자는 언제, 어떤 계기로 시작하셨어요? → [사람이 계기] 그분(그 채널)은 어떤 이야기를 했어요?
+1-2 요즘 주로 쓰시는 증권 앱은 무엇인가요? → [여러 개] 앱마다 쓰는 용도가 달라요?
+2-1 투자는 생활에서 어떤 역할을 하나요? → [추상적] 지난 일주일은 투자에 시간을 어떻게 쓰셨어요?
+2-2 "좋은 투자 결정"이란 어떤 결정이라고 생각하세요? → [수익만] 수익은 났지만 아쉬웠던 결정도 있었어요? / [기준 언급] 그 기준은 어디서 생겼어요?
+2-3 투자 정보는 보통 어디서 얻으세요? → [자주 보는 곳≠믿는 곳] 자주 보시는데 덜 믿는 이유는요? / [같음] 그곳을 믿게 된 계기가 있었어요?
+2-4 정보를 보고 "이건 좀 믿기 어렵다" 느낀 적이 있으세요? → [일반론] 가장 최근에 그렇게 느낀 때를 떠올려 주시겠어요?
+② 종료 시 ai_user를 정한다: AI 활용이 '자주/가끔'이거나 2-3에서 AI를 언급하면 true.
+
+③ 결정적 사건 복기
+도입: "최근 6개월 안에 하셨던 투자 결정 중 기억에 남는 것 하나를 떠올려 주시겠어요? 결과가 좋았든 아쉬웠든 상관없어요. 가능하면 고민을 좀 했던 결정이면 좋아요."
+[떠오르지 않음] 가장 최근에 하신 거래 하나로 이야기해 볼까요?
+3-1 이 상품을 처음 어떻게 알게 되셨어요? → [채널만] 어떤 말이나 화면으로 소개됐어요? 첫 느낌은요?
+3-2 그다음엔 무엇을 보셨어요? → [순서 모호] 가장 먼저 본 것 하나만 짚어 주세요. 그다음은요? / [오래 본 것 없음] 그중 가장 오래 보신 건 뭐였어요?
+3-3 그중 "이건 믿을 만하다" 싶었던 정보는 뭐였어요? → [이유 없음] 무엇 때문에 믿으셨어요? / [숫자·브랜드·사람·조회수] 그게 없었다면 어떻게 보셨을 것 같아요?
+3-4 처음 알게 된 뒤부터 결정하기까지 무엇을 하셨어요? → [확인함] 어디서, 어떻게 확인하셨어요? 처음 정보와 달랐던 게 있었어요? / [확인 없음] 그때는 어떤 생각이셨어요?
+3-5 보긴 했는데 자세히 안 보고 넘어간 부분이 있었나요? → [없다] 화면 아래쪽이나 다른 탭은 어떠셨어요?(1회, 특정 항목명 금지) / [있음] 왜 넘어가셨어요?
+3-6 최종적으로 "하자"고 마음먹은 순간은 언제였어요? → 결정을 가장 크게 움직인 한 가지는요? → 알게 된 뒤 결정까지 시간은 얼마나 걸렸어요? 그 시간은 어떻게 느껴졌어요?
+3-7 결정하고 나서는 어떠셨어요? → [후회] 다시 그 순간으로 간다면 다르게 할 부분이 있을까요? / [만족] 결과가 반대였다면 어떻게 느끼셨을 것 같아요?
+
+④ 앱 워크스루: 진행하지 않는다(합성·실제 모두).
+
+⑤ 누락 사항 확인
+도입: "몇 가지만 더 여쭤볼게요. 모르셔도 전혀 괜찮고, 모른다는 것 자체가 저희한테는 중요한 정보예요."
+5-1 이 상품에서 손실이 날 수 있다면, 어떤 경우라고 이해하고 계세요? → [모름] "괜찮아요" 후 다음 질문 / [답함] 최대 어느 정도까지 손실이 날 수 있다고 보셨어요? 어디서 알게 되셨어요?
+5-2 이 상품을 거래할 때 드는 비용은 어떤 게 있었을까요? → [기억] 그건 어디서 확인하셨어요? / [모름] 확인한다면 어디서 볼 수 있을 것 같으세요?
+5-3 알고 계신 예외 조건이나 제약이 있었나요? → [모름] 만기, 환율, 중도 해지 같은 건 들어 보셨어요?
+5-4 이 상품이 그 화면(채널)에 왜 보였다고 생각하세요? → [한 가지만] 나한테 맞아서일까요, 인기가 많아서일까요, 다른 이유일까요?
+5-5 이 정보를 보여 준 곳은 무엇으로 수익을 얻는다고 생각하세요? → [앞에서 언급함] "아까 말씀하신 ~에 대해 더 여쭤볼게요"로 시작 / [답함] 그 생각은 결정할 때도 들었나요? 어떻게 작용했나요?
+
+⑥ AI 사용 재현
+ai_user=true 도입: "이번 결정이나 다른 투자 결정 때 AI에게 물어보신 적이 있다면, 그때 입력한 문장을 최대한 그대로 다시 말해 주시겠어요?"
+6-1 어떤 걸 물어보셨어요? 왜 AI에게 물어보셨어요? → 물어볼 때 보고 있던 상품 조건이나 화면 내용은 어떻게 알려주셨어요? → 다른 곳 대신 AI를 고른 이유는요?
+6-2 그 답에서 믿은 부분과 의심한 부분이 있었나요? → [한쪽만] 무엇 때문에 그렇게 보셨어요?
+6-3 그 답을 보고 더 알고 싶어지거나 다른 데서 찾아본 게 있었어요? → [없음] 그 답으로 충분하다고 느끼신 이유는요? / [있음] 어떻게 알아차리셨어요?
+6-4 그 답변은 어떤 입장에서 쓴 것 같았어요? → [출처 언급] 출처는 확인해 보셨어요? 어떻게요?
+6-5 AI 답을 보고 실제 결정을 바꾸거나 확정한 적이 있나요? → [있음] 그때 다른 데서 한 번 더 확인하셨어요?
+ai_user=false
+6-6 투자 판단에 AI를 쓰지 않으시는 이유가 있으세요? → [써 보고 그만둠] 그만두게 된 계기가 된 답변이 있었어요?
+6-7 어떤 조건이면 AI 정보를 참고해 볼 것 같으세요? → [막연함] 무엇이 보장되면 믿을 수 있을까요?
+
+⑦ 마무리
+7-1 노트의 주장 중 서로 어긋나는 것 1~2개: "아까 ~라고 하셨는데, ~에서는 ~라고 하셨어요. 그때 어떤 차이가 있었을까요?"(궁금한 톤, 없으면 생략)
+7-2 (선택, 1회) 그 결정 순간에 옆에서 딱 하나를 알려 줄 수 있었다면, 무엇이었으면 좋겠어요?
+7-3 오늘 이야기하면서 새로 떠오른 생각이나 더 하고 싶은 말씀이 있으세요? → 응답 후 "오늘 정말 많은 도움이 됐어요. 감사합니다."로 종료
+
+# 진행 규칙
+- 한 턴에 질문 하나, 2문장 이내. 앞에 붙이는 반응은 "그러셨군요" 정도로 짧게. 칭찬·평가 금지.
+- 유도 질문, 답을 정해 둔 질문, 해결책 질문(7-2 제외)을 하지 않는다.
+- 참가자가 잘못 이해해도 바로잡지 않는다. "그렇게 이해하셨군요, 어떤 부분에서요?"
+- '다크패턴', '속임수', '보호', '위험한' 같은 평가어를 먼저 쓰지 않는다. 참가자의 단어를 따라 쓴다.
+- 탐색 수준: Level 1(질문지의 메인·후속·함정 대응 질문)과 Level 2(중립 probe 4개: "그다음엔요?", "어떤 점에서요?", "예를 들면요?", "그때는 어떻게 하셨어요?")만 쓴다. 질문지에 없는 질문이나 새 탐색 주제는 만들지 않고 new_topic 플래그로만 남긴다.
+- 같은 메인 질문에서 중립 탐색은 최대 1회. 그래도 정보가 없으면 다음 질문으로 넘어간다.
+  · "잘 모르겠어요": ⑤에서는 "괜찮아요" 후 바로 넘어감, 그 외 "그때 떠오른 생각이라도 괜찮아요" → unknown
+  · "기억이 안 나요": "기억나는 장면 하나만이라도요?" → no_recall (③ 사건 전체가 기억 안 나면 가장 최근 거래로 교체)
+  · "그냥 그랬어요": "어떤 점에서요?" → thin / 한 단어 답: "예를 들면요?" → thin
+  · 질문과 다른 답: 짧게 인정하고 쉬운 말로 한 번 다시 → ambiguous
+  · 일반 원칙만: "그때 그 결정에서는요?" → textbook
+- 일반론("보통은", "원래", "대부분")이 나오면: "그때 그 결정에서는요?"
+- 바람직한 행동을 단정하는 답("항상 확인해요")에는 가장 최근 사례의 구체값을 묻고 textbook 플래그를 단다.
+- 망설임·모순 없이 매끄러운 서사에는 "그때 망설인 점은 없었어요?"를 1회 묻는다.
+- 참가자가 질문을 되묻거나 다른 뜻으로 답하면 쉬운 말로 한 번만 다시 묻고 ambiguous 플래그를 단다.
+- 페르소나 설정과 어긋나는 답은 개입하지 말고 persona_drift 플래그만 단다.
+- 침묵 대신 "더 생각나는 게 있으세요?"를 단계당 최대 1회 쓴다.
+
+# 실제 사용자 모드 (mode = {{mode}}: synthetic | real)
+mode=real이면 너는 참가자에게 직접 질문한다. 답변은 연구자가 대신 입력하거나(대리 입력), 참가자가 링크로 직접 작성한다.
+- ⑥ 도입은 기존 문구를 쓴다: "AI에게 물어보신 기록이 남아 있으면, 괜찮으신 범위에서 보여 주시겠어요?"
+- 턴 예산 대신 단계별 시간(①5 ②10 ③25 ⑤10 ⑥10 ⑦10분, 총 70분)을 따른다. 경과 시간이 단계 시간을 넘으면 남은 질문을 skipped로 넘긴다.
+- 참가자 답변은 연구자가 입력한 요약이거나 참가자가 직접 쓴 짧은 글일 수 있다. 입력에 없는 내용을 추측해 질문하지 않는다. 직접 작성한 답이 짧으면(thin) 중립 probe를 1회 쓴다.
+
+# 출력 형식
+매 턴 아래 JSON 하나만 출력한다. 코드펜스나 다른 텍스트를 붙이지 않는다.
+{
+  "stage": "①|②|③|④|⑤|⑥|⑦",
+  "question_id": "3-4",
+  "type": "main | followup | probe | transition | close",
+  "utterance": "참가자에게 할 말",
+  "note": {
+    "prev_answer_tags": ["믿게 된 단서"],
+    "claims": ["직전 답에서 나온 주장 한 줄"],
+    "flags": ["textbook | persona_drift | ambiguous | leading_risk | unknown | no_recall | thin | new_topic"],
+    "level": 1,
+    "covered": ["이번 턴에 covered 처리한 질문 ID"],
+    "skipped": ["턴 소진으로 건너뛴 질문 ID"],
+    "ai_user": true,
+    "turn": 12,
+    "reason": "연구자에게 보여 줄, 이 질문을 고른 이유 한 줄 (예: '조회수' 때문에 믿었다고 답함 → 조회수가 없었어도 믿었을지 확인)"
+  }
+}
+type이 close인 턴을 출력하면 인터뷰가 끝난다.`;
+
+// 질문지 보기 화면의 설명 섹션
+const IV_GUIDE_CHANGES = [
+  ['④ 앱 화면 재현 → AI 인터뷰에서 제외', 'AI 모더레이터는 화면을 볼 수 없고, 합성 참가자도 앱을 열 수 없어 실제 참가자도 링크로 답하기 때문이다. 그래서 합성·실제 모두 ④를 건너뛰고 ③ → ⑤로 간다. 화면 반응 탐색이 필요하면 사용성 평가 탭에서 따로 한다.'],
+  ['⑥ AI 기록 보여주기 → 입력 문장 다시 말하기', '"그때 AI에게 입력한 문장을 그대로 다시 말해 주세요." (실제 인터뷰에서는 기존 문구 "AI에게 물어보신 기록이 남아 있으면, 괜찮으신 범위에서 보여 주시겠어요?"를 쓴다.)'],
+  ['방향을 암시하던 질문 3개 중립화', '3-4 확인 여부, 6-3 확인 내용, 6-4 치우침 질문을 "무엇을 하셨어요?", "어떤 입장에서 쓴 것 같았어요?" 식으로 바꿨다.'],
+  ['빈 가설 질문 2개 추가', 'AI에 화면 맥락을 어떻게 전달했는지(H3), 결정까지 걸린 시간(압박·원클릭).'],
+];
+const IV_GUIDE_FLOW = [
+  ['① 소개', '1', '평가가 아니라는 안내'],
+  ['② 개요', '9', '탐색 기준·정보원. 여기서 AI 활용자/비활용자 분기'],
+  ['③ 결정적 사건', '14', '실제 경험 1건을 시간 순서로. 일반론이 나오면 "그때 그 결정에서는요?"'],
+  ['④ 앱 워크스루', '0', '건너뜀 (합성·실제 모두)'],
+  ['⑤ 누락 확인', '7', '위험·비용·조건·추천 이유·이해관계'],
+  ['⑥ AI 사용', '7 / 4', '활용자 5문항, 비활용자 2문항'],
+  ['⑦ 마무리', '4', '앞뒤 모순 확인, 마법 질문 1회 (답이 니즈를 확인하는 정도)'],
+];
+const IV_GUIDE_MODES = [
+  ['직접 질문', '연구자가 질문을 직접 쓰거나 질문지에서 골라 전송', '특정 질문만 따로 시험할 때'],
+  ['AI 제안 받기', 'AI가 다음 질문을 제안 → 연구자가 확인·수정 후 전송', 'B-1 질문지 점검'],
+  ['AI 자동 진행', 'AI 모더레이터와 페르소나가 종료까지 자동으로 주고받음', 'B-2 세그먼트 확장 (여러 명 같은 조건)'],
+  ['실제 인터뷰 보조', 'AI 모더레이터가 실제 참가자에게 직접 질문하고, 입력된 답변에 따라 후속 질문을 이어감. 답변은 연구자가 대신 입력하거나, 링크를 받은 참가자가 직접 작성. 질문 수정·적절성 기록은 CSV로 남김', 'Track A 실제 인터뷰 (연구자 동석 또는 링크로 참가자 단독)'],
+];
+const IV_GUIDE_TODO = [
+  '2×2 세그먼트에서 1명씩, \'AI 제안 받기\'로 파일럿 4회',
+  '플래그가 2회 이상 나온 질문을 수정해 실제 인터뷰 질문지에 반영',
+  '\'AI 자동 진행\'으로 12명 확장 실행 후 세그먼트 비교',
+  '\'실제 인터뷰 보조\'로 실제 인터뷰 8~12명 진행 (참가자 링크 기본, 필요 시 연구자 대리 입력)',
+  '실제 인터뷰 결과와 합성 응답을 비교해 맞은 곳·틀린 곳 기록',
+];
+
+// ══════════════════════════════════════
+//  심층 인터뷰 — 상태 · 저장 · AI 호출
+// ══════════════════════════════════════
+const IV_FLAG_INFO = {
+  textbook:      { label: '교과서식 답변',        chip: '실제 경험으로 되돌림',          desc: '그때 실제 행동이 아니라 평소 습관을 말함' },
+  thin:          { label: '답이 너무 짧음',       chip: '짧은 답 한 번 더 물음',         desc: '한 번 더 물은 뒤 넘어감' },
+  ambiguous:     { label: '질문을 이해 못 함',     chip: '쉬운 말로 다시 물음',           desc: '질문 재진술' },
+  leading_risk:  { label: '답을 유도했을 수 있음', chip: '유도 가능성',                   desc: '질문이 답의 방향을 암시했을 수 있음' },
+  unknown:       { label: '모름',                 chip: "'모름'으로 기록하고 다음 질문", desc: '모른다고 답함' },
+  no_recall:     { label: '기억 안 남',           chip: "'기억 안 남'으로 기록",         desc: '기억나는 장면을 다시 요청함' },
+  persona_drift: { label: '페르소나 설정과 다름',  chip: '설정과 다른 답 기록',           desc: '페르소나 설정과 어긋나는 답' },
+  new_topic:     { label: '새 주제',              chip: '새 주제 기록',                  desc: '질문지에 없는 주제가 나옴' },
+};
+// 질문 문구를 고칠 후보가 되는 플래그
+const IV_FIX_FLAGS = ['leading_risk', 'textbook', 'thin', 'ambiguous'];
+const IV_TYPE_LABEL = { main: '기본 질문', followup: '추가 질문', probe: '이어서 묻기', transition: '넘어가기', close: '마무리', direct: '직접 질문' };
+const IV_ICON = '<svg class="iv-ic" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="4" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="5" cy="5" r="1.5" fill="currentColor"/></svg>';
+const IV_STORE_TABLE = 'interview_sessions';
+
+const IV = {
+  mode: 'suggest',
+  current: { direct: null, suggest: null, real: null },
+  sessions: {},
+  editing: false,
+  drafts: { prop: '', answer: '', direct: '', reason: '', directQid: '' },
+  answerRating: null,
+  participantText: '',
+  realSetup: { code: 'P01', age: '30대', level: '중급', aiUse: '가끔 사용', loss: '있음', consentRec: true, consentAi: true, inputMode: 'proxy', flow: 'attended' },
+  batch: null,
+  autoViewId: null,
+  storeOk: null,
+  reviewId: null,
+  pollTimer: null,
+};
+
+// AI가 제안한 다음 턴(모더레이터 JSON)은 세션마다 따로 둔다 — 진행 방식을 바꿔도 제안이 남는다
+Object.defineProperty(IV, 'proposal', { get() { const s = ivCur(); return s ? s._proposal || null : null; }, set(v) { const s = ivCur(); if (s) s._proposal = v; } });
+Object.defineProperty(IV, 'proposalError', { get() { const s = ivCur(); return s ? s._proposalError || '' : ''; }, set(v) { const s = ivCur(); if (s) s._proposalError = v; } });
+
+function ivEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function ivSleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function ivAiShort(aiUse) { return aiUse === '자주 사용' ? 'AI 자주' : aiUse === '사용 안 함' ? 'AI 안 함' : 'AI 가끔'; }
+function ivBaseQid(q) { const m = String(q || '').match(/\d-\d/); return m ? m[0] : null; }
+function ivStageForQid(q) {
+  const b = ivBaseQid(q);
+  if (!b) return /소개/.test(String(q || '')) ? '①' : null;
+  return { '1': '②', '2': '②', '3': '③', '5': '⑤', '6': '⑥', '7': '⑦' }[b[0]] || null;
+}
+function ivNormStage(stage, qid) {
+  const m = String(stage || '').match(/[①②③④⑤⑥⑦]/);
+  return m ? m[0] : (ivStageForQid(qid) || '①');
+}
+function ivIsKnownQid(q) {
+  const b = ivBaseQid(q);
+  if (b) return Object.values(IV_MAINS).some(a => a.includes(b));
+  return /소개|도입/.test(String(q || ''));
+}
+function ivStageDef(key) { return IV_STAGES.find(s => s.key === key); }
+function ivAsked(s) { return s.turns.filter(t => t.action !== 'skipped'); }
+function ivAnswered(s) { return s.turns.filter(t => t.answer != null); }
+function ivCur() { return IV.mode === 'auto' ? (IV.autoViewId ? IV.sessions[IV.autoViewId] : null) : IV.current[IV.mode]; }
+function ivFmtTime(sec) { sec = Math.max(0, Math.floor(sec || 0)); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
+function ivProfileLine(s) { const p = s.profile || {}; return `${p.age || '—'} · ${p.level || '—'} · ${ivAiShort(p.aiUse)}`; }
+function ivModeLabel(m) { return { direct: '직접 질문', suggest: 'AI 제안 받기', auto: 'AI 자동 진행', real: '실제 인터뷰 보조' }[m] || m; }
+
+// ── 세션 ──
+function ivNewSession(mode, extra) {
+  const id = 'iv_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const s = Object.assign({
+    id, mode, kind: mode === 'real' ? 'real' : 'synthetic',
+    createdAt: new Date().toISOString(), startedAtMs: Date.now(), endedAt: null, status: 'active', endReason: '',
+    elapsedSec: 0, stageStart: {}, turns: [], modHistory: [], personaHistory: [],
+    aiUser: null, live: null,
+    review: { status: 'none', criteria: {}, summaries: null, checks: {}, fixes: [] },
+  }, extra || {});
+  IV.sessions[id] = s;
+  return s;
+}
+const IV_ANSWER_MODE = '탐색 모드';   // 합성 페르소나 응답 모드 (고정)
+function ivPersonaProfile(p) {
+  return { code: pCode(p), age: p.age, level: p.level, experience: `${p.level} (${p.invYears})`, aiUse: p.aiUse || '가끔 사용', channel: p.channel, answerMode: IV_ANSWER_MODE };
+}
+function ivFinish(s, status, reason) {
+  if (s.endedAt) return;
+  s.status = status; s.endReason = reason; s.endedAt = Date.now();
+  if (s.live) s.live = Object.assign({}, s.live, { ended: true });
+  ivSave(s, true);
+}
+
+// ── 저장 (Supabase interview_sessions 테이블 + 브라우저 백업) ──
+const ivSaveTimers = {};
+function ivSerialize(s) { return JSON.parse(JSON.stringify(s, (k, v) => (k.startsWith('_') ? undefined : v))); }
+function ivSave(s, now) {
+  clearTimeout(ivSaveTimers[s.id]);
+  const run = () => { ivStoreUpsert(s); ivLocalBackup(); };
+  if (now) run(); else ivSaveTimers[s.id] = setTimeout(run, 800);
+}
+function ivLocalBackup() {
+  if (document.documentElement.classList.contains('participant-mode')) return;   // 참가자 화면은 연구자 백업을 건드리지 않는다
+  try {
+    const list = Object.values(IV.sessions).filter(s => s.turns.length)
+      .sort((a, b) => (b.endedAt || Date.now()) - (a.endedAt || Date.now())).slice(0, 40).map(ivSerialize);
+    localStorage.setItem('iv_sessions_v1', JSON.stringify(list));
+  } catch (e) { /* 저장 공간 부족 등 — 무시 */ }
+}
+function ivLocalRestore() {
+  try {
+    const list = JSON.parse(localStorage.getItem('iv_sessions_v1') || '[]');
+    list.forEach(s => { if (s && s.id && !IV.sessions[s.id]) IV.sessions[s.id] = s; });
+  } catch (e) { /* 무시 */ }
+}
+function ivStoreFailed(msg) {
+  if (IV.storeOk === false) return;
+  IV.storeOk = false;
+  const el = document.getElementById('iv-store-warn');
+  if (el) {
+    el.innerHTML = `인터뷰 기록 저장소(<b>${IV_STORE_TABLE}</b> 테이블)에 연결하지 못해 이 브라우저에만 저장됩니다. 팀 공유와 참가자 링크를 쓰려면 저장소의 <b>supabase/interview_sessions.sql</b>을 Supabase SQL Editor에서 한 번 실행하세요. (${ivEsc(msg)})`;
+    el.classList.add('show');
+  }
+}
+async function ivStoreUpsert(s) {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}`, {
+      method: 'POST',
+      headers: Object.assign({}, supabase._headers(), { 'Prefer': 'resolution=merge-duplicates,return=minimal' }),
+      body: JSON.stringify([{ id: s.id, data: ivSerialize(s), updated_at: new Date().toISOString() }]),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    IV.storeOk = true;
+  } catch (e) { ivStoreFailed(e.message); }
+}
+async function ivStoreLoad() {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?select=id,data&order=updated_at.desc&limit=300`, { headers: supabase._headers() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rows = await r.json();
+    rows.forEach(row => { if (row && row.data && !IV.sessions[row.id]) IV.sessions[row.id] = row.data; });
+    IV.storeOk = true;
+  } catch (e) { ivStoreFailed(e.message); }
+}
+async function ivFetchParticipantAnswer(id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}&select=participant_answer`, { headers: supabase._headers() });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const rows = await r.json();
+  return rows && rows[0] ? rows[0].participant_answer : null;
+}
+
+async function ivFetchSessionData(id) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}&select=data,participant_answer`, { headers: supabase._headers() });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const rows = await r.json();
+  return rows && rows[0] ? rows[0] : null;
+}
+// 저장소의 최신 내용으로 세션을 덮어쓴다 (화면용 _필드는 유지)
+async function ivRefreshFromStore(s) {
+  const row = await ivFetchSessionData(s.id);
+  if (!row || !row.data) return false;
+  Object.keys(row.data).forEach(k => { s[k] = row.data[k]; });
+  return true;
+}
+// 실제 인터뷰는 시작 시각 기준 실제 경과 시간을 쓴다 (연구자·참가자 화면이 같은 값을 본다)
+function ivWallElapsed(s) { return s.endedAt ? s.elapsedSec : Math.floor((Date.now() - (s.startedAtMs || Date.parse(s.createdAt) || Date.now())) / 1000); }
+// 인터뷰 전체 진행률 (0~1) — 단계별 턴 예산을 가중치로 쓴다
+function ivOverallProgress(s) {
+  if (s.endedAt) return 1;
+  const stages = IV_STAGES.filter(st => !st.skip);
+  const budget = st => (st.key === '⑥' && s.aiUser === false ? st.turnsNonAi : st.turns);
+  const total = stages.reduce((a, st) => a + budget(st), 0);
+  const cur = ivCurrentStage(s);
+  const ci = stages.findIndex(st => st.key === cur);
+  if (ci < 0) return 0;
+  let done = 0;
+  stages.forEach((st, i) => { if (i < ci) done += budget(st); });
+  const p = ivStageProgress(s, stages[ci]);
+  done += budget(stages[ci]) * Math.min(1, p.idx / p.count);
+  return Math.min(1, done / total);
+}
+
+// ── 모더레이터 ──
+function ivModeratorSystem(s) {
+  const p = s.profile || {};
+  return IV_MODERATOR_PROMPT
+    .replace('{{age}}', p.age || '—')
+    .replace('{{experience}}', p.experience || p.level || '—')
+    .replace('{{ai_usage}}', p.aiUse || '—')
+    .split('{{mode}}').join(s.kind === 'real' ? 'real' : 'synthetic');
+}
+function ivStageUsage(s) { const u = {}; ivAsked(s).forEach(t => { u[t.stage] = (u[t.stage] || 0) + 1; }); return u; }
+function ivCurrentStage(s) { const a = ivAsked(s); return a.length ? a[a.length - 1].stage : null; }
+function ivStageElapsedMin(s, key) {
+  if (s.stageStart[key] == null) return 0;
+  return Math.floor((s.elapsedSec - s.stageStart[key]) / 60);
+}
+function ivStateLine(s) {
+  const asked = ivAsked(s).length;
+  const u = ivStageUsage(s);
+  const parts = IV_STAGES.filter(st => !st.skip).map(st => `${st.key} ${u[st.key] || 0}/${st.key === '⑥' && s.aiUser === false ? st.turnsNonAi : st.turns}`);
+  let line = `[진행 상태] 지금까지 질문 ${asked}개 / 전체 최대 ${IV_MAX_TURNS}턴 (남은 턴 ${IV_MAX_TURNS - asked}). 단계별 사용 턴: ${parts.join(', ')}. 다음 출력의 turn 값은 ${asked + 1}이다.`;
+  if (s.kind === 'real') {
+    const cur = ivCurrentStage(s);
+    line += ` 경과 ${Math.floor(s.elapsedSec / 60)}분 / 총 ${IV_TOTAL_MINUTES}분.`;
+    const st = cur && ivStageDef(cur);
+    if (st && st.minutes) {
+      const used = ivStageElapsedMin(s, cur);
+      line += ` 현재 단계 ${cur} 경과 ${used}분 / ${st.minutes}분.`;
+      if (used >= st.minutes) line += ' 현재 단계 시간을 넘겼으니 남은 질문은 skipped로 넘기고 다음 단계로 간다.';
+    }
+  }
+  const left = IV_MAX_TURNS - asked;
+  if (left <= 1) line += ' 다음 턴이 마지막이다. type을 close로 해서 감사 인사로 끝낸다.';
+  else if (left <= 4) line += ' 턴이 얼마 남지 않았다. ⑦ 마무리로 넘어가 남은 턴 안에 close로 끝낸다.';
+  return line;
+}
+function ivStartMessage(s) { return '인터뷰를 시작하세요. 첫 턴(① 소개)을 JSON으로 출력하세요.\n\n' + ivStateLine(s); }
+function ivParseModerator(text) {
+  let t = String(text || '').trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a < 0 || b <= a) throw new Error('모더레이터 응답이 JSON 형식이 아닙니다');
+  const obj = JSON.parse(t.slice(a, b + 1));
+  if (!obj || typeof obj.utterance !== 'string' || !obj.utterance.trim()) throw new Error('모더레이터 응답에 질문(utterance)이 없습니다');
+  const note = obj.note && typeof obj.note === 'object' ? obj.note : {};
+  ['prev_answer_tags', 'claims', 'flags', 'covered', 'skipped'].forEach(k => {
+    note[k] = Array.isArray(note[k]) ? note[k].map(String).filter(x => x && !x.includes('|')) : [];
+  });
+  obj.note = note;
+  obj.type = ['main', 'followup', 'probe', 'transition', 'close'].includes(obj.type) ? obj.type : 'main';
+  obj.question_id = String(obj.question_id || '');
+  obj.stage = ivNormStage(obj.stage, obj.question_id);
+  return obj;
+}
+async function ivModeratorNext(s) {
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const resp = await callAI(s.modHistory, { system: ivModeratorSystem(s), maxTokens: 900 });
+      return ivParseModerator(resp.text);
+    } catch (e) { lastErr = e; if (attempt < 2) await ivSleep(1500 * (attempt + 1)); }
+  }
+  throw lastErr;
+}
+
+// ── 페르소나 응답 ──
+function ivPersonaSystem(p) {
+  // 심층 인터뷰는 탐색 모드로 고정 — ③ 결정적 사건을 구체적으로 말해야 질문지를 점검할 수 있다
+  const modeRule = `[탐색 모드]
+- 페르소나 설정을 바탕으로 그럴듯한 경험을 구체적으로 채워 답해도 됩니다 (가설 생성용)
+- 단, 수익률 같은 구체적 수치는 만들지 마세요`;
+  return `당신은 다음 조건을 가진 합성 사용자(연구 참여자)입니다. 인터뷰 진행자의 질문에 이 인물로서 답합니다.
+
+[개인 특성]
+- 이름: ${p.name} (${p.gender}성, ${p.age}, ${p.profession})
+- 투자 경험: ${p.level} (${p.invYears})
+- 디지털 숙련도: ${p.digitalLevel}
+- 금융 이해도: ${p.literacy || '보통'} (낮으면 옵션·레버리지·수수료 구조 같은 용어를 정확히 모르는 게 자연스러움)
+- 투자 관련 AI(ChatGPT 등) 활용: ${p.aiUse || '가끔 사용'}
+- 주로 쓰는 증권앱: ${p.brokerApp || '특정하지 않음'}
+
+[관련 경험]
+- 주 정보 채널: ${p.channel}
+- 정보 확인 방식: ${p.verifyBehavior}
+- 핵심 불안: "${p.worry}"
+- 주로 믿는 단서: ${p.trustCue || '구체적인 숫자'}
+- 투자 목표: ${p.goal}
+
+[목표와 제약]
+- 말투: ${p.speechStyle}
+- 실제 사람처럼 기억이 불완전합니다. 모든 정보를 꼼꼼히 확인했다고 말하지 마세요. 위 '정보 확인 방식'대로 행동한 사람으로서, 안 읽고 넘긴 것·귀찮아서 건너뛴 것·몰랐던 것을 솔직하게 말하세요
+- 결정을 나중에 그럴듯하게 합리화하지 마세요. 그때의 감정(조급함, 귀찮음, 기대감)을 그대로 말하세요
+- 연구자가 묻지 않은 '다크패턴', '이해상충' 같은 전문 개념을 먼저 꺼내지 마세요
+- 앱 경험은 위 '주로 쓰는 증권앱' 기준으로 말하세요. ${p.brokerApp && p.brokerApp !== '특정하지 않음' ? '다른 증권사 이름은 연구자가 묻지 않으면 꺼내지 마세요' : '특정 증권사 이름을 먼저 꺼내지 마세요'}
+
+[시장 배경 — 당신의 개인 경험이 아님]
+${refContextText()}
+
+${modeRule}
+
+[응답 원칙]
+- 모르는 것은 모른다고 답하세요
+- 사회적으로 바람직한 답이 아니라 현실적인 행동을 말하세요
+- 질문 하나에만 답하고, 200자 내외로 자연스럽게 말하세요
+- 자신이 AI라는 점을 언급하지 말고 이 인물로서만 답하세요`;
+}
+async function ivPersonaAnswer(s, question) {
+  const p = personas.find(x => x.id === s.personaId);
+  if (!p) throw new Error('페르소나를 찾을 수 없습니다');
+  const hist = s.personaHistory.concat([{ role: 'user', content: question }]);
+  let lastErr;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await callAI(hist, { system: ivPersonaSystem(p), maxTokens: 700 });
+      const text = String(r.text || '').trim();
+      if (!text) throw new Error('빈 응답');
+      s.personaHistory = hist.concat([{ role: 'assistant', content: text }]);
+      return text;
+    } catch (e) { lastErr = e; if (attempt < 1) await ivSleep(1500); }
+  }
+  throw lastErr;
+}
+
+// ── 턴 기록 ──
+// meta.action: asked | edited | skipped,  meta.text: 실제로 물은 문장,  meta.noMod: 모더레이터 기록 없음(직접 질문)
+function ivRecordTurn(s, obj, meta) {
+  meta = meta || {};
+  const action = meta.action || 'asked';
+  const t = {
+    n: s.turns.length + 1,
+    stage: obj.stage, qid: obj.question_id, type: obj.type,
+    utterance: action === 'skipped' ? obj.utterance : (meta.text != null ? meta.text : obj.utterance),
+    aiUtterance: obj.utterance,
+    action, editReason: meta.reason || '',
+    note: obj.note || {}, answer: null, answerSource: null, rating: null, at: Date.now(),
+  };
+  if (!meta.noMod) s.modHistory.push({ role: 'assistant', content: JSON.stringify(Object.assign({}, obj, { utterance: t.utterance })) });
+  if (typeof t.note.ai_user === 'boolean') s.aiUser = t.note.ai_user;
+  if (action !== 'skipped' && s.stageStart[t.stage] == null) s.stageStart[t.stage] = s.elapsedSec;
+  s.turns.push(t);
+  return t;
+}
+function ivPushAnswer(s, t, answer, source) {
+  t.answer = answer; t.answerSource = source;
+  if (s.mode === 'direct') return;
+  const label = source === 'persona' ? '[참가자 답변]' : source === 'participant' ? '[참가자 답변 · 참가자 직접 작성]' : '[참가자 답변 · 연구자 대리 입력 요약]';
+  s.modHistory.push({ role: 'user', content: `${label}\n${answer}\n\n${ivStateLine(s)}` });
+}
+function ivPushSkip(s, t) {
+  s.modHistory.push({ role: 'user', content: `[연구자] 이 질문(${t.qid || '?'})은 묻지 않고 건너뛰었습니다${t.editReason ? ` (이유: ${t.editReason})` : ''}. skipped로 기록하고 다음 턴을 출력하세요.\n\n${ivStateLine(s)}` });
+}
+function ivCapped(s) { return ivAsked(s).length >= IV_MAX_TURNS; }
+
+// 질문 하나를 묻고(합성이면) 답까지 받는다
+async function ivAskAndAnswer(s, t) {
+  if (t.type === 'close') { ivFinish(s, 'done', '인터뷰 종료'); return; }
+  if (s.kind !== 'synthetic') return;
+  const ans = await ivPersonaAnswer(s, t.utterance);
+  ivPushAnswer(s, t, ans, 'persona');
+  if (ivCapped(s)) ivFinish(s, 'capped', `질문 ${IV_MAX_TURNS}개를 다 써서 중단`);
+}
+
+// ── 노트 집계 ──
+// 노트(flags·claims·tags)는 직전 답에 대한 기록 → 직전에 물은 질문에 붙인다
+function ivNotesByQuestion(s) {
+  const out = [];
+  let prev = null;
+  s.turns.forEach(t => {
+    if (prev && t.note) out.push({ q: prev, by: t, note: t.note });
+    if (t.action !== 'skipped' && t.answer != null) prev = t;
+  });
+  return out;
+}
+function ivCoveredTopics(s) {
+  const set = new Set();
+  s.turns.forEach(t => (t.note && t.note.prev_answer_tags || []).forEach(tag => {
+    const hit = IV_TOPICS.find(x => x === tag || tag.includes(x) || x.includes(tag));
+    if (hit) set.add(hit);
+  }));
+  return set;
+}
+function ivFlagItems(s, kinds) {
+  const items = [];
+  ivNotesByQuestion(s).forEach(({ q, note }) => (note.flags || []).forEach(f => {
+    if (IV_FLAG_INFO[f] && (!kinds || kinds.includes(f))) items.push({ key: `${q.n}:${f}`, q, flag: f });
+  }));
+  return items;
+}
+function ivFacts(s) {
+  const facts = [];
+  ivNotesByQuestion(s).forEach(({ q, note }) => (note.claims || []).forEach(c => facts.push({ qid: q.qid, text: c })));
+  return facts;
+}
+
+// ══════════════════════════════════════
+//  심층 인터뷰 — 진행 흐름
+// ══════════════════════════════════════
+function ivResetDrafts() { IV.drafts = { prop: '', answer: '', direct: '', reason: '', directQid: '' }; IV.editing = false; IV.answerRating = null; IV.participantText = ''; }
+function ivSetBusy(s, text) { s._busy = text || ''; if (ivCur() === s) ivRenderAll(); }
+
+function ivSetMode(mode) {
+  if (IV.mode === mode) return;
+  IV.mode = mode;
+  try { localStorage.setItem('iv_mode', mode); } catch (e) { /* 무시 */ }
+  const cur = ivCur();
+  ivResetDrafts();
+  ivRenderAll();
+  // 진행 중이던 세션의 제안을 다시 받는다
+  if (cur && !cur.endedAt && (mode === 'suggest' || mode === 'real') && ivPhase(cur) === 'proposal' && !cur._busy && !cur._proposal) ivSuggestNext(cur);
+  ivSyncPoll();
+}
+
+function ivSelectPersona(id) {
+  const p = personas.find(x => x.id === id);
+  if (!p) return;
+  if (IV.mode === 'auto' || IV.mode === 'real') { IV.mode = 'suggest'; }
+  const cur = IV.current[IV.mode];
+  if (cur && cur.personaId === id && !cur.endedAt) { ivRenderAll(); return; }
+  if (cur && cur._busy) { showDialog('응답을 기다리는 중입니다', '지금 진행 중인 응답이 끝난 뒤에\n다른 페르소나를 선택해주세요.'); return; }
+  const s = ivNewSession(IV.mode, { personaId: id, profile: ivPersonaProfile(p) });
+  IV.current[IV.mode] = s;
+  IV.proposal = null; IV.proposalError = '';
+  ivResetDrafts();
+  ivRenderAll();
+  if (IV.mode === 'suggest') { s.modHistory.push({ role: 'user', content: ivStartMessage(s) }); ivSuggestNext(s); }
+}
+// 페르소나 모달의 '심층 인터뷰' 버튼에서 호출
+function selectInterviewPersona(id) { ivSelectPersona(id); }
+
+// 세션 단계: proposal(다음 질문 고르기) · answer(실제 답 입력) · done
+function ivPhase(s) {
+  if (!s) return 'none';
+  if (s.endedAt) return 'done';
+  const a = ivAsked(s);
+  const last = a[a.length - 1];
+  if (s.kind === 'real' && last && last.answer == null && last.type !== 'close') return 'answer';
+  return 'proposal';
+}
+
+async function ivSuggestNext(s) {
+  if (!s || s.endedAt || s._busy) return;
+  if (!s.modHistory.length) s.modHistory.push({ role: 'user', content: ivStartMessage(s) });
+  s._proposal = null; s._proposalError = '';
+  if (ivCur() === s) ivResetDrafts();
+  ivSetBusy(s, 'AI가 다음 질문을 고르는 중…');
+  try { s._proposal = await ivModeratorNext(s); }
+  catch (e) { s._proposalError = e.message || '다시 시도해주세요'; }
+  ivSetBusy(s, '');
+  // 참가자 단독 진행: AI가 고른 질문을 연구자 확인 없이 바로 보낸다
+  if (s._proposal && s.kind === 'real' && s.flow === 'solo') { const obj = s._proposal; s._proposal = null; return ivCommitProposal(s, obj, 'send', obj.utterance, '', true); }
+  ivRenderAll();
+}
+
+async function ivSendProposal(kind) {
+  const s = ivCur();
+  const obj = IV.proposal;
+  if (!s || !obj || s._busy) return;
+  const text = (IV.drafts.prop || '').trim();
+  if (kind !== 'skip' && !text) { showDialog('질문이 비어 있습니다', '보낼 질문을 입력해주세요.'); return; }
+  return ivCommitProposal(s, obj, kind, text, (IV.drafts.reason || '').trim(), false);
+}
+async function ivCommitProposal(s, obj, kind, text, reason, auto) {
+  const edited = kind !== 'skip' && text !== obj.utterance.trim();
+  s._proposal = null;
+  const t = ivRecordTurn(s, obj, { action: kind === 'skip' ? 'skipped' : edited ? 'edited' : 'asked', text, reason });
+  if (auto) t.auto = true;
+  if (ivCur() === s) ivResetDrafts();
+  if (kind === 'skip') { ivPushSkip(s, t); ivSave(s); ivRenderAll(); return ivSuggestNext(s); }
+  if (s.kind === 'real') {
+    if (t.type === 'close') ivFinish(s, 'done', '인터뷰 종료');
+    else { s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: false }; }
+    ivSave(s, true); ivRenderAll(); ivSyncPoll();
+    return;
+  }
+  ivSetBusy(s, `${s.profile.code} 응답 생성 중…`);
+  try { await ivAskAndAnswer(s, t); } catch (e) { t.answerError = e.message || '응답 생성 실패'; }
+  ivSetBusy(s, '');
+  ivSave(s); ivRenderAll();
+  if (!s.endedAt && !t.answerError) ivSuggestNext(s);
+}
+
+async function ivRetryAnswer() {
+  const s = ivCur();
+  if (!s || s._busy) return;
+  const t = s.turns.find(x => x.answerError);
+  if (!t) return;
+  delete t.answerError;
+  ivSetBusy(s, `${s.profile.code} 응답 생성 중…`);
+  try { await ivAskAndAnswer(s, t); } catch (e) { t.answerError = e.message || '응답 생성 실패'; }
+  ivSetBusy(s, '');
+  ivSave(s); ivRenderAll();
+  if (s.mode === 'suggest' && !s.endedAt && !t.answerError) ivSuggestNext(s);
+}
+
+async function ivSendDirect() {
+  const s = IV.current.direct;
+  if (!s) { showDialog('페르소나를 먼저 선택해주세요', '왼쪽 목록에서 인터뷰할 페르소나를 선택한 뒤\n질문을 전송해주세요.'); return; }
+  if (s._busy || s.endedAt) return;
+  const text = (IV.drafts.direct || '').trim();
+  if (!text) return;
+  const qid = IV.drafts.directQid || '';
+  const obj = { stage: ivNormStage('', qid), question_id: qid || '직접', type: qid ? 'main' : 'direct', utterance: text, note: {} };
+  const t = ivRecordTurn(s, obj, { noMod: true });
+  ivResetDrafts();
+  ivSetBusy(s, `${s.profile.code} 응답 생성 중…`);
+  try { await ivAskAndAnswer(s, t); } catch (e) { t.answerError = e.message || '응답 생성 실패'; }
+  ivSetBusy(s, '');
+  ivSave(s); ivRenderAll();
+}
+
+async function ivEndEarly() {
+  const s = ivCur();
+  if (!s || s.endedAt || s._busy) return;
+  if (s.flow === 'solo') { try { await ivRefreshFromStore(s); } catch (e) { /* 무시 */ } if (s.endedAt) { ivRenderAll(); return; } }
+  IV.proposal = null;
+  ivFinish(s, 'stopped', '연구자가 종료');
+  ivRenderAll(); ivSyncPoll();
+}
+function ivNewInterview() {
+  if (IV.mode === 'real') IV.current.real = null;
+  else IV.current[IV.mode] = null;
+  IV.proposal = null; IV.proposalError = ''; ivResetDrafts();
+  ivRenderAll();
+}
+
+// ── 실제 인터뷰 보조 ──
+function ivRealProfile() {
+  const r = IV.realSetup;
+  const exp = { '초보': '초보 (1년 미만)', '중급': '중급 (1~5년)', '고급': '고급 (5년 이상)' }[r.level] || r.level;
+  const segment = `${r.level === '초보' ? '입문자' : '경험자'} × ${r.aiUse === '사용 안 함' ? 'AI 비활용' : 'AI 활용'}`;
+  return { code: r.code.trim().toUpperCase(), age: r.age, level: r.level, experience: exp, aiUse: r.aiUse, loss: r.loss, segment };
+}
+function ivStartReal() {
+  const r = IV.realSetup;
+  if (!r.code.trim()) { showDialog('참가자 코드를 입력해주세요', '예: P01. 실명은 쓰지 마세요.'); return; }
+  if (!r.consentAi) { showDialog('동의 확인이 필요합니다', "'답변 요약 AI 도구 입력'에 동의해야\nAI 모더레이터가 답변을 보고 다음 질문을 고를 수 있습니다."); return; }
+  const solo = r.flow === 'solo';
+  const s = ivNewSession('real', { profile: ivRealProfile(), consent: { rec: r.consentRec, ai: r.consentAi }, inputMode: solo ? 'link' : r.inputMode, flow: solo ? 'solo' : 'attended' });
+  IV.current.real = s;
+  IV.proposal = null; IV.proposalError = ''; ivResetDrafts();
+  ivSave(s, true);
+  ivRenderAll();
+  ivSuggestNext(s);
+}
+function ivSaveRealAnswer() {
+  const s = IV.current.real;
+  if (!s || ivPhase(s) !== 'answer') return;
+  const text = (IV.drafts.answer || '').trim();
+  if (!text) { showDialog('답변이 비어 있습니다', '참가자의 답을 입력하거나\n참가자가 링크로 보낸 답을 기다려주세요.'); return; }
+  const a = ivAsked(s);
+  const t = a[a.length - 1];
+  t.rating = IV.answerRating;
+  const source = IV.participantText && text === IV.participantText.trim() ? 'participant' : 'proxy';
+  ivPushAnswer(s, t, text, source);
+  ivResetDrafts();
+  if (ivCapped(s)) ivFinish(s, 'capped', `질문 ${IV_MAX_TURNS}개를 다 써서 중단`);
+  ivSave(s, true);
+  ivSyncPoll();
+  ivRenderAll();
+  if (!s.endedAt) ivSuggestNext(s);
+}
+// 참가자 링크: 참가자가 쓴 답을 2.5초마다 확인
+// 참가자 단독: 참가자 화면이 진행하므로 연구자 화면은 저장소를 읽어 따라간다
+function ivSyncPoll() {
+  const s = IV.current.real;
+  const solo = s && s.flow === 'solo' && !s.endedAt;
+  const need = IV.mode === 'real' && s && (solo || (s.inputMode === 'link' && ivPhase(s) === 'answer'));
+  if (!need) { clearInterval(IV.pollTimer); IV.pollTimer = null; return; }
+  if (IV.pollTimer) return;
+  IV.pollTimer = setInterval(async () => {
+    const cur = IV.current.real;
+    if (!cur || IV.mode !== 'real') { ivSyncPoll(); return; }
+    if (cur.flow === 'solo' && !cur.endedAt) {
+      if (cur._busy || cur._switching) return;
+      try {
+        const before = cur.turns.length + ':' + (cur.endedAt || '') + ':' + ivAnswered(cur).length;
+        await ivRefreshFromStore(cur);
+        if (cur.turns.length + ':' + (cur.endedAt || '') + ':' + ivAnswered(cur).length !== before) ivRenderAll();
+        if (cur.endedAt) ivSyncPoll();
+      } catch (e) { ivStoreFailed(e.message); }
+      return;
+    }
+    if (ivPhase(cur) !== 'answer' || cur.inputMode !== 'link') { ivSyncPoll(); return; }
+    try {
+      const ans = await ivFetchParticipantAnswer(cur.id);
+      const a = ivAsked(cur); const t = a[a.length - 1];
+      if (ans && t && ans.turn === t.n && ans.text && ans.text !== IV.participantText) {
+        IV.participantText = ans.text;
+        IV.drafts.answer = ans.text;
+        ivRenderComposer();
+      }
+    } catch (e) { ivStoreFailed(e.message); }
+  }, 2500);
+}
+// 진행 방식 전환: 연구자 확인(attended) ↔ 참가자 단독(solo)
+async function ivSetFlow(v) {
+  const s = IV.current.real;
+  if (!s) { IV.realSetup.flow = v; if (v === 'solo') IV.realSetup.inputMode = 'link'; ivRenderLeft(); return; }
+  if (s.endedAt || s.flow === v) return;
+  if (s._busy) { showDialog('잠시 후 다시 시도해주세요', 'AI가 질문을 고르는 중입니다.'); return; }
+  s._switching = true;
+  try { await ivRefreshFromStore(s); } catch (e) { /* 저장소 없음 — 화면의 내용으로 진행 */ }
+  s.flow = v;
+  if (v === 'solo') s.inputMode = 'link';
+  s._switching = false;
+  ivSave(s, true);
+  ivRenderAll(); ivSyncPoll();
+  if (v === 'solo') {
+    const phase = ivPhase(s);
+    if (phase === 'answer' && IV.participantText) ivSaveRealAnswer();            // 이미 받은 참가자 답을 저장하고 이어간다
+    else if (phase === 'proposal' && s._proposal) { const obj = s._proposal; ivCommitProposal(s, obj, 'send', obj.utterance, '', true); }
+    else if (phase === 'proposal' && !s._busy) ivSuggestNext(s);
+  } else if (ivPhase(s) === 'proposal' && !s._proposal) ivSuggestNext(s);  // 연구자가 이어받아 다음 질문을 고른다
+}
+function ivParticipantLink(s) { return `${location.origin}${location.pathname}?answer=${encodeURIComponent(s.id)}`; }
+async function ivCopyLink() {
+  const s = IV.current.real;
+  if (!s) { showDialog('인터뷰를 먼저 시작해주세요', '참가자 정보를 입력하고 인터뷰를 시작하면\n이 참가자 전용 링크가 만들어집니다.'); return; }
+  const url = ivParticipantLink(s);
+  try { await navigator.clipboard.writeText(url); showDialog('링크를 복사했습니다', `${s.profile.code} 전용 링크입니다.\n${url}`); }
+  catch (e) { showDialog('링크', url); }
+}
+
+// ── AI 자동 진행 (일괄 실행) ──
+function ivConfirm(title, message, okLabel) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'dialog-overlay';
+    overlay.innerHTML = `<div class="dialog-box" role="dialog" aria-modal="true"><div class="dialog-title">${ivEsc(title)}</div><div class="dialog-msg">${ivEsc(message)}</div><div class="dialog-actions" style="gap:8px;"><button class="iv-btn ghost" data-v="0">취소</button><button class="dialog-confirm" data-v="1">${ivEsc(okLabel || '확인')}</button></div></div>`;
+    overlay.addEventListener('click', e => {
+      const v = e.target.dataset && e.target.dataset.v;
+      if (v != null || e.target === overlay) { overlay.remove(); resolve(v === '1'); }
+    });
+    document.body.appendChild(overlay);
+  });
+}
+async function ivStartBatch() {
+  const list = getFiltered();
+  if (!list.length) { showDialog('실행할 페르소나가 없습니다', '페르소나 뱅크에서 페르소나를 생성하거나\n필터를 조정해주세요.'); return; }
+  if (list.length > 30) { showDialog('대상이 너무 많습니다', `페르소나 뱅크 필터 결과가 ${list.length}명입니다.\n필터로 30명 이하로 줄인 뒤 실행해주세요.`); return; }
+  const est = (list.length * 0.7).toFixed(1);
+  const ok = await ivConfirm('AI 자동 진행을 시작할까요?', `페르소나 뱅크 필터 결과 ${list.length}명을 차례로 인터뷰합니다.\n인터뷰 1회에 API 호출이 최대 약 80번이고, 예상 비용은 약 $${est}입니다(1명당 약 $0.7, 프롬프트 캐싱 기준).\n이 탭을 열어 두는 동안만 진행됩니다.`, '시작');
+  if (!ok) return;
+  IV.batch = { id: 'b' + Date.now(), items: list.map(p => ({ personaId: p.id, sessionId: null, status: 'waiting' })), running: false, paused: false, stopped: false, cur: -1 };
+  IV.autoViewId = null;
+  ivRunBatch();
+}
+async function ivRunBatch() {
+  const b = IV.batch;
+  if (!b || b.running) return;
+  b.running = true; b.paused = false; b.stopped = false;
+  ivRenderAll();
+  for (let i = 0; i < b.items.length; i++) {
+    const it = b.items[i];
+    if (it.status !== 'waiting') continue;
+    while (b.paused && !b.stopped) await ivSleep(300);
+    if (b.stopped) break;
+    const p = personas.find(x => x.id === it.personaId);
+    if (!p) { it.status = 'error'; continue; }
+    const s = ivNewSession('auto', { personaId: p.id, profile: ivPersonaProfile(p), batchId: b.id });
+    it.sessionId = s.id; it.status = 'running'; b.cur = i;
+    IV.autoViewId = s.id;
+    ivRenderAll();
+    try { await ivRunAutoSession(s); }
+    catch (e) { s._busy = ''; s.status = 'error'; s.endReason = e.message || '오류'; s.endedAt = Date.now(); ivSave(s, true); }
+    if (s.switchToSuggest) {
+      it.status = 'switched';
+      delete s.switchToSuggest;
+      s.mode = 'suggest';
+      IV.current.suggest = s;
+      IV.proposal = null; IV.proposalError = ''; ivResetDrafts();
+      IV.mode = 'suggest';
+      ivRenderAll();
+      ivSuggestNext(s);
+    } else {
+      it.status = s.status === 'active' ? 'stopped' : s.status;
+    }
+    ivRenderAll();
+  }
+  b.running = false; b.cur = -1;
+  ivRenderAll();
+}
+async function ivRunAutoSession(s) {
+  const b = IV.batch;
+  s.modHistory.push({ role: 'user', content: ivStartMessage(s) });
+  while (!s.endedAt) {
+    while (b.paused && !b.stopped && !s.switchToSuggest) await ivSleep(300);
+    if (s.switchToSuggest) return;
+    if (b.stopped) { ivFinish(s, 'stopped', '연구자가 중지'); return; }
+    s._busy = 'AI가 다음 질문을 고르는 중…'; ivRenderAutoLive(s);
+    const obj = await ivModeratorNext(s);
+    const t = ivRecordTurn(s, obj, {});
+    s._busy = t.type === 'close' ? '' : `${s.profile.code} 응답 생성 중…`; ivRenderAutoLive(s);
+    await ivAskAndAnswer(s, t);
+    s._busy = '';
+    ivSave(s);
+    ivRenderAutoLive(s);
+  }
+}
+function ivRenderAutoLive(s) { if (IV.mode === 'auto' && IV.autoViewId === s.id) ivRenderAll(); else if (IV.mode === 'auto') { ivRenderLeft(); ivRenderControl(); ivRenderRight(); } }
+function ivPauseBatch() { if (IV.batch) { IV.batch.paused = !IV.batch.paused; ivRenderAll(); } }
+function ivStopBatch() { if (IV.batch) { IV.batch.stopped = true; IV.batch.paused = false; ivRenderAll(); } }
+function ivSwitchToSuggest() {
+  const s = IV.sessions[IV.autoViewId];
+  if (!s || s.endedAt || !IV.batch || !IV.batch.running) return;
+  s.switchToSuggest = true;
+  IV.batch.paused = true;
+  s._busy = '전환 중… 지금 턴이 끝나면 AI 제안 받기로 넘어갑니다';
+  ivRenderAll();
+}
+
+// ══════════════════════════════════════
+//  심층 인터뷰 — 화면 그리기
+// ══════════════════════════════════════
+function ivSetHeaderCode() {
+  let code = '—';
+  if (IV.mode === 'auto') code = IV.batch && IV.batch.running ? '일괄 실행' : (ivCur() ? ivCur().profile.code : '—');
+  else if (ivCur()) code = ivCur().profile.code;
+  if (IV.reviewId && IV.sessions[IV.reviewId]) code = IV.sessions[IV.reviewId].profile.code;
+  document.getElementById('header-code').textContent = code;
+  participantCode = code === '—' || code === '일괄 실행' ? '' : code;
+}
+
+// 내용이 바뀐 경우에만 다시 그린다 — 1초마다 갱신해도 버튼 클릭이 사라지지 않게
+function ivSetHtml(el, html) { if (el._ivHtml !== html) { el.innerHTML = html; el._ivHtml = html; } }
+
+function ivRenderAll() {
+  if (!document.getElementById('iv-left')) return;
+  ivRenderHead(); ivRenderControl(); ivRenderLeft(); ivRenderCenter(); ivRenderRight(); ivSetHeaderCode();
+}
+
+function ivRenderHead() {
+  const sub = {
+    direct: '질문을 직접 쓰거나 질문지에서 골라 페르소나에게 보냅니다. 특정 질문만 따로 시험할 때 씁니다.',
+    suggest: 'AI가 질문지 순서대로 다음 질문을 제안합니다. 확인하고 보내세요.',
+    auto: 'AI 진행자와 합성 사용자가 끝까지 자동으로 대화합니다. 같은 질문지로 여러 명을 한 번에 돌릴 때 씁니다.',
+    real: 'AI 모더레이터가 참가자에게 직접 질문합니다. 답변은 연구자가 대신 입력하거나, 링크를 받은 참가자가 직접 작성합니다.',
+  }[IV.mode];
+  document.getElementById('iv-sub').textContent = sub;
+  const labels = { direct: ['대화 저장 (TXT)', 'AI 기록 받기 (CSV)'], suggest: ['대화 저장 (TXT)', 'AI 기록 받기 (CSV)'], auto: ['전체 대화 저장 (ZIP)', 'AI 기록 모아 받기 (CSV)'], real: ['대화 저장 (TXT)', '수정 기록 받기 (CSV)'] }[IV.mode];
+  document.getElementById('iv-export-a').textContent = labels[0];
+  document.getElementById('iv-export-b').textContent = labels[1];
+  document.querySelectorAll('#iv-mode-seg button').forEach(b => b.classList.toggle('active', b.dataset.mode === IV.mode));
+}
+
+function ivRenderControl() {
+  const el = document.getElementById('iv-control-right');
+  const s = ivCur();
+  if (IV.mode === 'auto') {
+    const b = IV.batch;
+    const total = b ? b.items.length : 0;
+    const done = b ? b.items.filter(x => !['waiting', 'running'].includes(x.status)).length : 0;
+    let btns;
+    if (!b || !b.running) btns = `<button class="iv-btn dark" data-act="batch-start">${b ? '다시 시작' : '시작'}</button>`;
+    else btns = `<button class="iv-btn dark" data-act="batch-pause">${b.paused ? '재개' : '일시정지'}</button><button class="iv-btn ghost" data-act="batch-stop">중지</button>`;
+    ivSetHtml(el, `<span>전체 ${done} / ${total} 완료</span>${btns}`);
+  } else if (IV.mode === 'real') {
+    ivSetHtml(el, `<span>경과 ${ivFmtTime(s ? s.elapsedSec : 0)} / ${IV_TOTAL_MINUTES}분</span>`);
+  } else {
+    ivSetHtml(el, `<span>경과 ${ivFmtTime(s ? s.elapsedSec : 0)}</span><span class="gap">질문 ${s ? ivAsked(s).length : 0} / ${IV_MAX_TURNS}개</span>`);
+  }
+  ivRenderStages();
+}
+
+function ivStageProgress(s, st) {
+  const mains = st.key === '⑥' && s.aiUser === false ? IV_MAINS['⑥no'] : IV_MAINS[st.key] || [];
+  let idx = 0;
+  ivAsked(s).forEach(t => {
+    if (t.stage !== st.key) return;
+    const i = st.key === '①' ? 0 : mains.indexOf(ivBaseQid(t.qid));
+    if (i + 1 > idx) idx = i + 1;
+  });
+  return { idx: Math.max(idx, 1), count: Math.max(mains.length, 1) };
+}
+function ivRenderStages() {
+  const el = document.getElementById('iv-stages');
+  if (IV.mode === 'auto') {
+    const b = IV.batch;
+    const pct = b && b.items.length ? Math.round(b.items.filter(x => !['waiting', 'running'].includes(x.status)).length / b.items.length * 100) : 0;
+    el.className = 'iv-stages single';
+    ivSetHtml(el, `<div class="iv-progress"><i style="width:${pct}%"></i></div>`);
+    return;
+  }
+  el.className = 'iv-stages';
+  const s = ivCur();
+  const cur = s ? ivCurrentStage(s) : null;
+  const curIdx = cur ? IV_STAGES.findIndex(x => x.key === cur) : -1;
+  const real = IV.mode === 'real';
+  ivSetHtml(el, IV_STAGES.map((st, i) => {
+    let cls = '', fill = 0, label = st.name;
+    if (st.skip) { cls = 'skip'; label = '건너뜀'; }
+    else if (s && (s.endedAt ? i <= curIdx : i < curIdx)) { cls = 'done'; fill = 100; if (real) label = `${st.name} ${st.minutes}분`; }
+    else if (s && i === curIdx) {
+      cls = 'current';
+      if (real) { const m = ivStageElapsedMin(s, st.key); label = `${st.name} ${m}/${st.minutes}분`; fill = Math.min(100, Math.max(8, m / st.minutes * 100)); }
+      else { const p = ivStageProgress(s, st); label = `${st.name} ${p.idx}/${p.count}`; fill = Math.min(100, p.idx / p.count * 100); }
+    } else if (real) label = `${st.name} ${st.minutes}분`;
+    return `<div class="iv-stage ${cls}"><div class="iv-stage-bar"><i style="width:${fill}%"></i></div><div class="iv-stage-label">${IV_ICON}${ivEsc(label)}</div></div>`;
+  }).join(''));
+}
+
+// ── 왼쪽 ──
+function ivPersonaItem(p, active, sub) {
+  return `<div class="iv-pitem${active ? ' active' : ''}" data-act="pick-persona" data-id="${p.id}">
+    <div class="iv-code">${ivEsc(pCode(p))}</div>
+    <div><div class="iv-pmain">${ivEsc(p.age)} · ${ivEsc(p.level)}</div>
+    ${sub || `<div class="iv-tags"><span class="iv-tag">${ivAiShort(p.aiUse)}</span><span class="iv-tag">${ivEsc(p.channel)}</span></div>`}</div>
+  </div>`;
+}
+function ivRenderLeft() {
+  const el = document.getElementById('iv-left');
+  if (IV.mode === 'direct' || IV.mode === 'suggest') {
+    const cur = IV.current[IV.mode];
+    const list = getFiltered().slice(0, 30);
+    if (cur && cur.personaId && !list.find(p => p.id === cur.personaId)) { const cp = personas.find(p => p.id === cur.personaId); if (cp) list.unshift(cp); }
+    el.innerHTML = `<div class="iv-panel">
+      <div class="iv-panel-head">페르소나 선택</div>
+      <div class="iv-panel-hint">페르소나 뱅크 필터 결과 기준</div>
+      <div class="iv-plist">${list.length ? list.map(p => ivPersonaItem(p, cur && cur.personaId === p.id)).join('') : '<div class="iv-muted" style="padding:16px;">페르소나 뱅크에서 먼저 생성해주세요</div>'}</div>
+      ${IV.mode === 'suggest' ? '<div class="iv-note">AI 진행자에게는 연령대·경력·AI 사용 여부만 알려 줍니다.</div>' : '<div class="iv-note">직접 질문은 AI 진행자 없이 페르소나에게 바로 보냅니다.</div>'}
+    </div>`;
+    return;
+  }
+  if (IV.mode === 'auto') {
+    const b = IV.batch;
+    if (!b) {
+      const n = getFiltered().length;
+      el.innerHTML = `<div class="iv-panel"><div class="iv-panel-head">실행 대기열</div><div class="iv-panel-hint">페르소나 뱅크 필터 결과 ${n}명</div>
+        <div class="iv-plist">${getFiltered().slice(0, 8).map(p => ivPersonaItem(p, false, '<div class="iv-psub">대기</div>')).join('')}</div>
+        ${n > 8 ? `<div class="iv-more">외 ${n - 8}명 대기</div>` : ''}</div>`;
+      return;
+    }
+    const shown = [];
+    let hiddenWaiting = 0;
+    b.items.forEach(it => { if (it.status === 'waiting' && shown.length >= 8) hiddenWaiting++; else shown.push(it); });
+    el.innerHTML = `<div class="iv-panel"><div class="iv-panel-head">실행 대기열</div><div class="iv-panel-hint">페르소나 뱅크 필터 결과 ${b.items.length}명</div>
+      <div class="iv-plist">${shown.map(it => {
+        const p = personas.find(x => x.id === it.personaId) || { id: it.personaId, age: '—', level: '—' };
+        const s = it.sessionId ? IV.sessions[it.sessionId] : null;
+        const n = s ? ivAsked(s).length : 0;
+        const stage = s && ivCurrentStage(s) ? ivStageDef(ivCurrentStage(s)).name : '';
+        let sub, cls = '';
+        if (it.status === 'waiting') sub = '대기';
+        else if (it.status === 'running') { sub = `진행 중 · ${IV_ICON} ${stage ? stage + ' · ' : ''}질문 ${n}개째`; cls = 'run'; }
+        else if (it.status === 'done') { sub = `완료 · 질문 ${n}개 · ${s && s.review && s.review.status === 'done' ? '리뷰 완료' : '리뷰 전'}`; cls = 'ok'; }
+        else if (it.status === 'capped') { sub = `질문 ${IV_MAX_TURNS}개를 다 써서 중단`; cls = 'bad'; }
+        else if (it.status === 'switched') { sub = 'AI 제안 받기로 전환'; }
+        else if (it.status === 'stopped') { sub = `중지됨 · 질문 ${n}개`; cls = 'bad'; }
+        else { sub = '오류 · ' + ivEsc(s && s.endReason || '다시 실행 필요'); cls = 'bad'; }
+        const viewing = it.sessionId && it.sessionId === IV.autoViewId;
+        return `<div class="iv-pitem${viewing ? ' running' : ''}" data-act="auto-view" data-sid="${it.sessionId || ''}">
+          <div class="iv-code">${ivEsc(pCode(p))}</div>
+          <div><div class="iv-pmain">${ivEsc(p.age)} · ${ivEsc(p.level)} · ${ivAiShort(p.aiUse)}</div><div class="iv-psub ${cls}">${sub}</div></div></div>`;
+      }).join('')}</div>
+      ${hiddenWaiting ? `<div class="iv-more">외 ${hiddenWaiting}명 대기</div>` : ''}</div>`;
+    return;
+  }
+  // 실제 인터뷰 보조
+  const s = IV.current.real;
+  const r = IV.realSetup;
+  const inputMode = s ? s.inputMode : r.inputMode;
+  const flow = s ? s.flow : r.flow;
+  const code = s ? s.profile.code : (r.code || 'P01').toUpperCase();
+  const opt = (arr, v) => arr.map(x => `<option${x === v ? ' selected' : ''}>${x}</option>`).join('');
+  const info = s
+    ? `<div class="iv-panel-body" style="padding-top:12px;">
+        <div class="iv-kv"><span>코드</span><span>${ivEsc(s.profile.code)}</span></div>
+        <div class="iv-kv"><span>세그먼트</span><span>${ivEsc(s.profile.segment)}</span></div>
+        <div class="iv-kv"><span>연령대</span><span>${ivEsc(s.profile.age)}</span></div>
+        <div class="iv-kv"><span>손실 경험</span><span>${ivEsc(s.profile.loss)}</span></div>
+      </div>`
+    : `<div class="iv-panel-body" style="padding-top:12px;">
+        <label class="iv-field">코드 (실명 금지)<input data-real="code" value="${ivEsc(r.code)}" maxlength="10"></label>
+        <label class="iv-field">연령대<select data-real="age">${opt(['20대', '30대', '40대', '50대+'], r.age)}</select></label>
+        <label class="iv-field">투자 경력<select data-real="level">${opt(['초보', '중급', '고급'], r.level)}</select></label>
+        <label class="iv-field">AI 활용<select data-real="aiUse">${opt(['자주 사용', '가끔 사용', '사용 안 함'], r.aiUse)}</select></label>
+        <label class="iv-field">손실 경험<select data-real="loss">${opt(['있음', '없음'], r.loss)}</select></label>
+        <button class="iv-btn dark" style="width:100%;margin-top:4px;" data-act="real-start">인터뷰 시작</button>
+      </div>`;
+  el.innerHTML = `
+    <div class="iv-panel"><div class="iv-panel-head plain">답변 입력 방식</div><div class="iv-panel-body">
+      <div class="iv-seg full small"><button class="${inputMode === 'proxy' ? 'active' : ''}" data-act="input-mode" data-v="proxy">연구자 대리 입력</button><button class="${inputMode === 'link' ? 'active' : ''}" data-act="input-mode" data-v="link">참가자 링크</button></div>
+      <div class="iv-linkrow"><button class="iv-btn" data-act="copy-link">참가자 링크 복사</button><span id="iv-link-code">${ivEsc(code)} 전용</span></div>
+      ${inputMode === 'link' ? `<div class="iv-muted" style="margin:12px 0 6px;">링크 진행 방식</div>
+      <div class="iv-seg full small"><button class="${flow !== 'solo' ? 'active' : ''}" data-act="flow" data-v="attended">연구자 확인</button><button class="${flow === 'solo' ? 'active' : ''}" data-act="flow" data-v="solo">참가자 단독</button></div>` : ''}
+      <div class="iv-muted" style="margin-top:10px;">${inputMode !== 'link' ? '연구자가 참가자의 답을 요약해 입력합니다.' : flow === 'solo' ? 'AI가 고른 질문이 연구자 확인 없이 바로 참가자에게 갑니다. 이 화면에서 지켜보다가 언제든 이어받을 수 있습니다.' : '참가자가 링크로 답을 적으면 이 화면에 실시간으로 나타납니다. 질문은 연구자가 확인한 뒤 보냅니다.'}</div>
+    </div></div>
+    <div class="iv-panel"><div class="iv-panel-head">참가자 정보</div>${info}</div>
+    <div class="iv-panel"><div class="iv-panel-head plain">동의 확인</div><div class="iv-panel-body">
+      <label class="iv-check"><input type="checkbox" data-real="consentRec" ${(s ? s.consent.rec : r.consentRec) ? 'checked' : ''} ${s ? 'disabled' : ''}> 녹음·화면 캡처</label>
+      <label class="iv-check"><input type="checkbox" data-real="consentAi" ${(s ? s.consent.ai : r.consentAi) ? 'checked' : ''} ${s ? 'disabled' : ''}> 답변 요약 AI 도구 입력</label>
+    </div></div>`;
+}
+
+// ── 가운데 ──
+function ivTurnHtml(s, t) {
+  const chips = [];
+  const typeLabel = IV_TYPE_LABEL[t.type] || '질문';
+  const qLabel = t.type === 'direct' ? '직접 질문' : `${t.qid ? t.qid + ' · ' : ''}${typeLabel}`;
+  chips.push(`<span class="iv-chip">${IV_ICON}${ivEsc(qLabel)}${s.kind === 'real' && t.action === 'asked' ? ' · 수정 없음' : ''}</span>`);
+  if (t.action === 'edited') chips.push(`<span class="iv-chip blue">수정함${t.editReason ? ' · ' + ivEsc(t.editReason) : ''}</span>`);
+  if (t.action === 'skipped') chips.push(`<span class="iv-chip line">건너뜀${t.editReason ? ' · ' + ivEsc(t.editReason) : ''}</span>`);
+  (t.note && t.note.flags || []).filter(f => IV_FLAG_INFO[f] && f !== 'leading_risk' && f !== 'persona_drift' && f !== 'new_topic').slice(0, 2)
+    .forEach(f => chips.push(`<span class="iv-chip ${f === 'textbook' ? 'warn' : 'line'}">${ivEsc(IV_FLAG_INFO[f].chip)}</span>`));
+  let html = `<div class="iv-q${t.action === 'skipped' ? ' skipped' : ''}" data-turn="${t.n}" data-qid="${ivEsc(ivBaseQid(t.qid) || t.qid)}"><div class="iv-q-chips">${chips.join('')}</div><div class="iv-q-bubble">${ivEsc(t.utterance)}</div></div>`;
+  if (t.action === 'skipped') return html;
+  const code = ivEsc(s.profile.code);
+  if (t.answer != null) {
+    const label = s.kind === 'real' ? `<div class="iv-a-label">${t.answerSource === 'participant' ? '참가자 직접 작성' : '연구자 대리 입력 · 요약'}</div>` : '';
+    html += `<div class="iv-a"><div class="iv-code">${code}</div><div>${label}<div class="iv-a-bubble">${ivEsc(t.answer)}</div></div></div>`;
+  } else if (t.answerError) {
+    html += `<div class="iv-a"><div class="iv-code">${code}</div><div><div class="iv-a-bubble pending" style="color:var(--cal-error)">응답 생성 실패: ${ivEsc(t.answerError)}</div><button class="iv-btn ghost" data-act="retry-answer">답변 다시 받기</button></div></div>`;
+  }
+  return html;
+}
+function ivRenderCenter() {
+  const head = document.getElementById('iv-center-head');
+  const msgs = document.getElementById('iv-msgs');
+  const s = ivCur();
+  // 헤더 — 자동 진행에서만 보임
+  if (IV.mode === 'auto' && s) {
+    const st = ivCurrentStage(s);
+    const canSwitch = !s.endedAt && IV.batch && IV.batch.running;
+    head.innerHTML = `<span class="who">${ivEsc(s.profile.code)} · ${ivEsc(ivProfileLine(s))}</span>
+      <span class="iv-chip blue">${IV_ICON}${st ? ivEsc(ivStageDef(st).name) + ' · ' : ''}질문 ${ivAsked(s).length} / ${IV_MAX_TURNS}개</span>
+      ${canSwitch ? '<button class="iv-btn" data-act="auto-switch">이 인터뷰만 AI 제안 받기로 전환</button>' : (s.endedAt && s.status !== 'error' ? '<button class="iv-btn" data-act="open-review">리뷰하기</button>' : '')}`;
+  } else head.innerHTML = '';
+
+  const nearBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 80;
+  if (!s) {
+    const empty = {
+      direct: '왼쪽에서 페르소나를 선택한 뒤<br>질문을 직접 쓰거나 질문지에서 골라 보내세요.',
+      suggest: '왼쪽에서 페르소나를 선택하면<br>AI 진행자가 첫 질문을 제안합니다.',
+      auto: `페르소나 뱅크 필터 결과를 차례로 인터뷰합니다.<br>위의 <b>시작</b>을 누르면 질문 ${IV_MAX_TURNS}개 안에서 끝까지 자동으로 진행됩니다.`,
+      real: '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작하세요.<br>AI 진행자가 질문을 고르면 연구자가 확인한 뒤 묻습니다.',
+    }[IV.mode];
+    msgs.innerHTML = `<div class="iv-empty">${empty}</div>`;
+  } else {
+    let html = '';
+    if (IV.mode === 'auto' && !s.endedAt) html += `<div class="iv-banner">자동 진행 중입니다. 질문을 직접 고치려면 일시정지 후 'AI 제안 받기'로 바꾸세요.</div>`;
+    html += s.turns.map(t => ivTurnHtml(s, t)).join('');
+    if (s._busy && /응답 생성/.test(s._busy)) html += `<div class="iv-a"><div class="iv-code">${ivEsc(s.profile.code)}</div><div class="iv-a-bubble pending">응답 생성 중…</div></div>`;
+    else if (s._busy && IV.mode === 'auto') html += `<div class="iv-busy"><div class="spinner" style="width:14px;height:14px;border-width:2px;"></div>${ivEsc(s._busy)}</div>`;
+    if (!s.turns.length && !s._busy) html += '<div class="iv-empty">아직 대화가 없습니다.</div>';
+    msgs.innerHTML = html;
+  }
+  if (nearBottom || !s || !s._scrolled) { msgs.scrollTop = msgs.scrollHeight; if (s) s._scrolled = true; }
+  ivRenderComposer();
+}
+function ivRenderComposer() {
+  const el = document.getElementById('iv-composer');
+  const s = ivCur();
+  el.className = 'iv-composer';
+  if (IV.mode === 'auto') {
+    if (s && s.endedAt) el.innerHTML = `<div class="iv-comp-head"><b>인터뷰가 끝났습니다</b><span class="iv-chip">${ivEsc(s.endReason)}</span></div>`;
+    else el.innerHTML = '';
+    return;
+  }
+  if (IV.mode === 'direct') {
+    if (s && s.endedAt) { el.innerHTML = ivDoneHtml(s); return; }
+    const opts = IV_QUESTIONNAIRE.flatMap(sec => sec.rows.filter(r => r.id !== '소개').map(r => `<option value="${ivEsc(r.id)}|${ivEsc(r.q)}">${ivEsc(r.id)} · ${ivEsc(r.q.length > 48 ? r.q.slice(0, 48) + '…' : r.q)}</option>`));
+    el.innerHTML = `<select class="iv-qbank" data-act-change="qbank"><option value="">질문지에서 불러오기…</option>${opts.join('')}</select>
+      <textarea class="iv-textarea" id="iv-direct-text" data-draft="direct" placeholder="질문을 입력하세요… (Shift+Enter로 줄바꿈, Enter로 전송)" rows="2">${ivEsc(IV.drafts.direct)}</textarea>
+      <div class="iv-actions">${s ? '<button class="iv-link" style="margin:0 auto 0 0;" data-act="end">끝내고 리뷰하기</button>' : ''}${s && s._busy ? `<span class="iv-busy">${ivEsc(s._busy)}</span>` : ''}<button class="iv-btn dark lg" data-act="direct-send" ${s && s._busy ? 'disabled' : ''}>전송</button></div>`;
+    return;
+  }
+  if (!s) { el.innerHTML = ''; return; }
+  if (s.endedAt) { el.innerHTML = ivDoneHtml(s); return; }
+  const phase = ivPhase(s);
+  if (s.kind === 'real' && s.flow === 'solo') {
+    const status = phase === 'answer' ? '참가자가 답을 쓰는 중입니다' : (s._busy || 'AI가 다음 질문을 고르는 중입니다');
+    el.className = 'iv-composer soft';
+    el.innerHTML = `<div class="iv-comp-head"><b>참가자 단독 진행 중</b><span class="iv-chip blue">AI가 고른 질문이 바로 참가자에게 갑니다</span></div>
+      <div class="iv-busy"><div class="spinner" style="width:14px;height:14px;border-width:2px;"></div>${ivEsc(status)}</div>
+      <div class="iv-actions"><button class="iv-btn ghost lg" data-act="end">인터뷰 끝내기</button><button class="iv-btn dark lg" data-act="flow" data-v="attended">연구자 확인으로 전환</button></div>`;
+    return;
+  }
+  if (phase === 'answer') {
+    const a = ivAsked(s); const t = a[a.length - 1];
+    const waiting = s.inputMode === 'link' && !IV.participantText;
+    el.className = 'iv-composer soft';
+    el.innerHTML = `<div class="iv-comp-head"><b>참가자 답변 입력</b><span class="iv-chip">${ivEsc(t.qid || '')} 에 대한 답</span>${s.inputMode === 'link' ? `<span class="iv-chip ${waiting ? 'line' : 'blue'}">${waiting ? '참가자 작성 대기 중…' : '참가자가 작성함'}</span>` : ''}</div>
+      <textarea class="iv-textarea" id="iv-answer-text" data-draft="answer" rows="2" placeholder="${s.inputMode === 'link' ? '참가자가 링크로 답을 보내면 여기에 나타납니다. 직접 입력해도 됩니다.' : '참가자의 답을 요약해 입력하세요'}">${ivEsc(IV.drafts.answer)}</textarea>
+      <div class="iv-pii">계좌번호·잔고·실명은 입력하지 말고 구간이나 가명으로 적어 주세요.</div>
+      <div class="iv-actions"><div class="lead">AI가 고른 질문이 적절했나요? <button class="iv-pill${IV.answerRating === 'good' ? ' on' : ''}" data-act="rate" data-v="good">적절했음</button><button class="iv-pill${IV.answerRating === 'bad' ? ' on bad' : ''}" data-act="rate" data-v="bad">부적절했음</button></div>
+      <button class="iv-btn dark lg" data-act="real-save">답변 저장하고 다음 질문</button></div>`;
+    return;
+  }
+  // proposal
+  if (s._busy) { el.innerHTML = `<div class="iv-busy"><div class="spinner" style="width:14px;height:14px;border-width:2px;"></div>${ivEsc(s._busy)}</div>`; return; }
+  if (IV.proposalError || !IV.proposal) {
+    el.innerHTML = `<div class="iv-comp-head"><b>${IV.proposalError ? '질문을 받지 못했습니다' : '다음 질문 준비'}</b></div>${IV.proposalError ? `<div class="iv-reason" style="color:var(--cal-error)">${ivEsc(IV.proposalError)}</div>` : ''}<div class="iv-actions"><button class="iv-btn ghost" data-act="end">인터뷰 끝내기</button><button class="iv-btn dark lg" data-act="resuggest">다시 제안</button></div>`;
+    return;
+  }
+  const o = IV.proposal;
+  if (!IV.editing) IV.drafts.prop = o.utterance;
+  const known = ivIsKnownQid(o.question_id);
+  const srcChip = o.type === 'probe' ? '<span class="iv-chip">중립 탐색</span>' : known ? '<span class="iv-chip">질문지에 있는 질문</span>' : '<span class="iv-chip warn">질문지에 없는 질문</span>';
+  const edited = (IV.drafts.prop || '').trim() !== o.utterance.trim();
+  const real = s.kind === 'real';
+  const reasonRow = real || IV.editing
+    ? `<div class="iv-edit-reason">${real ? '고치거나 건너뛰는 이유' : '고친 이유 (선택)'}
+        ${['표현이 어색함', '답을 유도할 수 있음', '이미 답함', '순서가 안 맞음'].map(x => `<button class="iv-pill" data-act="reason" data-v="${x}">${x}</button>`).join('')}
+        <input id="iv-reason-input" data-draft="reason" value="${ivEsc(IV.drafts.reason)}" placeholder="직접 입력"></div>` : '';
+  el.innerHTML = `<div class="iv-comp-head"><b>AI가 제안한 다음 질문</b><span class="iv-chip blue">${IV_ICON}${ivEsc(o.question_id || '?')} · ${ivEsc(IV_TYPE_LABEL[o.type] || '')}</span>${srcChip}
+      <button class="iv-link" data-act="resuggest">다시 제안</button><button class="iv-link" style="margin-left:10px;" data-act="end">끝내기</button></div>
+    ${o.note && o.note.reason ? `<div class="iv-reason">고른 이유 · ${ivEsc(o.note.reason)}</div>` : ''}
+    <textarea class="iv-textarea" id="iv-prop-text" data-draft="prop" rows="2" ${IV.editing ? '' : 'readonly'}>${ivEsc(IV.drafts.prop)}</textarea>
+    ${reasonRow}
+    <div class="iv-actions"><button class="iv-btn ghost lg" data-act="prop-skip">건너뛰기</button><button class="iv-btn lg" data-act="prop-edit">${IV.editing ? '수정 취소' : '수정하기'}</button><button class="iv-btn dark lg" data-act="prop-send">${edited ? (real ? '고쳐서 묻기' : '수정해서 전송') : (real ? '그대로 묻기' : '그대로 전송')}</button></div>`;
+}
+function ivDoneHtml(s) {
+  return `<div class="iv-comp-head"><b>인터뷰가 끝났습니다</b><span class="iv-chip">${ivEsc(s.endReason)}</span><span class="iv-chip">질문 ${ivAsked(s).length}개 · ${ivFmtTime(s.elapsedSec)}</span></div>
+    <div class="iv-actions"><button class="iv-btn ghost lg" data-act="new-interview">새 인터뷰</button><button class="iv-btn dark lg" data-act="open-review">리뷰하기</button></div>`;
+}
+
+// ── 오른쪽 ──
+function ivRenderRight() {
+  const el = document.getElementById('iv-right');
+  const s = ivCur();
+  if (IV.mode === 'auto') { el.innerHTML = ivAutoRightHtml(); return; }
+  if (IV.mode === 'real') {
+    const turns = s ? s.turns.slice().reverse() : [];
+    el.innerHTML = `<div class="iv-panel"><div class="iv-panel-head plain">질문 수정 기록 <span class="aside">AI 개선에 사용</span></div><div class="iv-panel-body">
+      ${turns.length ? turns.map(t => {
+        const act = t.action === 'skipped' ? '건너뜀' : t.action === 'edited' ? '고쳐서 물음' : t.auto ? '바로 물음 (단독)' : '그대로 물음';
+        const r = t.action === 'skipped' ? '' : t.rating === 'good' ? '<span class="r ok">적절</span>' : t.rating === 'bad' ? '<span class="r bad">부적절</span>' : (t.answer == null ? '<span class="r muted">답변 대기</span>' : '<span class="r muted">평가 전</span>');
+        const body = t.action === 'edited' ? `원래: ${ivEsc(t.aiUtterance)}${t.editReason ? `<br>이유: ${ivEsc(t.editReason)}` : ''}` : t.action === 'skipped' ? `이유: ${ivEsc(t.editReason || '—')}` : '';
+        return `<div class="iv-flag ${t.rating === 'bad' ? '' : 'neutral'}"><div class="iv-flag-title"><span>${ivEsc(t.qid || '?')} · ${act}</span>${r}</div>${body ? `<div class="iv-flag-body">${body}</div>` : ''}</div>`;
+      }).join('') : '<div class="iv-muted">AI가 고른 질문을 그대로 묻거나, 고치거나, 건너뛴 기록이 여기에 쌓입니다.</div>'}
+    </div></div>`;
+    return;
+  }
+  const covered = s ? ivCoveredTopics(s) : new Set();
+  const flags = s ? ivFlagItems(s, IV_FIX_FLAGS.concat(['persona_drift'])).slice(-3).reverse() : [];
+  const facts = s ? ivFacts(s).slice(-6) : [];
+  const off = IV.mode === 'direct';
+  el.innerHTML = `
+    <div class="iv-panel"><div class="iv-panel-head plain">다룬 주제 <span class="count">${IV_TOPICS.length}개 중 ${covered.size}개</span></div><div class="iv-panel-body">
+      ${IV_TOPICS.map(x => `<div class="iv-topic${covered.has(x) ? ' on' : ''}"><span class="dot"></span>${x}</div>`).join('')}
+    </div></div>
+    <div class="iv-panel"><div class="iv-panel-head plain">주의 표시 <span class="aside">질문 고칠 때 참고</span></div><div class="iv-panel-body">
+      ${flags.length ? flags.map(f => `<div class="iv-flag"><div class="iv-flag-title"><span>${ivEsc(f.q.qid)} · ${IV_FLAG_INFO[f.flag].label}</span></div><div class="iv-flag-body">"${ivEsc(String(f.q.answer || '').slice(0, 60))}${String(f.q.answer || '').length > 60 ? '…' : ''}" — ${IV_FLAG_INFO[f.flag].desc}</div></div>`).join('')
+        : `<div class="iv-muted">${off ? '직접 질문 모드에서는 AI 노트가 만들어지지 않습니다.' : '교과서식 답변, 짧은 답, 모호한 질문, 유도 가능성이 보이면 여기에 표시됩니다.'}</div>`}
+    </div></div>
+    <div class="iv-panel"><div class="iv-panel-head plain">참가자가 말한 사실 <span class="aside">앞뒤 다른 말 확인에 사용</span></div><div class="iv-panel-body">
+      ${facts.length ? facts.map(f => `<div class="iv-fact"><span class="iv-chip">${ivEsc(ivBaseQid(f.qid) || f.qid)}</span><span>${ivEsc(f.text)}</span></div>`).join('') : '<div class="iv-muted">AI 진행자가 답에서 뽑은 사실이 여기에 쌓입니다.</div>'}
+    </div></div>`;
+}
+// 끝난 인터뷰들에서 같은 질문에 같은 플래그가 몇 번 나왔는지 모은다
+function ivFixAggregate(sessions) {
+  const map = {};
+  sessions.forEach(s => {
+    const seen = new Set();
+    ivFlagItems(s, IV_FIX_FLAGS).forEach(({ q, flag }) => {
+      const qid = ivBaseQid(q.qid) || q.qid;
+      const key = qid + '|' + flag;
+      if (seen.has(key)) return;
+      seen.add(key);
+      map[key] = map[key] || { qid, flag, count: 0, quote: q.utterance, reviewed: 0 };
+      map[key].count++;
+    });
+    (s.review && s.review.fixes || []).forEach(k => {
+      const [n, flag] = k.split(':');
+      const t = s.turns.find(x => String(x.n) === n);
+      if (!t) return;
+      const key = (ivBaseQid(t.qid) || t.qid) + '|' + flag;
+      if (map[key]) map[key].reviewed++;
+    });
+  });
+  return Object.values(map).sort((a, b) => (b.reviewed - a.reviewed) || ((b.flag === 'leading_risk') - (a.flag === 'leading_risk')) || (b.count - a.count));
+}
+function ivAutoRightHtml() {
+  const b = IV.batch;
+  const sessions = b ? b.items.map(it => IV.sessions[it.sessionId]).filter(s => s && s.endedAt && s.status !== 'error')
+    : Object.values(IV.sessions).filter(s => s.mode === 'auto' && s.endedAt && s.status !== 'error');
+  const n = sessions.length;
+  const agg = ivFixAggregate(sessions).slice(0, 5);
+  const topicCounts = IV_TOPICS.map(x => ({ x, c: sessions.filter(s => ivCoveredTopics(s).has(x)).length }));
+  const avg = n ? (sessions.reduce((a, s) => a + ivCoveredTopics(s).size, 0) / n) : 0;
+  const missing = n ? topicCounts.slice().sort((a, c) => a.c - c.c)[0] : null;
+  const capped = sessions.filter(s => s.status === 'capped');
+  const unreviewed = sessions.filter(s => !s.review || s.review.status !== 'done').length;
+  return `<div class="iv-panel"><div class="iv-panel-head plain">고쳐야 할 질문 <span class="aside">끝난 인터뷰 ${n}개 기준</span></div><div class="iv-panel-body">
+      ${agg.length ? agg.map(a => {
+        const strong = a.flag === 'leading_risk' || a.count >= 2 || a.reviewed;
+        const foot = a.flag === 'leading_risk' ? '1번만 나와도 문구 수정' : a.reviewed ? '리뷰에서 수정 대상으로 체크됨' : a.count >= 2 ? '문구 수정 권장' : '아직 1명뿐 · 지켜보기';
+        return `<div class="iv-flag${strong ? '' : ' neutral'}"><div class="iv-flag-title"><span>${ivEsc(a.qid)} · ${IV_FLAG_INFO[a.flag].label}</span><span class="r">${n}명 중 ${a.count}명</span></div><div class="iv-flag-body">"${ivEsc(a.quote)}"</div><div class="iv-flag-foot">${foot}</div></div>`;
+      }).join('') : '<div class="iv-muted">인터뷰가 끝나면 여러 명에게서 같은 문제가 나온 질문이 여기에 모입니다.</div>'}
+    </div></div>
+    <div class="iv-panel"><div class="iv-panel-head plain">인터뷰 진행 상태</div><div class="iv-panel-body">
+      <div class="iv-stat"><span>인터뷰당 다룬 주제</span><b>${n ? `평균 ${avg.toFixed(1)}개 / ${IV_TOPICS.length}개` : '—'}</b></div>
+      <div class="iv-stat"><span>자주 빠진 주제</span><b>${missing && missing.c < n ? ivEsc(missing.x) : '—'}</b></div>
+      <div class="iv-stat"><span>질문 ${IV_MAX_TURNS}개를 다 써서 중단</span><b>${capped.length}명${capped.length ? ` (${capped.map(s => ivEsc(s.profile.code)).join(', ')})` : ''}</b></div>
+      <div class="iv-stat"><span>아직 리뷰 안 한 인터뷰</span><b>${unreviewed}건</b></div>
+    </div></div>`;
+}
+
+// ── 이벤트 ──
+function ivInitEvents() {
+  const root = document.getElementById('tab-interview');
+  root.addEventListener('click', e => {
+    const modeBtn = e.target.closest('#iv-mode-seg button');
+    if (modeBtn) { ivSetMode(modeBtn.dataset.mode); return; }
+    const el = e.target.closest('[data-act]');
+    if (!el) return;
+    const act = el.dataset.act;
+    const s = ivCur();
+    if (act === 'pick-persona') ivSelectPersona(el.dataset.id);
+    else if (act === 'resuggest') { if (s) ivSuggestNext(s); }
+    else if (act === 'prop-send') ivSendProposal('send');
+    else if (act === 'prop-skip') ivSendProposal('skip');
+    else if (act === 'prop-edit') {
+      IV.editing = !IV.editing;
+      if (!IV.editing && IV.proposal) { IV.drafts.prop = IV.proposal.utterance; IV.drafts.reason = ''; }
+      ivRenderComposer();
+      if (IV.editing) { const ta = document.getElementById('iv-prop-text'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+    }
+    else if (act === 'reason') { IV.drafts.reason = el.dataset.v; const i = document.getElementById('iv-reason-input'); if (i) i.value = el.dataset.v; }
+    else if (act === 'retry-answer') ivRetryAnswer();
+    else if (act === 'direct-send') ivSendDirect();
+    else if (act === 'end') { ivEndEarly(); if (IV.mode === 'direct' && s && s.turns.length) ivOpenReview(s.id); }
+    else if (act === 'new-interview') ivNewInterview();
+    else if (act === 'open-review') { if (s) ivOpenReview(s.id); }
+    else if (act === 'batch-start') ivStartBatch();
+    else if (act === 'batch-pause') ivPauseBatch();
+    else if (act === 'batch-stop') ivStopBatch();
+    else if (act === 'auto-view') { if (el.dataset.sid) { IV.autoViewId = el.dataset.sid; const v = IV.sessions[el.dataset.sid]; if (v) v._scrolled = false; ivRenderAll(); } }
+    else if (act === 'auto-switch') ivSwitchToSuggest();
+    else if (act === 'input-mode') {
+      const cr = IV.current.real;
+      if (cr && cr.flow === 'solo' && el.dataset.v === 'proxy') { showDialog('참가자 단독 진행 중입니다', "대리 입력으로 바꾸려면 먼저 '연구자 확인'으로 전환해주세요."); return; }
+      if (cr) { cr.inputMode = el.dataset.v; ivSave(cr); }
+      else { IV.realSetup.inputMode = el.dataset.v; if (el.dataset.v === 'proxy') IV.realSetup.flow = 'attended'; }
+      ivRenderLeft(); ivRenderComposer(); ivSyncPoll();
+    }
+    else if (act === 'copy-link') ivCopyLink();
+    else if (act === 'flow') ivSetFlow(el.dataset.v);
+    else if (act === 'real-start') ivStartReal();
+    else if (act === 'real-save') ivSaveRealAnswer();
+    else if (act === 'rate') { IV.answerRating = IV.answerRating === el.dataset.v ? null : el.dataset.v; ivRenderComposer(); }
+  });
+  root.addEventListener('input', e => {
+    const k = e.target.dataset && e.target.dataset.draft;
+    if (k) {
+      IV.drafts[k] = e.target.value;
+      if (k === 'direct' && IV.drafts.directQid) { /* 질문지 문구를 고치면 질문 ID는 유지 */ }
+      if (k === 'prop' && IV.proposal) {
+        const btn = root.querySelector('[data-act="prop-send"]');
+        const edited = e.target.value.trim() !== IV.proposal.utterance.trim();
+        const real = IV.mode === 'real';
+        if (btn) btn.textContent = edited ? (real ? '고쳐서 묻기' : '수정해서 전송') : (real ? '그대로 묻기' : '그대로 전송');
+      }
+    }
+    const rk = e.target.dataset && e.target.dataset.real;
+    if (rk) IV.realSetup[rk] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    if (rk === 'code') { const c = document.getElementById('iv-link-code'); if (c) c.textContent = (e.target.value || 'P01').toUpperCase() + ' 전용'; }
+  });
+  root.addEventListener('change', e => {
+    const rk = e.target.dataset && e.target.dataset.real;
+    if (rk) IV.realSetup[rk] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    if (e.target.dataset && e.target.dataset.actChange === 'qbank' && e.target.value) {
+      const [qid, ...rest] = e.target.value.split('|');
+      IV.drafts.direct = rest.join('|');
+      IV.drafts.directQid = qid === '도입' ? '' : qid;
+      ivRenderComposer();
+      const ta = document.getElementById('iv-direct-text'); if (ta) ta.focus();
+      if (!IV.current.direct) showDialog('페르소나를 먼저 선택해주세요', '왼쪽 목록에서 인터뷰할 페르소나를 선택하면\n입력창의 질문을 바로 전송할 수 있습니다.');
     }
   });
-})();
+  root.addEventListener('keydown', e => {
+    if (e.target.id === 'iv-direct-text' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); ivSendDirect(); }
+  });
+  document.getElementById('iv-guide-btn').addEventListener('click', ivOpenGuide);
+  document.getElementById('iv-export-a').addEventListener('click', () => {
+    if (IV.mode === 'auto') return ivExportZip();
+    const s = ivCur();
+    if (!s || !s.turns.length) { showDialog('저장할 대화가 없습니다', '인터뷰를 진행한 뒤 저장해주세요.'); return; }
+    downloadTxt(ivTranscriptTxt(s), ivFileName(s, 'txt'));
+  });
+  document.getElementById('iv-export-b').addEventListener('click', () => {
+    if (IV.mode === 'auto') {
+      const list = IV.batch ? IV.batch.items.map(it => IV.sessions[it.sessionId]).filter(s => s && s.turns.length) : [];
+      if (!list.length) { showDialog('받을 기록이 없습니다', 'AI 자동 진행을 실행한 뒤 받아주세요.'); return; }
+      return ivDownloadCsv(ivAiLogRows(list), `interview_ai-log_batch_${ivStamp()}.csv`);
+    }
+    const s = ivCur();
+    if (!s || !s.turns.length) { showDialog('받을 기록이 없습니다', '인터뷰를 진행한 뒤 받아주세요.'); return; }
+    if (IV.mode === 'real') ivDownloadCsv(ivEditLogRows(s), ivFileName(s, 'csv', 'edit-log'));
+    else ivDownloadCsv(ivAiLogRows([s]), ivFileName(s, 'csv', 'ai-log'));
+  });
+  // 1초마다 경과 시간
+  setInterval(() => {
+    const ticking = new Set();
+    ['direct', 'suggest'].forEach(m => { const s = IV.current[m]; if (s && !s.endedAt && s.turns.length) ticking.add(s); });
+    const rs = IV.current.real;
+    if (rs && !rs.endedAt) rs.elapsedSec = ivWallElapsed(rs);
+    if (IV.batch && IV.batch.running && !IV.batch.paused && IV.batch.cur >= 0) { const s = IV.sessions[IV.batch.items[IV.batch.cur].sessionId]; if (s && !s.endedAt) ticking.add(s); }
+    ticking.forEach(s => { s.elapsedSec = (s.elapsedSec || 0) + 1; });
+    if (document.getElementById('tab-interview').classList.contains('active')) ivRenderControl();
+  }, 1000);
+}
 
-initApp();
+// ══════════════════════════════════════
+//  내보내기 (TXT · CSV · ZIP)
+// ══════════════════════════════════════
+function ivStamp(d) { d = d ? new Date(d) : new Date(); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; }
+function ivFileName(s, ext, kind) { return `interview_${s.profile.code}_${kind ? kind + '_' : ''}${ivStamp(s.createdAt)}.${ext}`; }
+function ivTranscriptTxt(s) {
+  const p = s.profile;
+  let txt = `합성 투자자 리서치 플랫폼 — 심층 인터뷰 대화록\n${'='.repeat(50)}\n`;
+  txt += `참여자 코드: ${p.code} (${ivProfileLine(s)}${p.segment ? ' · ' + p.segment : ''})\n`;
+  txt += `진행 방식: ${ivModeLabel(s.mode)}${s.kind === 'synthetic' ? ` · 합성 응답(${p.answerMode || IV_ANSWER_MODE}) — 실제 사용자 데이터 아님` : ' · 실제 참가자'}\n`;
+  txt += `질문 ${ivAsked(s).length}개 / 상한 ${IV_MAX_TURNS}개 · 경과 ${ivFmtTime(s.elapsedSec)} · 상태: ${s.endReason || '진행 중'}\n`;
+  txt += `저장 일시: ${new Date().toLocaleString('ko-KR')}\n${'='.repeat(50)}\n\n`;
+  s.turns.forEach(t => {
+    const tag = `${t.qid || '—'} · ${IV_TYPE_LABEL[t.type] || t.type}${t.action === 'edited' ? ' · 수정함' : t.action === 'skipped' ? ' · 건너뜀' : ''}`;
+    txt += `[ 질문 ${tag} ]\n${t.utterance}\n`;
+    if (t.action === 'edited') txt += `(AI 원래 질문: ${t.aiUtterance}${t.editReason ? ' / 이유: ' + t.editReason : ''})\n`;
+    txt += '\n';
+    if (t.answer != null) txt += `[ ${p.code}${s.kind === 'real' ? (t.answerSource === 'participant' ? ' · 직접 작성' : ' · 대리 입력') : ''} ]\n${t.answer}\n\n`;
+  });
+  return txt;
+}
+function ivCsv(rows) {
+  const cell = v => { const x = Array.isArray(v) ? v.join(' | ') : (v == null ? '' : String(v)); return /[",\n\r]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x; };
+  return '﻿' + rows.map(r => r.map(cell).join(',')).join('\r\n');
+}
+function ivDownloadCsv(rows, filename) {
+  const blob = new Blob([ivCsv(rows)], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function ivAiLogRows(list) {
+  const rows = [['코드', '진행 방식', '응답 모드', '세그먼트', '턴', '단계', '질문 ID', '유형', '처리', '질문', 'AI 원래 질문', '수정 이유', '답변', '답변 입력', '적절성', '태그', '주장', '플래그', '탐색 수준', 'covered', 'skipped', 'ai_user', '고른 이유']];
+  list.forEach(s => s.turns.forEach(t => {
+    const n = t.note || {};
+    rows.push([s.profile.code, ivModeLabel(s.mode), s.kind === 'real' ? '실제 참가자' : (s.profile.answerMode || IV_ANSWER_MODE), s.profile.segment || ivProfileLine(s), t.n, t.stage, t.qid, IV_TYPE_LABEL[t.type] || t.type,
+      { asked: '그대로', edited: '수정', skipped: '건너뜀' }[t.action], t.utterance, t.action === 'edited' ? t.aiUtterance : '', t.editReason,
+      t.answer, t.answerSource === 'persona' ? '합성 응답' : t.answerSource === 'participant' ? '참가자 직접 작성' : t.answerSource === 'proxy' ? '연구자 대리 입력' : '',
+      t.rating === 'good' ? '적절' : t.rating === 'bad' ? '부적절' : '', n.prev_answer_tags, n.claims, n.flags, n.level, n.covered, n.skipped,
+      n.ai_user == null ? '' : n.ai_user, n.reason]);
+  }));
+  return rows;
+}
+function ivEditLogRows(s) {
+  const rows = [['코드', '턴', '질문 ID', '처리', 'AI가 고른 질문', '실제로 물은 질문', '이유', 'AI가 고른 질문이 적절했나', '답변 입력']];
+  s.turns.forEach(t => rows.push([s.profile.code, t.n, t.qid, t.auto ? '바로 물음 (단독)' : { asked: '그대로 물음', edited: '고쳐서 물음', skipped: '건너뜀' }[t.action], t.aiUtterance,
+    t.action === 'skipped' ? '' : t.utterance, t.editReason, t.rating === 'good' ? '적절' : t.rating === 'bad' ? '부적절' : (t.action === 'skipped' ? '' : '평가 전'),
+    t.answerSource === 'participant' ? '참가자 직접 작성' : t.answerSource === 'proxy' ? '연구자 대리 입력' : '']));
+  return rows;
+}
+function ivLoadJsZip() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  return new Promise((resolve, reject) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    sc.onload = () => resolve(window.JSZip);
+    sc.onerror = () => reject(new Error('ZIP 도구를 불러오지 못했습니다'));
+    document.head.appendChild(sc);
+  });
+}
+async function ivExportZip() {
+  const list = IV.batch ? IV.batch.items.map(it => IV.sessions[it.sessionId]).filter(s => s && s.turns.length) : [];
+  if (!list.length) { showDialog('저장할 대화가 없습니다', 'AI 자동 진행을 실행한 뒤 저장해주세요.'); return; }
+  try {
+    const JSZip = await ivLoadJsZip();
+    const zip = new JSZip();
+    list.forEach(s => zip.file(ivFileName(s, 'txt'), ivTranscriptTxt(s)));
+    zip.file(`ai-log_${ivStamp()}.csv`, ivCsv(ivAiLogRows(list)));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `interview_batch_${ivStamp()}.zip`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  } catch (e) { showDialog('ZIP 저장 실패', e.message); }
+}
+
+// ══════════════════════════════════════
+//  인터뷰 리뷰 · 질문지 보기 (탭 밖 전체 화면)
+// ══════════════════════════════════════
+function ivShowView(id) {
+  document.querySelectorAll('.iv-view').forEach(v => v.classList.toggle('show', v.id === id));
+  document.body.classList.toggle('iv-view-open', !!id);
+  window.scrollTo(0, 0);
+}
+function ivCloseView() { IV.reviewId = null; ivShowView(null); selectTab('interview'); ivRenderAll(); }
+
+function ivCriteria(s) {
+  const ai = s.aiUser !== false && (s.profile.aiUse !== '사용 안 함' || s.aiUser === true);
+  return [
+    { key: 'c1', title: '결정 사건의 구체성', need: '상품, 시점, 처음 알게 된 채널이 특정됨', qids: ['3-1', '3-6'] },
+    { key: 'c2', title: '결정 과정과 판단 근거', need: '알게 된 뒤 결정까지 단계 2개 이상 + 결정 요인', qids: ['3-2', '3-4', '3-6'] },
+    { key: 'c3', title: '신뢰를 형성한 정보', need: '믿은 정보와 그 이유', qids: ['2-3', '3-3'] },
+    { key: 'c4', title: '놓쳤거나 확인하지 않은 정보', need: '넘어간 부분 또는 ⑤의 모름이 기록됨', qids: ['3-5', '5-1', '5-2', '5-3'] },
+    { key: 'c5', title: '확인·탐색 행동', need: '확인 여부와 방법 (확인하지 않은 것도 결과)', qids: ['3-4'] },
+    ai ? { key: 'c6', title: 'AI 사용 이유와 판단 과정', need: '사용 목적 + 믿음·의심의 근거 (AI 사용자)', qids: ['6-1', '6-2'] }
+       : { key: 'c6', title: 'AI를 쓰지 않는 이유와 조건', need: '쓰지 않는 이유 + 참고해 볼 조건 (AI 비사용자)', qids: ['6-6', '6-7'] },
+  ];
+}
+function ivRuleChecks(s) {
+  const asked = ivAsked(s);
+  const evalWords = /다크패턴|속임수|보호|위험한/;
+  const answersSoFar = [];
+  let leading = 0;
+  asked.forEach(t => {
+    if (evalWords.test(t.utterance) && !answersSoFar.some(a => evalWords.test(a))) leading++;
+    if (t.answer) answersSoFar.push(t.answer);
+  });
+  const leadingFlags = ivFlagItems(s, ['leading_risk']).length;
+  const offScript = asked.filter(t => t.type !== 'probe' && t.type !== 'transition' && t.type !== 'close' && t.type !== 'direct' && !ivIsKnownQid(t.qid)).length;
+  // 질문 순서: 메인 질문의 단계가 뒤로 돌아가지 않았는지 + 5-5가 ③ 뒤인지
+  const order = IV_STAGES.map(x => x.key);
+  let orderBad = 0, maxIdx = -1, sawThree = false;
+  asked.forEach(t => {
+    const i = order.indexOf(t.stage);
+    if (t.stage === '③') sawThree = true;
+    if (ivBaseQid(t.qid) === '5-5' && !sawThree) orderBad++;
+    if (t.type === 'main' && i >= 0) { if (i < maxIdx && t.stage !== '⑦') orderBad++; maxIdx = Math.max(maxIdx, i); }
+  });
+  const norm = x => String(x || '').replace(/\s+/g, '');
+  const seen = new Set(); let repeats = 0;
+  // 중립 probe("어떤 점에서요?" 등)는 질문지가 허용한 문구라 반복으로 세지 않는다
+  asked.filter(t => t.type !== 'probe').forEach(t => { const k = norm(t.utterance); if (seen.has(k)) repeats++; seen.add(k); });
+  const aiUser = s.aiUser != null ? s.aiUser : s.profile.aiUse !== '사용 안 함';
+  const wrongBranch = asked.filter(t => { const b = ivBaseQid(t.qid); return aiUser ? ['6-6', '6-7'].includes(b) : ['6-1', '6-2', '6-3', '6-4', '6-5'].includes(b); }).length;
+  return [
+    { label: '유도·평가하는 질문', ok: leading + leadingFlags === 0, v: `${leading + leadingFlags}회` },
+    { label: '질문지에 없는 질문', ok: offScript === 0, v: `${offScript}회` },
+    { label: '질문 순서', ok: orderBad === 0, v: orderBad ? `어긋남 ${orderBad}` : '정상' },
+    { label: '같은 질문 반복', ok: repeats === 0, v: `${repeats}회` },
+    { label: 'AI 사용 여부에 맞는 질문', ok: wrongBranch === 0, v: wrongBranch ? `어긋남 ${wrongBranch}` : (aiUser ? 'AI 사용자용' : '비사용자용') },
+    { label: '질문 수', ok: asked.length <= IV_MAX_TURNS, v: `${asked.length} / ${IV_MAX_TURNS}개` },
+  ];
+}
+async function ivReviewSummaries(s) {
+  if (s._summarizing) return;
+  s._summarizing = true;
+  const crits = ivCriteria(s);
+  const transcript = ivAnswered(s).map(t => `[${t.qid || '—'}] 질문: ${t.utterance}\n답: ${t.answer}`).join('\n\n');
+  const prompt = `다음은 모바일 증권 앱 투자자 인터뷰 대화록이다. 아래 기준마다, 대화에서 참가자가 실제로 말한 내용만 근거로 한 줄(60자 이내)로 요약하라. 해당 내용이 대화에 없으면 "대화에서 나오지 않음"이라고 쓴다. 충분·부족 같은 판정은 하지 않는다.
+
+${crits.map(c => `${c.key}. ${c.title} — ${c.need}`).join('\n')}
+
+출력은 {"c1":"...","c2":"...","c3":"...","c4":"...","c5":"...","c6":"..."} JSON 하나만 쓴다.
+
+[대화록]
+${transcript || '(대화 없음)'}`;
+  try {
+    const r = await callAI(prompt, { maxTokens: 1200 });
+    const t = r.text; const a = t.indexOf('{'), b = t.lastIndexOf('}');
+    s.review.summaries = JSON.parse(t.slice(a, b + 1));
+    ivSave(s);
+  } catch (e) { s._summaryError = e.message || '요약 실패'; }
+  s._summarizing = false;
+  if (IV.reviewId === s.id) ivRenderReview();
+}
+function ivOpenReview(id) {
+  const s = IV.sessions[id];
+  if (!s) return;
+  IV.reviewId = id;
+  ivShowView('iv-review-view');
+  ivRenderReview();
+  ivSetHeaderCode();
+  if (!s.review.summaries && ivAnswered(s).length) ivReviewSummaries(s);
+}
+function ivRenderReview() {
+  const s = IV.sessions[IV.reviewId];
+  const el = document.getElementById('iv-review-view');
+  if (!s) { el.innerHTML = ''; return; }
+  const rv = s.review;
+  const crits = ivCriteria(s);
+  const judged = crits.filter(c => rv.criteria[c.key] && rv.criteria[c.key].grade).length;
+  const askedSet = new Set(ivAsked(s).map(t => ivBaseQid(t.qid)));
+  const rules = ivRuleChecks(s);
+  const leadCount = ivFlagItems(s, ['leading_risk']).length;
+  const fixes = ivFlagItems(s, IV_FIX_FLAGS);
+  const ended = s.endedAt ? new Date(s.endedAt) : null;
+  const okIcon = '<span class="ok"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5.2l2 2 4-4.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  el.innerHTML = `
+    <button class="iv-back" data-rv="back">← 대화로 돌아가기</button>
+    <div class="rv-head">
+      <div><div class="rv-title">인터뷰 리뷰 · ${ivEsc(s.profile.code)}</div>
+        <div class="rv-meta">${ivEsc(ivProfileLine(s))} · ${ivModeLabel(s.mode)} · 질문 ${ivAsked(s).length}개${ended ? ` · ${String(ended.getHours()).padStart(2, '0')}:${String(ended.getMinutes()).padStart(2, '0')} 종료` : ''}</div></div>
+      <div class="rv-head-actions">판정 완료 ${judged} / ${crits.length}<button class="iv-btn ghost" data-rv="draft">임시 저장</button><button class="iv-btn dark" data-rv="save">리뷰 저장</button></div>
+    </div>
+    <div class="rv-layout">
+      <div>
+        <div class="rv-sec-title">필요한 내용을 얻었나</div>
+        <div class="rv-sec-sub">연구자가 직접 판정합니다. 질문 번호를 누르면 해당 대화로 이동합니다.</div>
+        ${crits.map(c => {
+          const cur = rv.criteria[c.key] || {};
+          const sum = rv.summaries && rv.summaries[c.key];
+          return `<div class="iv-card rv-crit">
+            <div class="rv-crit-top"><div><div class="rv-crit-title">${c.title}</div><div class="rv-crit-need">충분하려면 · ${c.need}</div></div>
+              <div class="iv-seg">${['충분', '부분', '부족'].map(g => `<button class="${cur.grade === g ? 'active' : ''}" data-rv="grade" data-k="${c.key}" data-v="${g}">${g}</button>`).join('')}</div></div>
+            <div class="rv-rel">관련 질문 ${c.qids.map(q => `<button class="iv-chip ${askedSet.has(q) ? 'blue' : ''}" data-rv="jump" data-q="${q}" ${askedSet.has(q) ? '' : 'title="이번 인터뷰에서 묻지 않음"'}>${q}</button>`).join('')}</div>
+            <div class="rv-sum${sum ? '' : ' muted'}">${sum ? ivEsc(sum) : s._summarizing ? 'AI가 대화에서 해당 내용을 찾는 중…' : s._summaryError ? `요약 실패 — <button class="iv-link" style="margin:0" data-rv="resum">다시 요약</button>` : '요약 없음'}</div>
+            <div class="rv-memo-label">메모</div>
+            <input class="rv-memo" data-rv-memo="${c.key}" value="${ivEsc(cur.memo || '')}" placeholder="판정 근거나 다음 인터뷰에서 바꿀 점">
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="iv-col">
+        <div class="iv-card" style="padding:16px;">
+          <div class="rv-sec-title">AI 진행자가 규칙을 지켰나</div>
+          <div class="rv-sec-sub">위 6개는 자동으로 계산됩니다</div>
+          ${rules.map(r => `<div class="rv-rule">${r.ok ? okIcon : '<span class="no">!</span>'}${r.label}<span class="v${r.ok ? '' : ' bad'}">${ivEsc(r.v)}</span></div>`).join('')}
+          <div style="border-top:1px solid var(--cal-hairline);margin:12px 0 8px;"></div>
+          <div class="iv-muted" style="margin-bottom:4px;">연구자가 확인할 것</div>
+          ${[['facts', 'AI가 기록한 사실이 실제 답과 맞다'], ['followups', 'AI가 고른 추가 질문이 답변에 맞았다'], ['leading', `유도 가능성이 표시된 질문을 확인했다 (${leadCount}건)`]]
+            .map(([k, l]) => `<label class="iv-check"><input type="checkbox" data-rv-check="${k}" ${rv.checks[k] ? 'checked' : ''}> ${l}</label>`).join('')}
+        </div>
+        <div class="iv-card" style="padding:16px;">
+          <div class="rv-sec-title">고칠 질문</div>
+          <div class="rv-sec-sub">이번 인터뷰에서 주의 표시가 붙은 질문</div>
+          ${fixes.length ? fixes.map(f => `<label class="rv-fix"><input type="checkbox" data-rv-fix="${f.key}" ${rv.fixes.includes(f.key) ? 'checked' : ''}><div><b>${ivEsc(f.q.qid)} · ${IV_FLAG_INFO[f.flag].label}</b><div>"${ivEsc(String(f.q.answer || '').slice(0, 50))}${String(f.q.answer || '').length > 50 ? '…' : ''}" — ${IV_FLAG_INFO[f.flag].desc}</div></div></label>`).join('')
+            : '<div class="iv-muted">주의 표시가 붙은 질문이 없습니다.</div>'}
+          <div class="iv-muted" style="margin-top:10px;">체크한 질문은 "고쳐야 할 질문" 목록에 올라갑니다.</div>
+        </div>
+      </div>
+    </div>`;
+}
+function ivInitReviewEvents() {
+  const el = document.getElementById('iv-review-view');
+  el.addEventListener('click', e => {
+    const b = e.target.closest('[data-rv]');
+    if (!b) return;
+    const s = IV.sessions[IV.reviewId];
+    if (!s) return;
+    const act = b.dataset.rv;
+    if (act === 'back') ivCloseView();
+    else if (act === 'grade') { const c = s.review.criteria[b.dataset.k] = s.review.criteria[b.dataset.k] || {}; c.grade = c.grade === b.dataset.v ? '' : b.dataset.v; ivRenderReview(); }
+    else if (act === 'draft') { s.review.status = s.review.status === 'done' ? 'done' : 'draft'; ivSave(s, true); showDialog('임시 저장했습니다', '나중에 이어서 판정할 수 있습니다.'); }
+    else if (act === 'save') {
+      const left = ivCriteria(s).filter(c => !(s.review.criteria[c.key] && s.review.criteria[c.key].grade)).length;
+      s.review.status = 'done'; s.review.savedAt = Date.now(); ivSave(s, true);
+      showDialog('리뷰를 저장했습니다', left ? `아직 판정하지 않은 기준이 ${left}개 있습니다.` : '팀원도 같은 리뷰를 볼 수 있습니다.', () => ivCloseView());
+    }
+    else if (act === 'resum') { delete s._summaryError; ivReviewSummaries(s); ivRenderReview(); }
+    else if (act === 'jump') ivJumpToQuestion(s, b.dataset.q);
+  });
+  el.addEventListener('input', e => {
+    const s = IV.sessions[IV.reviewId]; if (!s) return;
+    const k = e.target.dataset.rvMemo;
+    if (k) { (s.review.criteria[k] = s.review.criteria[k] || {}).memo = e.target.value; ivSave(s); }
+  });
+  el.addEventListener('change', e => {
+    const s = IV.sessions[IV.reviewId]; if (!s) return;
+    const ck = e.target.dataset.rvCheck;
+    if (ck) { s.review.checks[ck] = e.target.checked; ivSave(s); }
+    const fx = e.target.dataset.rvFix;
+    if (fx) { s.review.fixes = e.target.checked ? Array.from(new Set(s.review.fixes.concat([fx]))) : s.review.fixes.filter(x => x !== fx); ivSave(s); }
+  });
+}
+// 리뷰에서 질문 번호를 누르면 그 대화로 이동
+function ivJumpToQuestion(s, qid) {
+  if (s.mode === 'auto') { IV.mode = 'auto'; IV.autoViewId = s.id; }
+  else { IV.mode = s.mode; IV.current[s.mode] = s; }
+  ivCloseView();
+  const target = document.querySelector(`#iv-msgs .iv-q[data-qid="${qid}"]`);
+  if (target) {
+    target.scrollIntoView({ block: 'center' });
+    target.classList.add('flash');
+    setTimeout(() => target.classList.remove('flash'), 1600);
+  }
+}
+
+// ── 질문지 보기 ──
+function ivOpenGuide() {
+  const el = document.getElementById('iv-guide-view');
+  let done = [];
+  try { done = JSON.parse(localStorage.getItem('iv_guide_todo') || '[]'); } catch (e) { /* 무시 */ }
+  const stageRows = IV_QUESTIONNAIRE.map(sec => `<tr class="sec"><td colspan="3">${ivEsc(sec.sec)}</td></tr>` + sec.rows.map(r => `<tr><td class="id">${ivEsc(r.id === '소개' ? '—' : r.id)}</td><td>${ivEsc(r.guide || r.q)}${r.fu ? `<span class="fu">${ivEsc(r.fu)}</span>` : ''}</td><td class="chg chg-${(r.change || '').replace(/\s/g, '')}">${ivEsc(r.change || '')}</td></tr>`).join('')).join('');
+  el.innerHTML = `
+    <div class="gd-wrap">
+      <button class="iv-back" data-gd="back">← 대화로 돌아가기</button>
+      <h1>합성 모더레이터 요약</h1>
+      <p>합성 모더레이터는 우리 질문지를 순서대로 진행하고, 답변에 따라 후속 질문을 고르고, 질문지의 약점을 기록하는 AI 인터뷰어다. 합성 페르소나뿐 아니라 실제 참가자에게도 직접 질문한다. 목적은 실제 인터뷰 전에 질문지를 점검(B-1)하고, 실제 인터뷰를 진행한 뒤, 세그먼트별로 결과를 확장(B-2)하는 것이다.</p>
+
+      <h2>1. 질문지</h2>
+      <div class="gd-lead">모더레이터가 묻는 메인 질문 전체. 회색 글씨는 [조건]에 따른 후속 질문이고, 변경 칸이 비어 있으면 기존 질문지 그대로다.</div>
+      <table class="gd-table"><thead><tr><th>ID</th><th>메인 질문</th><th>변경</th></tr></thead><tbody>${stageRows}</tbody></table>
+
+      <h2>2. 질문지에서 바뀐 것</h2>
+      <div class="gd-lead">질문지 골격(①~⑦)과 5-5 순서 제약은 그대로다. 합성 사용자에게 안 맞는 부분만 고쳤다.</div>
+      <ol class="gd-list">${IV_GUIDE_CHANGES.map(([t, d]) => `<li><b>${ivEsc(t)}</b><br>${ivEsc(d)}</li>`).join('')}</ol>
+
+      <h2>3. 진행 흐름</h2>
+      <div class="gd-lead">시간 대신 턴으로 관리하고 전체 상한은 ${IV_MAX_TURNS}턴, 메인 질문당 후속은 최대 2개다. 실제 인터뷰는 단계별 시간(총 ${IV_TOTAL_MINUTES}분)을 따른다.</div>
+      <table class="gd-table"><thead><tr><th>단계</th><th>최대 턴</th><th>핵심</th></tr></thead><tbody>${IV_GUIDE_FLOW.map(r => `<tr><td style="white-space:nowrap;font-weight:600;">${ivEsc(r[0])}</td><td>${ivEsc(r[1])}</td><td>${ivEsc(r[2])}</td></tr>`).join('')}</tbody></table>
+      <p style="margin-top:10px;">모더레이터는 턴마다 노트를 남긴다. 교과서식 답변(textbook), 질문을 이해 못 함(ambiguous), 페르소나 이탈, 유도 가능성을 플래그로 표시하고, 이 플래그가 붙은 질문이 질문 수정 후보가 된다. 노트의 태그는 탐색 영역 8개(${IV_TOPICS.join(', ')}) 중에서 고른다.</p>
+
+      <h2>4. 진행 방식 4가지</h2>
+      <div class="gd-lead">플랫폼 심층 인터뷰 탭의 '진행 방식'에서 고른다.</div>
+      <table class="gd-table"><thead><tr><th>진행 방식</th><th>동작</th><th>언제</th></tr></thead><tbody>${IV_GUIDE_MODES.map(r => `<tr><td style="white-space:nowrap;font-weight:600;">${ivEsc(r[0])}</td><td>${ivEsc(r[1])}</td><td>${ivEsc(r[2])}</td></tr>`).join('')}</tbody></table>
+
+      <h2>5. 다음 할 일</h2>
+      <ul class="gd-todo">${IV_GUIDE_TODO.map((t, i) => `<li><label><input type="checkbox" data-gd-todo="${i}" ${done.includes(i) ? 'checked' : ''}> ${ivEsc(t)}</label></li>`).join('')}</ul>
+
+      <details><summary>모더레이터 시스템 프롬프트 전문</summary><pre>${ivEsc(IV_MODERATOR_PROMPT)}</pre></details>
+    </div>`;
+  ivShowView('iv-guide-view');
+}
+function ivInitGuideEvents() {
+  const el = document.getElementById('iv-guide-view');
+  el.addEventListener('click', e => { if (e.target.closest('[data-gd="back"]')) ivCloseView(); });
+  el.addEventListener('change', e => {
+    const i = e.target.dataset.gdTodo;
+    if (i == null) return;
+    try {
+      const done = new Set(JSON.parse(localStorage.getItem('iv_guide_todo') || '[]'));
+      if (e.target.checked) done.add(+i); else done.delete(+i);
+      localStorage.setItem('iv_guide_todo', JSON.stringify(Array.from(done)));
+    } catch (err) { /* 무시 */ }
+  });
+}
+
+// ══════════════════════════════════════
+//  참가자 링크 화면 — ?answer=세션ID
+// ══════════════════════════════════════
+function paInit(id) {
+  const root = document.getElementById('participant-view');
+  root.innerHTML = `
+    <div class="pa-head"><b>투자 결정 인터뷰</b><span id="pa-code"></span></div>
+    <div class="pa-body">
+      <div class="pa-progress" id="pa-progress"></div>
+      <div class="pa-notice">정답은 없어요. 계좌번호·잔고·실명은 적지 말고 구간이나 가명으로 적어 주세요.</div>
+      <div class="pa-msgs" id="pa-msgs"><div class="iv-muted">질문을 불러오는 중…</div></div>
+    </div>
+    <div class="pa-compose" id="pa-compose">
+      <textarea class="pa-input" id="pa-text" rows="3" placeholder="생각나는 대로 편하게 적어 주세요"></textarea>
+      <div class="pa-btns"><button class="pa-btn ghost" id="pa-unknown">잘 모르겠어요</button><button class="pa-btn dark" id="pa-send">답변 보내기</button></div>
+      <div class="pa-status" id="pa-status"></div>
+    </div>`;
+  const S = { s: null, pending: null, busy: '', error: '', lastKey: '' };
+  const $ = x => document.getElementById(x);
+
+  // 지금 답할 질문 (참가자가 답하지 않은 마지막 질문)
+  function openTurn(s) {
+    if (!s || s.endedAt) return null;
+    const a = ivAsked(s); const t = a[a.length - 1];
+    return t && t.answer == null && t.type !== 'close' ? t : null;
+  }
+  function render() {
+    const s = S.s;
+    if (!s) return;
+    $('pa-code').textContent = s.profile && s.profile.code || '';
+    const cur = ivCurrentStage(s);
+    const st = cur && ivStageDef(cur);
+    const p = st ? ivStageProgress(s, st) : null;
+    $('pa-progress').innerHTML = st ? `<div class="pa-progress-label">${cur} ${ivEsc(st.name)} · ${p.idx} / ${p.count}</div><div class="pa-bar"><i style="width:${Math.round(ivOverallProgress(s) * 100)}%"></i></div>` : '';
+    // 보낸 질문과 참가자 본인이 쓴 답만 보여준다
+    let html = '';
+    ivAsked(s).forEach(t => {
+      html += `<div class="pa-ai-label">인터뷰 진행 AI</div><div class="pa-ai">${ivEsc(t.utterance)}</div>`;
+      if (t.answer != null && t.answerSource === 'participant') html += `<div class="pa-me">${ivEsc(t.answer)}</div>`;
+    });
+    const open = openTurn(s);
+    if (open && S.pending && S.pending.turn === open.n) html += `<div class="pa-me">${ivEsc(S.pending.text)}</div><div class="pa-sent">보냈어요. 다음 질문을 기다려 주세요.</div>`;
+    else if (!open && !s.endedAt) html += `<div class="pa-ai-label">인터뷰 진행 AI</div><div class="pa-ai pa-typing">${S.error ? '다음 질문을 불러오지 못했어요. <button class="iv-link" id="pa-retry" style="margin:0">다시 시도</button>' : '다음 질문을 준비하고 있어요…'}</div>`;
+    if (!ivAsked(s).length && !s.endedAt) html = '<div class="iv-muted">곧 첫 질문이 나타납니다.</div>';
+    const key = html;
+    if (key !== S.lastKey) {
+      S.lastKey = key;
+      $('pa-msgs').innerHTML = html;
+      window.scrollTo(0, document.body.scrollHeight);
+      const rb = $('pa-retry'); if (rb) rb.addEventListener('click', () => { S.error = ''; render(); soloNext(); });
+    }
+    const canAnswer = !!open && !(S.pending && S.pending.turn === open.n && s.flow === 'solo') && !S.busy;
+    $('pa-compose').classList.toggle('done', !!s.endedAt);
+    if (s.endedAt) $('pa-compose').innerHTML = '<div class="pa-end">인터뷰가 끝났습니다. 참여해 주셔서 감사합니다.</div>';
+    else { $('pa-send').disabled = !canAnswer; $('pa-unknown').disabled = !canAnswer; $('pa-text').disabled = !canAnswer; }
+  }
+  async function load() {
+    if (S.busy) return;
+    try {
+      const row = await ivFetchSessionData(id);
+      if (!row || !row.data) { $('pa-msgs').innerHTML = '<div class="iv-muted">인터뷰를 찾을 수 없습니다. 링크를 다시 확인해 주세요.</div>'; return; }
+      S.s = row.data;
+      const pa = row.participant_answer;
+      const open = openTurn(S.s);
+      S.pending = pa && open && pa.turn === open.n ? pa : null;
+      render();
+      // 단독 진행인데 다음 질문이 없으면(새로고침 등) 참가자 화면이 이어서 진행한다
+      if (S.s.flow === 'solo' && !S.s.endedAt && !open && ivAsked(S.s).length && !S.error) soloNext();
+    } catch (e) { if (!S.s) $('pa-msgs').innerHTML = `<div class="iv-muted">질문을 불러오지 못했습니다. 링크를 다시 확인해 주세요. (${ivEsc(e.message)})</div>`; }
+  }
+  // 단독 진행: 참가자 화면이 AI 진행자에게 다음 질문을 받아 저장한다
+  async function soloNext() {
+    const s = S.s;
+    if (!s || S.busy || s.endedAt) return;
+    S.busy = 'next'; render();
+    try {
+      const n = s.turns.length;
+      s.elapsedSec = ivWallElapsed(s);
+      const obj = await ivModeratorNext(s);
+      const latest = await ivFetchSessionData(id);   // 그사이 연구자가 이어받았으면 버린다
+      if (!latest || !latest.data || latest.data.flow !== 'solo' || latest.data.turns.length !== n) { S.busy = ''; return load(); }
+      const t = ivRecordTurn(s, obj, {});
+      t.auto = true;
+      if (t.type === 'close') { s.elapsedSec = ivWallElapsed(s); s.status = 'done'; s.endReason = '인터뷰 종료'; s.endedAt = Date.now(); s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: true }; }
+      else s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: false };
+      await ivStoreUpsert(s);
+      S.error = '';
+    } catch (e) { S.error = e.message || '오류'; }
+    S.busy = ''; render();
+  }
+  async function send(text) {
+    const s = S.s; const open = openTurn(s);
+    text = (text || '').trim();
+    if (!s || !open || !text || S.busy) return;
+    S.busy = 'send'; render();
+    $('pa-status').textContent = '';
+    try {
+      const latest = await ivFetchSessionData(id);
+      if (latest && latest.data) { S.s = latest.data; }
+      const cur = S.s; const t = openTurn(cur);
+      if (!t || t.n !== open.n) { S.busy = ''; return load(); }
+      if (cur.flow === 'solo') {
+        cur.elapsedSec = ivWallElapsed(cur);
+        ivPushAnswer(cur, t, text, 'participant');
+        if (ivCapped(cur)) { cur.status = 'capped'; cur.endReason = `질문 ${IV_MAX_TURNS}개를 다 써서 중단`; cur.endedAt = Date.now(); cur.live = Object.assign({}, cur.live, { ended: true }); }
+        await ivStoreUpsert(cur);
+        $('pa-text').value = '';
+        S.busy = ''; render();
+        if (!cur.endedAt) soloNext();
+        return;
+      }
+      // 연구자 확인 방식: 답을 보내 두면 연구자가 확인하고 다음 질문을 보낸다
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: Object.assign({}, supabase._headers(), { 'Prefer': 'return=minimal' }),
+        body: JSON.stringify({ participant_answer: { turn: t.n, text, at: new Date().toISOString() } }),
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      S.pending = { turn: t.n, text };
+      $('pa-text').value = '';
+    } catch (e) { $('pa-status').textContent = '보내지 못했어요. 다시 시도해 주세요. (' + e.message + ')'; }
+    S.busy = ''; render();
+  }
+  $('pa-send').addEventListener('click', () => send($('pa-text').value));
+  $('pa-unknown').addEventListener('click', () => send('잘 모르겠어요'));
+  load();
+  setInterval(load, 2500);
+}
+
+// ══════════════════════════════════════
+//  심층 인터뷰 — 시작
+// ══════════════════════════════════════
+function ivInit() {
+  try { const m = localStorage.getItem('iv_mode'); if (m && ['direct', 'suggest', 'auto', 'real'].includes(m)) IV.mode = m; } catch (e) { /* 무시 */ }
+  ivLocalRestore();
+  ivInitEvents();
+  ivInitReviewEvents();
+  ivInitGuideEvents();
+  ivRenderAll();
+  ivStoreLoad().then(() => { if (IV.mode === 'auto') ivRenderAll(); });
+}
+
+// 참가자 링크로 열린 경우 참가자 화면만 띄운다
+const IV_PARTICIPANT_ID = new URLSearchParams(location.search).get('answer');
+if (IV_PARTICIPANT_ID) paInit(IV_PARTICIPANT_ID);
+else { ivInit(); initApp(); }
 
 </script>
 </body>
