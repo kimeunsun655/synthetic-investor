@@ -171,13 +171,6 @@
     line-height: 1.3;
     font-family: 'Cal Sans', 'Inter', sans-serif;
   }
-  .section-sub {
-    font-size: 14px;
-    color: var(--cal-muted);
-    margin-top: 4px;
-    line-height: 1.5;
-    font-weight: 400;
-  }
 
   /* ── TDS 버튼 — xlarge 기준, 축소 적용 ── */
   .btn {
@@ -441,7 +434,6 @@
     background: var(--cal-surface-card);
   }
   .sidebar-persona-list { padding: 8px; display: flex; flex-direction: column; gap: 4px; max-height: 540px; overflow-y: auto; }
-  .sidebar-hint { padding: 8px 16px; font-size: 12px; color: var(--cal-muted); border-bottom: 1px solid var(--cal-hairline); }
   .tag-lit { background: var(--cal-accent-tint); color: #1e40af; }
   .tag-ai { background: #ecfeff; color: #0e7490; }
   .tag-level-advanced { background: #f5f3ff; color: #6d28d9; }
@@ -676,7 +668,6 @@
     background: var(--cal-canvas);
   }
   .workshop-header .title { font-size: 15px; font-weight: 700; color: var(--cal-ink); }
-  .workshop-header .sub { font-size: 12px; color: var(--cal-muted); margin-top: 2px; }
   .workshop-participants {
     padding: 10px 18px;
     border-bottom: 1px solid var(--cal-hairline);
@@ -882,10 +873,6 @@
     font-weight: 600;
     color: var(--cal-ink);
     flex: 1;
-  }
-  .mode-toggle-desc {
-    font-size: 12px;
-    color: var(--cal-muted);
   }
   .toggle-switch {
     position: relative;
@@ -1149,7 +1136,6 @@
   .main.wide { max-width: 1400px; }
   .iv-page-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
   .iv-title { font-size: 22px; font-weight: 700; color: var(--cal-ink); letter-spacing: -0.5px; line-height: 30px; }
-  .iv-sub { font-size: 13px; color: var(--cal-muted); margin-top: 2px; }
   .iv-head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .iv-btn { height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--cal-hairline); background: var(--cal-surface-card); color: var(--cal-ink); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
   .iv-btn:hover { background: var(--cal-surface-strong); }
@@ -1213,7 +1199,6 @@
   .iv-tags { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
   .iv-tag { font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 4px; background: var(--cal-accent-tint); color: #1d4ed8; }
   .iv-tag.grey { background: var(--cal-surface-card); color: var(--cal-body); }
-  .iv-note { margin: 4px 8px 10px; padding: 10px 12px; font-size: 12px; color: var(--cal-muted); background: var(--cal-surface-soft); border-radius: 8px; line-height: 1.6; }
   .iv-pick-tools { padding: 10px 12px 4px; border-bottom: 1px solid var(--cal-hairline); }
   .iv-mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .iv-mini-grid select:first-child { grid-column: 1 / -1; }
@@ -1250,7 +1235,6 @@
   .iv-q.skipped .iv-q-bubble { background: var(--cal-surface-card); color: var(--cal-muted); text-decoration: line-through; }
   .iv-a { display: flex; gap: 10px; max-width: 82%; align-items: flex-start; }
   .iv-a .iv-code { width: 30px; height: 30px; font-size: 10px; }
-  .iv-a-label { font-size: 11px; color: var(--cal-muted); margin-bottom: 4px; }
   .iv-a-bubble { background: var(--cal-surface-card); color: var(--cal-ink); padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
   .iv-a-bubble.pending { color: var(--cal-muted); background: none; padding: 6px 0; }
   .iv-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; line-height: 18px; padding: 0 7px; border-radius: 5px; background: var(--cal-surface-card); color: var(--cal-body); white-space: nowrap; border: 1px solid transparent; }
@@ -1276,7 +1260,6 @@
   .iv-pill { height: 32px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--cal-hairline); background: var(--cal-canvas); font-size: 12px; color: var(--cal-ink); cursor: pointer; font-family: inherit; }
   .iv-pill.on { background: var(--cal-canvas); color: var(--cal-ink); border-color: var(--cal-ink); box-shadow: inset 0 0 0 1px var(--cal-ink); font-weight: 600; }
   .iv-pill.on.bad { background: var(--cal-warning-tint); color: #b45309; border-color: #b45309; box-shadow: inset 0 0 0 1px #b45309; }
-  .iv-pii { font-size: 12px; color: #b45309; margin-top: 8px; }
   .iv-edit-reason { display: flex; gap: 6px; align-items: center; margin-top: 10px; flex-wrap: wrap; font-size: 12px; color: var(--cal-body); }
   .iv-edit-reason input { flex: 1; min-width: 180px; height: 32px; border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 0 10px; font-size: 13px; font-family: inherit; outline: none; }
   .iv-busy { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--cal-muted); }
@@ -1327,7 +1310,6 @@
   .rv-head-actions { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--cal-body); }
   .rv-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
   .rv-sec-title { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-  .rv-sec-sub { font-size: 12px; color: var(--cal-muted); margin-bottom: 12px; }
   .rv-crit { padding: 16px; margin-bottom: 12px; }
   .rv-crit-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
   .rv-crit-title { font-size: 14px; font-weight: 700; }
@@ -1387,7 +1369,6 @@
   .pa-bar i { display: block; height: 100%; background: var(--cal-accent); border-radius: 2px; transition: width 0.3s; }
   .pa-notice { font-size: 12px; color: var(--cal-body); background: var(--cal-surface-card); border-radius: 10px; padding: 10px 14px; line-height: 1.6; margin-bottom: 18px; }
   .pa-msgs { display: flex; flex-direction: column; }
-  .pa-ai-label { font-size: 11px; color: var(--cal-muted); margin: 4px 0 4px; }
   .pa-ai { align-self: flex-start; max-width: 86%; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6; color: var(--cal-ink); margin-bottom: 16px; white-space: pre-wrap; }
   .pa-typing { color: var(--cal-muted); }
   .pa-me { align-self: flex-end; max-width: 80%; background: var(--cal-accent-tint); color: #1e3a8a; border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6; margin-bottom: 16px; white-space: pre-wrap; }
@@ -1532,7 +1513,6 @@
           페르소나 뱅크
           <span class="count-badge" id="persona-count">0</span>
         </div>
-        <div class="section-sub">디지털 금융 의사결정 — 개인 투자자 합성 사용자 (가설 생성·질문지 점검용)</div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn btn-secondary" id="gen-btn" style="gap:6px;">
@@ -1554,7 +1534,7 @@
       <div><strong>시작하기:</strong> <strong>'100명 생성'</strong>을 누른 뒤 필터로 인터뷰할 페르소나를 좁혀주세요. 필터 결과가 인터뷰·워크숍·설문·사용성 평가의 선택 목록에 그대로 반영됩니다. 팀원이 같은 링크를 열면 동일한 페르소나를 공유합니다.</div>
     </div>
 
-    <div class="synthetic-warn"><strong>합성 응답은 실제 사용자 데이터가 아닙니다.</strong> 가설을 만들고 질문지를 점검하는 용도로만 쓰고, 실제 인터뷰 결과와 비교해 어디서 맞고 틀렸는지 확인하세요.</div>
+    <div class="synthetic-warn"><strong>합성 응답은 실제 사용자 데이터가 아닙니다.</strong></div>
 
     <!-- 필터 -->
     <div class="filter-bar" id="filter-bar" style="display:none;">
@@ -1607,7 +1587,6 @@
     <div class="iv-page-head">
       <div>
         <div class="iv-title">심층 인터뷰</div>
-        <div class="iv-sub" id="iv-sub"></div>
       </div>
       <div class="iv-head-actions">
         <button class="iv-btn" id="iv-guide-btn">질문지 보기</button>
@@ -1648,7 +1627,6 @@
     <div class="section-header">
       <div>
         <div class="section-title">설문 시뮬레이션</div>
-        <div class="section-sub">설문 문항을 입력하면 선택된 페르소나들이 자동 응답합니다</div>
       </div>
     </div>
     <div class="survey-layout">
@@ -1722,7 +1700,6 @@
     <div class="section-header">
       <div>
         <div class="section-title">아이디어 워크숍</div>
-        <div class="section-sub">여러 페르소나가 동시에 아이디어에 반응하고 토론합니다</div>
       </div>
       <button class="save-chat-btn" id="save-workshop-btn">대화 저장 (TXT)</button>
     </div>
@@ -1730,7 +1707,6 @@
     <div class="mode-toggle">
       <div>
         <div class="mode-toggle-label">응답 모드 <span class="mode-badge explore" id="workshop-mode-badge">탐색 모드</span></div>
-        <div class="mode-toggle-desc" id="workshop-mode-desc">설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용</div>
       </div>
       <label class="toggle-switch">
         <input type="checkbox" id="workshop-mode-toggle" />
@@ -1741,7 +1717,6 @@
       <!-- 참여자 설정 -->
       <div class="persona-sidebar">
         <div class="sidebar-title">참여자 선택 (최대 4명)</div>
-        <div class="sidebar-hint">페르소나 뱅크 필터 결과 기준</div>
         <div class="sidebar-persona-list" id="workshop-persona-list">
           <div class="empty-state" style="padding:24px 12px;">
             <div class="msg" style="font-size:12px;">페르소나 뱅크에서 먼저 생성해주세요</div>
@@ -1763,7 +1738,6 @@
         </div>
         <div class="workshop-header">
           <div class="title">아이디어 워크숍 룸</div>
-          <div class="sub">선택된 페르소나들이 함께 토론합니다</div>
         </div>
         <div class="workshop-participants" id="workshop-participants">
           <div style="font-size:12px;color:var(--cal-muted);">참여자 없음</div>
@@ -1787,7 +1761,6 @@
     <div class="section-header">
       <div>
         <div class="section-title">사용성 평가</div>
-        <div class="section-sub">서비스 화면이나 문구를 페르소나에게 보여주고 반응을 받습니다</div>
       </div>
     </div>
     <div class="usability-layout">
@@ -2762,15 +2735,12 @@ ${refContextText()}
 // ══════════════════════════════════════
 function updateModeUI(type, isVerify) {
   const badge = document.getElementById(type + '-mode-badge');
-  const desc = document.getElementById(type + '-mode-desc');
   if (isVerify) {
     badge.textContent = '검증 모드';
     badge.className = 'mode-badge verify';
-    desc.textContent = '설정에 없는 구체적 경험(상품명·금액·수익률)은 지어내지 않고 "기억이 안 난다"고 답합니다';
   } else {
     badge.textContent = '탐색 모드';
     badge.className = 'mode-badge explore';
-    desc.textContent = '설정을 바탕으로 경험을 구체적으로 채워 답합니다 — 가설 생성용';
   }
 }
 document.getElementById('workshop-mode-toggle').addEventListener('change', e => {
@@ -4050,13 +4020,6 @@ function ivRenderAll() {
 }
 
 function ivRenderHead() {
-  const sub = {
-    direct: '질문을 직접 쓰거나 질문지에서 골라 페르소나에게 보냅니다. 특정 질문만 따로 시험할 때 씁니다.',
-    suggest: 'AI가 질문지 순서대로 다음 질문을 제안합니다. 확인하고 보내세요.',
-    auto: 'AI 진행자와 합성 사용자가 끝까지 자동으로 대화합니다. 같은 질문지로 여러 명을 한 번에 돌릴 때 씁니다.',
-    real: 'AI 모더레이터가 참가자에게 직접 질문합니다. 답변은 연구자가 대신 입력하거나, 링크를 받은 참가자가 직접 작성합니다.',
-  }[IV.mode];
-  document.getElementById('iv-sub').textContent = sub;
   const labels = { direct: ['대화 저장 (TXT)', 'AI 기록 받기 (CSV)'], suggest: ['대화 저장 (TXT)', 'AI 기록 받기 (CSV)'], auto: ['전체 대화 저장 (ZIP)', 'AI 기록 모아 받기 (CSV)'], real: ['대화 저장 (TXT)', '수정 기록 받기 (CSV)'] }[IV.mode];
   document.getElementById('iv-export-a').textContent = labels[0];
   document.getElementById('iv-export-b').textContent = labels[1];
@@ -4136,9 +4099,7 @@ function ivRenderLeft() {
     if (cur && cur.personaId && !list.find(p => p.id === cur.personaId)) { const cp = personas.find(p => p.id === cur.personaId); if (cp) list.unshift(cp); }
     el.innerHTML = `<div class="iv-panel">
       <div class="iv-panel-head">페르소나 선택</div>
-      <div class="iv-panel-hint">페르소나 뱅크 필터 결과 기준</div>
       <div class="iv-plist">${list.length ? list.map(p => ivPersonaItem(p, cur && cur.personaId === p.id)).join('') : '<div class="iv-muted" style="padding:16px;">페르소나 뱅크에서 먼저 생성해주세요</div>'}</div>
-      ${IV.mode === 'suggest' ? '<div class="iv-note">AI 진행자에게는 연령대·경력·AI 사용 여부만 알려 줍니다.</div>' : '<div class="iv-note">직접 질문은 AI 진행자 없이 페르소나에게 바로 보냅니다.</div>'}
     </div>`;
     return;
   }
@@ -4210,7 +4171,7 @@ function ivRenderLeft() {
         <div class="iv-kv"><span>손실 경험</span><span>${ivEsc(s.profile.loss)}</span></div>
       </div>`
     : `<div class="iv-panel-body" style="padding-top:12px;">
-        <label class="iv-field">코드 (실명 금지)<input data-real="code" value="${ivEsc(r.code)}" maxlength="10"></label>
+        <label class="iv-field">코드<input data-real="code" value="${ivEsc(r.code)}" maxlength="10"></label>
         <label class="iv-field">연령대<select data-real="age">${opt(['20대', '30대', '40대', '50대+'], r.age)}</select></label>
         <label class="iv-field">투자 경력<select data-real="level">${opt(['초보', '중급', '고급'], r.level)}</select></label>
         <label class="iv-field">AI 활용<select data-real="aiUse">${opt(['자주 사용', '가끔 사용', '사용 안 함'], r.aiUse)}</select></label>
@@ -4223,14 +4184,13 @@ function ivRenderLeft() {
       <div class="iv-linkrow"><button class="iv-btn" data-act="copy-link">참가자 링크 복사</button><span id="iv-link-code">${ivEsc(code)} 전용</span></div>
       ${inputMode === 'link' ? `<div class="iv-muted" style="margin:12px 0 6px;">링크 진행 방식</div>
       <div class="iv-seg full small"><button class="${flow === 'solo' ? 'active' : ''}" data-act="flow" data-v="solo">자동 진행</button><button class="${flow !== 'solo' ? 'active' : ''}" data-act="flow" data-v="attended">연구자 동석</button></div>` : ''}
-      <div class="iv-muted" style="margin-top:10px;">${inputMode !== 'link' ? 'AI가 고른 질문이 바로 화면에 나오고, 연구자는 참가자의 답을 요약해 입력합니다.' : flow === 'solo' ? '참가자가 답을 보내면 AI가 바로 다음 질문을 이어갑니다. 연구자 탭을 닫아도 진행되고, 언제든 이어받을 수 있습니다.' : 'AI가 고른 질문은 바로 참가자에게 가고, 참가자의 답을 연구자가 확인해 저장하면 다음 질문으로 넘어갑니다.'}</div>
     </div></div>
     <div class="iv-panel"><div class="iv-panel-head" style="display:flex;justify-content:space-between;align-items:center;">참가자 정보${s ? '<button class="iv-link" style="margin:0;font-weight:400;" data-act="real-close">지난 인터뷰 목록</button>' : ''}</div>${info}</div>
 
     <div class="iv-panel"><div class="iv-panel-head plain">동의 확인</div><div class="iv-panel-body">
       ${inputMode === 'link'
-        ? (s ? (ivParticipantConsented(s) ? `<div class="iv-check" style="cursor:default;color:var(--cal-success);">참가자가 링크에서 동의함 · ${ivEsc(ivFmtClock(ivParticipantConsented(s)))}</div>` : '<div class="iv-muted">참가자가 링크를 열면 시작 전에 직접 동의합니다. 아직 동의 전입니다.</div>')
-          : '<div class="iv-muted">참가자가 링크를 열면 시작 전에 직접 동의합니다 (답변 저장·AI 분석).</div>')
+        ? (s ? (ivParticipantConsented(s) ? `<div class="iv-check" style="cursor:default;color:var(--cal-success);">참가자가 링크에서 동의함 · ${ivEsc(ivFmtClock(ivParticipantConsented(s)))}</div>` : '<div class="iv-muted">동의 전</div>')
+          : '<div class="iv-muted">참가자가 링크에서 직접 동의</div>')
         : `<label class="iv-check"><input type="checkbox" data-real="consentRec" ${(s ? s.consent.rec : r.consentRec) ? 'checked' : ''} ${s ? 'disabled' : ''}> 녹음·화면 캡처</label>
       <label class="iv-check"><input type="checkbox" data-real="consentAi" ${(s ? s.consent.ai : r.consentAi) ? 'checked' : ''} ${s ? 'disabled' : ''}> 답변 요약 AI 도구 입력</label>`}
     </div></div>`;
@@ -4263,19 +4223,18 @@ function ivPastRealHtml() {
 function ivTurnHtml(s, t) {
   const chips = [];
   const typeLabel = IV_TYPE_LABEL[t.type] || '질문';
-  const qLabel = t.type === 'direct' ? '직접 질문' : `${t.qid ? t.qid + ' · ' : ''}${typeLabel}`;
-  chips.push(`<span class="iv-chip">${IV_ICON}${ivEsc(qLabel)}${s.kind === 'real' && t.action === 'asked' ? ' · 수정 없음' : ''}</span>`);
+  const qLabel = t.type === 'direct' ? '직접 질문' : (t.qid || typeLabel);
+  chips.push(`<span class="iv-chip">${IV_ICON}${ivEsc(qLabel)}</span>`);
   if (t.action === 'edited') chips.push(`<span class="iv-chip blue">수정함${t.editReason ? ' · ' + ivEsc(t.editReason) : ''}</span>`);
   if (t.action === 'skipped') chips.push(`<span class="iv-chip line">건너뜀${t.editReason ? ' · ' + ivEsc(t.editReason) : ''}</span>`);
-  if (t.guard) chips.push(`<span class="iv-chip ${t.guard.remaining && t.guard.remaining.length ? 'warn' : 'line'}" title="${ivEsc(t.guard.issues.join(', '))}">${t.guard.remaining && t.guard.remaining.length ? '자동 점검: ' + ivEsc(t.guard.remaining.join(', ')) : '자동 점검 후 다시 만듦'}</span>`);
+  if (t.guard && t.guard.remaining && t.guard.remaining.length) chips.push(`<span class="iv-chip ${t.guard.remaining && t.guard.remaining.length ? 'warn' : 'line'}" title="${ivEsc(t.guard.issues.join(', '))}">${t.guard.remaining && t.guard.remaining.length ? '자동 점검: ' + ivEsc(t.guard.remaining.join(', ')) : '자동 점검 후 다시 만듦'}</span>`);
   (t.note && t.note.flags || []).filter(f => IV_FLAG_INFO[f] && f !== 'leading_risk' && f !== 'persona_drift' && f !== 'new_topic').slice(0, 2)
     .forEach(f => chips.push(`<span class="iv-chip ${f === 'textbook' ? 'warn' : 'line'}">${ivEsc(IV_FLAG_INFO[f].chip)}</span>`));
   let html = `<div class="iv-q${t.action === 'skipped' ? ' skipped' : ''}" data-turn="${t.n}" data-qid="${ivEsc(ivBaseQid(t.qid) || t.qid)}"><div class="iv-q-chips">${chips.join('')}</div><div class="iv-q-bubble">${ivEsc(t.utterance)}</div></div>`;
   if (t.action === 'skipped') return html;
   const code = ivEsc(s.profile.code);
   if (t.answer != null) {
-    const label = s.kind === 'real' ? `<div class="iv-a-label">${t.answerSource === 'participant' ? `참가자 직접 작성${t.answerVia === 'voice' ? ' · 음성' : ''}` : '연구자 대리 입력 · 요약'}</div>` : '';
-    html += `<div class="iv-a"><div class="iv-code">${code}</div><div>${label}<div class="iv-a-bubble">${ivEsc(t.answer)}</div></div></div>`;
+    html += `<div class="iv-a"><div class="iv-code">${code}</div><div><div class="iv-a-bubble">${ivEsc(t.answer)}</div></div></div>`;
   } else if (t.answerError) {
     html += `<div class="iv-a"><div class="iv-code">${code}</div><div><div class="iv-a-bubble pending" style="color:var(--cal-error)">응답 생성 실패: ${ivEsc(t.answerError)}</div><button class="iv-btn ghost" data-act="retry-answer">답변 다시 받기</button></div></div>`;
   }
@@ -4297,15 +4256,10 @@ function ivRenderCenter() {
   const nearBottom = msgs.scrollHeight - msgs.scrollTop - msgs.clientHeight < 80;
   if (!s) {
     const empty = {
-      direct: '왼쪽에서 페르소나를 선택한 뒤<br>질문을 직접 쓰거나 질문지에서 골라 보내세요.',
-      suggest: '왼쪽에서 페르소나를 선택하면<br>AI 진행자가 첫 질문을 제안합니다.',
-      auto: `왼쪽 실행 대기열에서 인터뷰할 페르소나를 고르세요 (최대 ${IV_BATCH_MAX}명).<br>위의 <b>시작</b>을 누르면 고른 순서대로 질문 ${IV_MAX_TURNS}개 안에서 끝까지 자동으로 진행됩니다.`,
-      real: (() => {
-        const { inputMode, flow } = IV.realSetup;
-        if (inputMode === 'link' && flow === 'solo') return '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작한 뒤, 참가자 링크를 보내 주세요.<br>참가자가 답을 보내면 AI 모더레이터가 바로 다음 질문을 이어갑니다.';
-        if (inputMode === 'link') return '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작한 뒤, 참가자 링크를 보내 주세요.<br>AI 모더레이터의 질문은 바로 참가자에게 가고, 연구자는 답을 확인해 저장합니다.';
-        return '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작하세요.<br>AI 모더레이터의 질문이 바로 화면에 나오고, 연구자는 참가자의 답을 입력해 저장합니다.';
-      })(),
+      direct: '왼쪽에서 페르소나를 선택한 뒤 질문을 보내세요.',
+      suggest: '왼쪽에서 페르소나를 선택하세요.',
+      auto: `왼쪽에서 인터뷰할 페르소나를 고르세요 (최대 ${IV_BATCH_MAX}명).`,
+      real: IV.realSetup.inputMode === 'link' ? '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작한 뒤, 참가자 링크를 보내 주세요.' : '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작하세요.',
     }[IV.mode];
     msgs.innerHTML = `<div class="iv-empty">${empty}</div>`;
   } else {
@@ -4343,7 +4297,7 @@ function ivRenderComposer() {
   if (s.kind === 'real' && ivSessionStalled(s)) {
     el.className = 'iv-composer soft';
     el.innerHTML = `<div class="iv-comp-head"><b>응답이 멈췄어요</b><span class="iv-chip warn">참가자 활동이 ${IV_STALL_HOURS}시간 넘게 없음</span></div>
-      <div class="iv-reason">지금까지의 답으로 끝내고 리뷰하거나, 참가자가 돌아올 때까지 더 기다릴 수 있어요. 기다리는 동안에도 참가자는 같은 링크로 이어서 답할 수 있어요.</div>
+      
       <div class="iv-actions"><button class="iv-btn ghost lg" data-act="stall-wait">더 기다리기</button><button class="iv-btn dark lg" data-act="stall-end">끝내고 리뷰하기</button></div>`;
     return;
   }
@@ -4370,9 +4324,8 @@ function ivRenderComposer() {
     const waiting = s.inputMode === 'link' && !IV.participantText;
     el.className = 'iv-composer soft';
     el.innerHTML = `<div class="iv-comp-head"><b>참가자 답변 입력</b><span class="iv-chip">${ivEsc(t.qid || '')} 에 대한 답</span>${s.inputMode === 'link' ? `<span class="iv-chip ${waiting ? 'line' : 'blue'}">${waiting ? (ivParticipantConsented(s) ? '참가자 작성 대기 중…' : '참가자 동의 대기 중…') : '참가자가 작성함'}</span>` : ''}<button class="iv-link" data-act="latest-edit">방금 질문 고치기 · 건너뛰기</button></div>
-      <textarea class="iv-textarea" id="iv-answer-text" data-draft="answer" rows="2" placeholder="${s.inputMode === 'link' ? '참가자가 링크로 답을 보내면 여기에 나타납니다. 직접 입력해도 됩니다.' : '참가자의 답을 요약해 입력하세요'}">${ivEsc(IV.drafts.answer)}</textarea>
-      <div class="iv-pii">계좌번호·잔고·실명은 입력하지 말고 구간이나 가명으로 적어 주세요.</div>
-      <div class="iv-actions"><div class="lead">AI가 고른 질문이 적절했나요? (선택) <button class="iv-pill${IV.answerRating === 'good' ? ' on' : ''}" data-act="rate" data-v="good">적절했음</button><button class="iv-pill${IV.answerRating === 'bad' ? ' on bad' : ''}" data-act="rate" data-v="bad">부적절했음</button></div>
+      <textarea class="iv-textarea" id="iv-answer-text" data-draft="answer" rows="2" placeholder="${s.inputMode === 'link' ? '참가자 답 (링크로 오면 자동 입력)' : '참가자 답 요약'} · 실명·계좌번호·잔고는 적지 마세요">${ivEsc(IV.drafts.answer)}</textarea>
+      <div class="iv-actions"><div class="lead">질문 평가 <button class="iv-pill${IV.answerRating === 'good' ? ' on' : ''}" data-act="rate" data-v="good">적절했음</button><button class="iv-pill${IV.answerRating === 'bad' ? ' on bad' : ''}" data-act="rate" data-v="bad">부적절했음</button></div>
       <button class="iv-btn dark lg" data-act="real-save">답변 저장하고 다음 질문</button></div>`;
     return;
   }
@@ -4385,16 +4338,16 @@ function ivRenderComposer() {
   const o = IV.proposal;
   if (!IV.editing) IV.drafts.prop = o.utterance;
   const known = ivIsKnownQid(o.question_id);
-  const srcChip = o.type === 'probe' ? '<span class="iv-chip">중립 탐색</span>' : known ? '<span class="iv-chip">질문지에 있는 질문</span>' : '<span class="iv-chip warn">질문지에 없는 질문</span>';
+  const srcChip = o.type === 'probe' ? '<span class="iv-chip">중립 탐색</span>' : known ? '' : '<span class="iv-chip warn">질문지에 없는 질문</span>';
   const edited = (IV.drafts.prop || '').trim() !== o.utterance.trim();
   const real = s.kind === 'real';
   const reasonRow = real || IV.editing
     ? `<div class="iv-edit-reason">${real ? '고치거나 건너뛰는 이유' : '고친 이유 (선택)'}
         ${['표현이 어색함', '답을 유도할 수 있음', '이미 답함', '순서가 안 맞음'].map(x => `<button class="iv-pill" data-act="reason" data-v="${x}">${x}</button>`).join('')}
         <input id="iv-reason-input" data-draft="reason" value="${ivEsc(IV.drafts.reason)}" placeholder="직접 입력"></div>` : '';
-  el.innerHTML = `<div class="iv-comp-head"><b>AI가 제안한 다음 질문</b><span class="iv-chip blue">${IV_ICON}${ivEsc(o.question_id || '?')} · ${ivEsc(IV_TYPE_LABEL[o.type] || '')}</span>${srcChip}
+  el.innerHTML = `<div class="iv-comp-head"><b>AI가 제안한 다음 질문</b><span class="iv-chip blue">${IV_ICON}${ivEsc(o.question_id || '?')}</span>${srcChip}
       <button class="iv-link" data-act="resuggest">다시 제안</button><button class="iv-link" style="margin-left:10px;" data-act="end">끝내기</button></div>
-    ${o.note && o.note.reason ? `<div class="iv-reason">고른 이유 · ${ivEsc(o.note.reason)}</div>` : ''}
+    ${o.note && o.note.reason ? `<div class="iv-reason">${ivEsc(o.note.reason)}</div>` : ''}
     <textarea class="iv-textarea" id="iv-prop-text" data-draft="prop" rows="2" ${IV.editing ? '' : 'readonly'}>${ivEsc(IV.drafts.prop)}</textarea>
     ${reasonRow}
     <div class="iv-actions"><button class="iv-btn ghost lg" data-act="prop-skip">건너뛰기</button><button class="iv-btn lg" data-act="prop-edit">${IV.editing ? '수정 취소' : '수정하기'}</button><button class="iv-btn dark lg" data-act="prop-send">${edited ? (real ? '고쳐서 묻기' : '수정해서 전송') : (real ? '그대로 묻기' : '그대로 전송')}</button></div>`;
@@ -4411,14 +4364,14 @@ function ivRenderRight() {
   if (IV.mode === 'auto') { el.innerHTML = ivAutoRightHtml(); return; }
   if (IV.mode === 'real') {
     const turns = s ? s.turns.slice().reverse() : [];
-    el.innerHTML = `<div class="iv-panel"><div class="iv-panel-head plain">질문 수정 기록 <span class="aside">AI 개선에 사용</span></div><div class="iv-panel-body">
+    el.innerHTML = `<div class="iv-panel"><div class="iv-panel-head plain">질문 수정 기록</div><div class="iv-panel-body">
       ${turns.length ? turns.map(t => {
         const act = ivActLabel(t);
         const r = t.action === 'skipped' || (t.autoFlow === 'solo' && !t.rating) ? (t.answer == null && t.action !== 'skipped' ? '<span class="r muted">답변 대기</span>' : '') : t.rating === 'good' ? '<span class="r ok">적절</span>' : t.rating === 'bad' ? '<span class="r bad">부적절</span>' : (t.answer == null ? '<span class="r muted">답변 대기</span>' : '<span class="r muted">평가 전</span>');
         let body = t.action === 'edited' ? `원래: ${ivEsc(t.aiUtterance)}${t.editReason ? `<br>이유: ${ivEsc(t.editReason)}` : ''}` : t.action === 'skipped' ? `이유: ${ivEsc(t.editReason || '—')}` : '';
         if (t.guard) body += `${body ? '<br>' : ''}자동 점검: ${ivEsc(t.guard.issues.join(', '))} → ${t.guard.remaining && t.guard.remaining.length ? '다시 만들어도 남음' : '다시 만들어 고침'}`;
         return `<div class="iv-flag ${t.rating === 'bad' ? '' : 'neutral'}"><div class="iv-flag-title"><span>${ivEsc(t.qid || '?')} · ${act}</span>${r}</div>${body ? `<div class="iv-flag-body">${body}</div>` : ''}</div>`;
-      }).join('') : '<div class="iv-muted">AI가 고른 질문을 그대로 묻거나, 고치거나, 건너뛴 기록이 여기에 쌓입니다.</div>'}
+      }).join('') : '<div class="iv-muted">아직 없어요</div>'}
     </div></div>`;
     return;
   }
@@ -4430,12 +4383,12 @@ function ivRenderRight() {
     <div class="iv-panel"><div class="iv-panel-head plain">다룬 주제 <span class="count">${IV_TOPICS.length}개 중 ${covered.size}개</span></div><div class="iv-panel-body">
       ${IV_TOPICS.map(x => `<div class="iv-topic${covered.has(x) ? ' on' : ''}"><span class="dot"></span>${x}</div>`).join('')}
     </div></div>
-    <div class="iv-panel"><div class="iv-panel-head plain">주의 표시 <span class="aside">질문 고칠 때 참고</span></div><div class="iv-panel-body">
+    <div class="iv-panel"><div class="iv-panel-head plain">주의 표시</div><div class="iv-panel-body">
       ${flags.length ? flags.map(f => `<div class="iv-flag"><div class="iv-flag-title"><span>${ivEsc(f.q.qid)} · ${IV_FLAG_INFO[f.flag].label}</span></div><div class="iv-flag-body">"${ivEsc(String(f.q.answer || '').slice(0, 60))}${String(f.q.answer || '').length > 60 ? '…' : ''}" — ${IV_FLAG_INFO[f.flag].desc}</div></div>`).join('')
-        : `<div class="iv-muted">${off ? '직접 질문 모드에서는 AI 노트가 만들어지지 않습니다.' : '교과서식 답변, 짧은 답, 모호한 질문, 유도 가능성이 보이면 여기에 표시됩니다.'}</div>`}
+        : `<div class="iv-muted">${off ? '직접 질문 모드에서는 AI 노트가 만들어지지 않습니다.' : '아직 없어요'}</div>`}
     </div></div>
-    <div class="iv-panel"><div class="iv-panel-head plain">참가자가 말한 사실 <span class="aside">앞뒤 다른 말 확인에 사용</span></div><div class="iv-panel-body">
-      ${facts.length ? facts.map(f => `<div class="iv-fact"><span class="iv-chip">${ivEsc(ivBaseQid(f.qid) || f.qid)}</span><span>${ivEsc(f.text)}</span></div>`).join('') : '<div class="iv-muted">AI 진행자가 답에서 뽑은 사실이 여기에 쌓입니다.</div>'}
+    <div class="iv-panel"><div class="iv-panel-head plain">참가자가 말한 사실</div><div class="iv-panel-body">
+      ${facts.length ? facts.map(f => `<div class="iv-fact"><span class="iv-chip">${ivEsc(ivBaseQid(f.qid) || f.qid)}</span><span>${ivEsc(f.text)}</span></div>`).join('') : '<div class="iv-muted">아직 없어요</div>'}
     </div></div>`;
 }
 // 끝난 인터뷰들에서 같은 질문에 같은 플래그가 몇 번 나왔는지 모은다
@@ -4477,7 +4430,7 @@ function ivAutoRightHtml() {
         const strong = a.flag === 'leading_risk' || a.count >= 2 || a.reviewed;
         const foot = a.flag === 'leading_risk' ? '1번만 나와도 문구 수정' : a.reviewed ? '리뷰에서 수정 대상으로 체크됨' : a.count >= 2 ? '문구 수정 권장' : '아직 1명뿐 · 지켜보기';
         return `<div class="iv-flag${strong ? '' : ' neutral'}"><div class="iv-flag-title"><span>${ivEsc(a.qid)} · ${IV_FLAG_INFO[a.flag].label}</span><span class="r">${n}명 중 ${a.count}명</span></div><div class="iv-flag-body">"${ivEsc(a.quote)}"</div><div class="iv-flag-foot">${foot}</div></div>`;
-      }).join('') : '<div class="iv-muted">인터뷰가 끝나면 여러 명에게서 같은 문제가 나온 질문이 여기에 모입니다.</div>'}
+      }).join('') : '<div class="iv-muted">아직 없어요</div>'}
     </div></div>
     <div class="iv-panel"><div class="iv-panel-head plain">인터뷰 진행 상태</div><div class="iv-panel-body">
       <div class="iv-stat"><span>인터뷰당 다룬 주제</span><b>${n ? `평균 ${avg.toFixed(1)}개 / ${IV_TOPICS.length}개` : '—'}</b></div>
@@ -4834,7 +4787,6 @@ function ivRenderReview() {
     <div class="rv-layout">
       <div>
         <div class="rv-sec-title">필요한 내용을 얻었나</div>
-        <div class="rv-sec-sub">연구자가 직접 판정합니다. 질문 번호를 누르면 해당 대화로 이동합니다.</div>
         ${crits.map(c => {
           const cur = rv.criteria[c.key] || {};
           const sum = rv.summaries && rv.summaries[c.key];
@@ -4851,7 +4803,6 @@ function ivRenderReview() {
       <div class="iv-col">
         <div class="iv-card" style="padding:16px;">
           <div class="rv-sec-title">AI 진행자가 규칙을 지켰나</div>
-          <div class="rv-sec-sub">아래 항목은 자동으로 계산됩니다</div>
           ${rules.map(r => `<div class="rv-rule">${r.ok ? okIcon : '<span class="no">!</span>'}${r.label}<span class="v${r.ok ? '' : ' bad'}">${ivEsc(r.v)}</span></div>`).join('')}
           <div style="border-top:1px solid var(--cal-hairline);margin:12px 0 8px;"></div>
           <div class="iv-muted" style="margin-bottom:4px;">연구자가 확인할 것</div>
@@ -4860,10 +4811,8 @@ function ivRenderReview() {
         </div>
         <div class="iv-card" style="padding:16px;">
           <div class="rv-sec-title">고칠 질문</div>
-          <div class="rv-sec-sub">이번 인터뷰에서 주의 표시가 붙은 질문</div>
           ${fixes.length ? fixes.map(f => { const quote = String(f.flag === 'guard' ? f.q.utterance : (f.q.answer || '')); const desc = f.flag === 'guard' ? ivEsc(f.q.guard.remaining.join(', ')) + ' — 다시 만들어도 남음' : IV_FLAG_INFO[f.flag].desc; return `<label class="rv-fix"><input type="checkbox" data-rv-fix="${f.key}" ${rv.fixes.includes(f.key) ? 'checked' : ''}><div><b>${ivEsc(f.q.qid)} · ${IV_FLAG_INFO[f.flag].label}</b><div>"${ivEsc(quote.slice(0, 50))}${quote.length > 50 ? '…' : ''}" — ${desc}</div></div></label>`; }).join('')
             : '<div class="iv-muted">주의 표시가 붙은 질문이 없습니다.</div>'}
-          <div class="iv-muted" style="margin-top:10px;">체크한 질문은 "고쳐야 할 질문" 목록에 올라갑니다.</div>
         </div>
       </div>
     </div>`;
@@ -4927,11 +4876,9 @@ function ivOpenGuide() {
       <p>합성 모더레이터는 우리 질문지를 순서대로 진행하고, 답변에 따라 후속 질문을 고르고, 질문지의 약점을 기록하는 AI 인터뷰어다. 합성 페르소나뿐 아니라 실제 참가자에게도 직접 질문한다. 목적은 실제 인터뷰 전에 질문지를 점검(B-1)하고, 실제 인터뷰를 진행한 뒤, 세그먼트별로 결과를 확장(B-2)하는 것이다.</p>
 
       <h2>1. 질문지</h2>
-      <div class="gd-lead">모더레이터가 묻는 메인 질문 전체. 회색 글씨는 [조건]에 따른 후속 질문이고, 변경 칸이 비어 있으면 기존 질문지 그대로다.</div>
       <table class="gd-table"><thead><tr><th>ID</th><th>메인 질문</th><th>변경</th></tr></thead><tbody>${stageRows}</tbody></table>
 
       <h2>2. 질문지에서 바뀐 것</h2>
-      <div class="gd-lead">질문지 골격(①~⑦)과 5-5 순서 제약은 그대로다. 합성 사용자에게 안 맞는 부분만 고쳤다.</div>
       <ol class="gd-list">${IV_GUIDE_CHANGES.map(([t, d]) => `<li><b>${ivEsc(t)}</b><br>${ivEsc(d)}</li>`).join('')}</ol>
 
       <h2>3. 진행 흐름</h2>
@@ -4940,7 +4887,6 @@ function ivOpenGuide() {
       <p style="margin-top:10px;">모더레이터는 턴마다 노트를 남긴다. 교과서식 답변(textbook), 질문을 이해 못 함(ambiguous), 페르소나 이탈, 유도 가능성을 플래그로 표시하고, 이 플래그가 붙은 질문이 질문 수정 후보가 된다. 노트의 태그는 탐색 영역 8개(${IV_TOPICS.join(', ')}) 중에서 고른다.</p>
 
       <h2>4. 진행 방식 4가지</h2>
-      <div class="gd-lead">플랫폼 심층 인터뷰 탭의 '진행 방식'에서 고른다.</div>
       <table class="gd-table"><thead><tr><th>진행 방식</th><th>동작</th><th>언제</th></tr></thead><tbody>${IV_GUIDE_MODES.map(r => `<tr><td style="white-space:nowrap;font-weight:600;">${ivEsc(r[0])}</td><td>${ivEsc(r[1])}</td><td>${ivEsc(r[2])}</td></tr>`).join('')}</tbody></table>
 
       <h2>5. 다음 할 일</h2>
@@ -5089,12 +5035,12 @@ function paInit(id) {
     // 보낸 질문과 참가자 본인이 쓴 답만 보여준다
     let html = '';
     ivAsked(s).forEach(t => {
-      html += `<div class="pa-ai-label">인터뷰 진행 AI</div><div class="pa-ai">${ivEsc(t.utterance)}</div>`;
+      html += `<div class="pa-ai">${ivEsc(t.utterance)}</div>`;
       if (t.answer != null && t.answerSource === 'participant') html += `<div class="pa-me">${ivEsc(t.answer)}</div>`;
     });
     const open = openTurn(s);
-    if (open && S.pending && S.pending.turn === open.n) html += `<div class="pa-me">${ivEsc(S.pending.text)}</div><div class="pa-sent">보냈어요. 다음 질문을 기다려 주세요.</div>`;
-    else if (!open && !s.endedAt) html += `<div class="pa-ai-label">인터뷰 진행 AI</div><div class="pa-ai pa-typing">${S.error ? '다음 질문을 불러오지 못했어요. <button class="iv-link" id="pa-retry" style="margin:0">다시 시도</button>' : '다음 질문을 준비하고 있어요…'}</div>`;
+    if (open && S.pending && S.pending.turn === open.n) html += `<div class="pa-me">${ivEsc(S.pending.text)}</div><div class="pa-sent">보냄</div>`;
+    else if (!open && !s.endedAt) html += `<div class="pa-ai pa-typing">${S.error ? '다음 질문을 불러오지 못했어요. <button class="iv-link" id="pa-retry" style="margin:0">다시 시도</button>' : '다음 질문을 준비하고 있어요…'}</div>`;
     if (!ivAsked(s).length && !s.endedAt) html = '<div class="iv-muted">곧 첫 질문이 나타납니다.</div>';
     const key = html;
     if (key !== S.lastKey) {
