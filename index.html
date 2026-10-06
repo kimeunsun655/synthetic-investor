@@ -1412,6 +1412,19 @@
   .pa-hint { font-size: 12px; color: var(--cal-muted); margin-top: 8px; line-height: 1.5; }
   .pa-status { font-size: 12px; color: #b45309; margin-top: 6px; }
   .pa-status:empty { display: none; }
+  .pa-progress-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .pa-progress-row .pa-progress-label { margin-bottom: 0; }
+  .pa-remain { font-size: 12px; color: var(--cal-muted); }
+  .pa-intro { max-width: 360px; text-align: left; }
+  .pa-intro .dialog-title { text-align: left; }
+  .pa-intro-facts { display: flex; flex-direction: column; gap: 6px; background: var(--cal-surface-soft); border-radius: 10px; padding: 12px 14px; margin: 12px 0; }
+  .pa-intro-facts div { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .pa-intro-facts span { color: var(--cal-muted); }
+  .pa-intro-facts b { color: var(--cal-ink); }
+  .pa-intro-list { margin: 0 0 14px; padding-left: 18px; font-size: 14px; line-height: 1.7; color: var(--cal-body); }
+  .pa-intro-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: var(--cal-ink); margin-bottom: 14px; cursor: pointer; }
+  .pa-intro-agree input { width: 18px; height: 18px; accent-color: var(--cal-primary); flex-shrink: 0; }
+  .pa-intro-go { width: 100%; }
   .pa-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: var(--cal-ink); margin-bottom: 10px; cursor: pointer; }
   .pa-agree input { width: 18px; height: 18px; margin-top: 0; accent-color: var(--cal-primary); flex-shrink: 0; }
   .pa-consent { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
@@ -4914,6 +4927,13 @@ function ivInitGuideEvents() {
 // ══════════════════════════════════════
 // 음성 답변 — 브라우저 내장 음성 인식(Web Speech API). 지원하는 브라우저에서만 말하기 버튼을 보여 준다
 const PA_SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+// 참가자에게 처음 알려 주는 예상 소요 시간·질문 수 — 파일럿 결과를 보고 여기서 조정한다
+const PA_ESTIMATE = {
+  solo: { time: '약 20~30분', questions: '약 30개 (최대 41개)' },        // 자동 진행 (턴 기준)
+  attended: { time: '최대 70분', questions: '약 30개 (최대 41개)' },     // 연구자 동석 (단계별 시간 기준)
+};
+const PA_SEC_PER_QUESTION = 50;     // 남은 시간 추정 기본값 (이 참가자의 실제 속도가 쌓이면 그 값을 쓴다)
+const PA_FOLLOWUP_RATIO = 1.15;     // 메인 질문 1개당 추가 질문을 포함한 평균 질문 수 (시작 모달의 예상치와 맞춤)
 const PA_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);   // 휴대폰 키보드에는 받아쓰기(마이크) 버튼이 있다
 const PA_IN_APP = /KAKAOTALK|Instagram|FBAN|FBAV|NAVER\(inapp|Line\/|DaumApps/i.test(navigator.userAgent);
 const PA_MIC_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
@@ -4923,11 +4943,9 @@ function paInit(id) {
     <div class="pa-head"><b>투자 결정 인터뷰</b><span id="pa-code"></span></div>
     <div class="pa-body">
       <div class="pa-progress" id="pa-progress"></div>
-      <div class="pa-notice">정답은 없어요. 답하신 내용은 연구 목적으로 저장되고 AI 도구로 정리돼요. 계좌번호·잔고·실명은 적지 말고 구간이나 가명으로 적어 주세요.${PA_SR ? ' 말하기를 쓰면 브라우저의 음성 인식이 말을 글자로 바꿔 입력칸에 채워요. 음성은 저장하지 않으니, 확인하고 고친 뒤 보내 주세요.' : ''}</div>
       <div class="pa-msgs" id="pa-msgs"><div class="iv-muted">질문을 불러오는 중…</div></div>
     </div>
     <div class="pa-compose" id="pa-compose">
-      <label class="pa-agree" id="pa-agree-row"><input type="checkbox" id="pa-agree"> 답변이 저장되고 AI 도구로 분석되는 것에 동의합니다 (필수)</label>
       <textarea class="pa-input" id="pa-text" rows="3" placeholder="생각나는 대로 편하게 적어 주세요"></textarea>
       <div class="pa-rec" id="pa-rec" hidden>
         <button class="pa-rec-btn" id="pa-rec-cancel" type="button" aria-label="취소"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -4952,6 +4970,70 @@ function paInit(id) {
     const a = ivAsked(s); const t = a[a.length - 1];
     return t && t.answer == null && t.type !== 'close' ? t : null;
   }
+  // ── 시작 모달: 예상 소요 시간·질문 수·짧은 안내·동의 → '확인했어요, 시작하기' ──
+  function showIntro() {
+    if (S.introOpen || !S.s || S.s.endedAt) return;
+    S.introOpen = true;
+    const est = PA_ESTIMATE[S.s.flow === 'solo' ? 'solo' : 'attended'];
+    const ov = document.createElement('div');
+    ov.className = 'dialog-overlay';
+    ov.innerHTML = `<div class="dialog-box pa-intro" role="dialog" aria-modal="true" aria-labelledby="pa-intro-title">
+      <div class="dialog-title" id="pa-intro-title">투자 결정 인터뷰</div>
+      <div class="pa-intro-facts">
+        <div><span>예상 소요 시간</span><b>${est.time}</b></div>
+        <div><span>질문 수</span><b>${est.questions}</b></div>
+      </div>
+      <ul class="pa-intro-list">
+        <li>정답은 없어요. 경험하신 그대로 답해 주세요.</li>
+        <li>계좌번호·잔고·실명은 적지 말아 주세요.</li>
+        ${S.s.flow === 'solo' ? '<li>중간에 쉬었다가 이어서 답해도 돼요.</li>' : ''}
+        ${PA_SR ? '<li>말하기로 답할 수 있어요. 음성은 글자로만 남고 저장하지 않아요.</li>' : ''}
+      </ul>
+      <label class="pa-intro-agree"><input type="checkbox" id="pa-intro-agree"> 답변이 저장되고 AI 도구로 분석되는 것에 동의합니다 (필수)</label>
+      <button class="pa-btn dark pa-intro-go" id="pa-intro-go" disabled>확인했어요, 시작하기</button>
+      <div class="pa-status" id="pa-intro-status"></div>
+    </div>`;
+    document.body.appendChild(ov);
+    const agree = ov.querySelector('#pa-intro-agree'), go = ov.querySelector('#pa-intro-go');
+    agree.addEventListener('change', () => { go.disabled = !agree.checked; });
+    go.addEventListener('click', async () => {
+      go.disabled = true;
+      const at = new Date().toISOString();
+      try {
+        // 동의는 participant_answer 칸에 남긴다 — 연구자 화면이 기록 전체를 다시 저장해도 지워지지 않게
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+          method: 'PATCH',
+          headers: Object.assign({}, supabase._headers(), { 'Prefer': 'return=minimal' }),
+          body: JSON.stringify({ participant_answer: { consentAt: at, turn: null, text: null } }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        S.consentAt = at; S.introOpen = false;
+        ov.remove();
+        S.lastKey = ''; render();
+      } catch (e) { ov.querySelector('#pa-intro-status').textContent = '저장하지 못했어요. 다시 시도해 주세요. (' + e.message + ')'; go.disabled = false; }
+    });
+  }
+  // 남은 질문 수와 예상 남은 시간 (추정)
+  function remaining(s) {
+    const stages = IV_STAGES.filter(st => !st.skip);
+    const cur = ivCurrentStage(s);
+    const ci = Math.max(0, stages.findIndex(st => st.key === cur));
+    let mains = 0;
+    stages.forEach((st, i) => {
+      const list = st.key === '⑥' && s.aiUser === false ? IV_MAINS['⑥no'] : (IV_MAINS[st.key] || []);
+      if (i > ci) mains += list.length;
+      else if (i === ci) { const p = ivStageProgress(s, st); mains += Math.max(0, p.count - p.idx); }
+    });
+    const asked = ivAsked(s);
+    const open = openTurn(s) ? 1 : 0;
+    const q = Math.max(open, Math.min(IV_MAX_TURNS - asked.length + open, Math.round(mains * PA_FOLLOWUP_RATIO) + open));
+    // 이 참가자의 질문 간 평균 시간 — 쉬는 시간이 끼어도 과하게 늘지 않게 질문당 2분까지만 센다
+    const gaps = [];
+    for (let i = 1; i < asked.length; i++) gaps.push(Math.min(120, Math.max(10, (asked[i].at - asked[i - 1].at) / 1000)));
+    // 초반 몇 개로 크게 흔들리지 않게 기본값(질문 3개 분량)과 섞는다
+    const per = (gaps.reduce((a, b) => a + b, 0) + PA_SEC_PER_QUESTION * 3) / (gaps.length + 3);
+    return { q, min: Math.max(1, Math.round(q * per / 60)) };
+  }
   function render() {
     const s = S.s;
     if (!s) return;
@@ -4960,7 +5042,8 @@ function paInit(id) {
     const cur = ivCurrentStage(s);
     const st = cur && ivStageDef(cur);
     const p = st ? ivStageProgress(s, st) : null;
-    $('pa-progress').innerHTML = st ? `<div class="pa-progress-label">${cur} ${ivEsc(st.name)} · ${p.idx} / ${p.count}</div><div class="pa-bar"><i style="width:${Math.round(ivOverallProgress(s) * 100)}%"></i></div>` : '';
+    const rem = st && !s.endedAt ? remaining(s) : null;
+    $('pa-progress').innerHTML = st ? `<div class="pa-progress-row"><div class="pa-progress-label">${cur} ${ivEsc(st.name)} · ${p.idx} / ${p.count}</div>${rem ? `<div class="pa-remain">남은 질문 약 ${rem.q}개 · 예상 남은 시간 약 ${rem.min}분</div>` : ''}</div><div class="pa-bar"><i style="width:${Math.round(ivOverallProgress(s) * 100)}%"></i></div>` : '';
     // 보낸 질문과 참가자 본인이 쓴 답만 보여준다
     let html = '';
     ivAsked(s).forEach(t => {
@@ -4982,9 +5065,7 @@ function paInit(id) {
     $('pa-compose').classList.toggle('done', !!s.endedAt);
     if (s.endedAt) $('pa-compose').innerHTML = '<div class="pa-end">인터뷰가 끝났습니다. 참여해 주셔서 감사합니다.</div>';
     else {
-      // 첫 답을 보내기 전에만 동의 체크박스를 보여 준다
-      $('pa-agree-row').style.display = S.consentAt ? 'none' : '';
-      const agreed = !!S.consentAt || $('pa-agree').checked;
+      const agreed = !!S.consentAt;   // 시작 모달에서 동의해야 답할 수 있다
       $('pa-send').disabled = !canAnswer || !agreed; $('pa-unknown').disabled = !canAnswer || !agreed; $('pa-text').disabled = !canAnswer;
       if ($('pa-mic')) $('pa-mic').disabled = !canAnswer || !agreed;
       if (V.phase !== 'idle') { $('pa-send').disabled = true; $('pa-unknown').disabled = true; }
@@ -4999,6 +5080,7 @@ function paInit(id) {
       S.s = row.data;
       const pa = row.participant_answer;
       S.consentAt = S.consentAt || (pa && pa.consentAt) || (S.s.consent && S.s.consent.participantAt) || null;
+      if (!S.consentAt && !S.s.endedAt) showIntro();   // 처음 들어오면 시작 모달
       const open = openTurn(S.s);
       S.pending = pa && open && pa.turn === open.n ? pa : null;
       render();
@@ -5084,7 +5166,7 @@ function paInit(id) {
   function startVoice() {
     const open = openTurn(S.s);
     if (!PA_SR || !open) return;
-    if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
+    if (!S.consentAt) { showIntro(); return; }
     $('pa-status').textContent = '';
     const cur = $('pa-text').value.trim();
     V.base = cur ? cur + ' ' : '';
@@ -5157,7 +5239,7 @@ function paInit(id) {
   }
   if ($('pa-mic')) $('pa-mic').addEventListener('click', () => {
     if (V.phase !== 'idle') return;
-    if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
+    if (!S.consentAt) return showIntro();
     if (IS_IOS && !voiceTipSeen()) return showVoiceTip();
     startVoice();
   });
@@ -5167,21 +5249,10 @@ function paInit(id) {
     text = (text || '').trim();
     if (!s || !open || !text || S.busy || V.phase !== 'idle') return;
     const via = V.used && text !== '잘 모르겠어요' ? 'voice' : 'text';
-    if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
+    if (!S.consentAt) { showIntro(); return; }
     S.busy = 'send'; render();
     $('pa-status').textContent = '';
     try {
-      // 첫 답과 함께 동의를 남긴다 — participant_answer 칸이라 연구자 화면이 기록을 저장해도 지워지지 않는다
-      if (!S.consentAt) {
-        const at = new Date().toISOString();
-        const rc = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}`, {
-          method: 'PATCH',
-          headers: Object.assign({}, supabase._headers(), { 'Prefer': 'return=minimal' }),
-          body: JSON.stringify({ participant_answer: { consentAt: at, turn: null, text: null } }),
-        });
-        if (!rc.ok) throw new Error('HTTP ' + rc.status);
-        S.consentAt = at;
-      }
       const latest = await ivFetchSessionData(id);
       if (latest && latest.data) { S.s = latest.data; }
       const cur = S.s; const t = openTurn(cur);
@@ -5211,7 +5282,6 @@ function paInit(id) {
     S.busy = ''; render();
   }
   $('pa-send').addEventListener('click', () => send($('pa-text').value));
-  $('pa-agree').addEventListener('change', render);
   $('pa-unknown').addEventListener('click', () => send('잘 모르겠어요'));
   load();
   setInterval(load, 2500);
