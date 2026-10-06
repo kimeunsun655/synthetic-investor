@@ -1386,6 +1386,15 @@
   .pa-btn.ghost { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); color: var(--cal-ink); }
   .pa-btn.dark { flex: 1; background: var(--cal-primary); border: 1px solid var(--cal-primary); color: var(--cal-on-primary); }
   .pa-btn:disabled, .pa-input:disabled { opacity: 0.45; cursor: default; }
+  .pa-btn.mic { display: inline-flex; align-items: center; gap: 6px; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); color: var(--cal-ink); padding: 0 14px; white-space: nowrap; }
+  .pa-btn.mic.on { background: var(--cal-error-tint); border-color: var(--cal-error); color: #b91c1c; animation: pa-pulse 1.4s ease-in-out infinite; }
+  @keyframes pa-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35); } 50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } }
+  @media (prefers-reduced-motion: reduce) { .pa-btn.mic.on { animation: none; } }
+  .pa-btns .pa-btn { white-space: nowrap; }
+  .pa-btns .pa-btn.dark { min-width: 0; }
+  .pa-listen { font-size: 12px; color: #b91c1c; margin-top: 6px; }
+  .pa-listen:empty { display: none; }
+  .pa-hint { font-size: 12px; color: var(--cal-muted); margin-top: 8px; line-height: 1.5; }
   .pa-status { font-size: 12px; color: #b45309; margin-top: 6px; }
   .pa-status:empty { display: none; }
   .pa-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: var(--cal-ink); margin-bottom: 10px; cursor: pointer; }
@@ -3557,7 +3566,7 @@ function ivFacts(s) {
 // ══════════════════════════════════════
 //  심층 인터뷰 — 진행 흐름
 // ══════════════════════════════════════
-function ivResetDrafts() { IV.drafts = { prop: '', answer: '', direct: '', reason: '', directQid: '' }; IV.editing = false; IV.answerRating = null; IV.participantText = ''; }
+function ivResetDrafts() { IV.drafts = { prop: '', answer: '', direct: '', reason: '', directQid: '' }; IV.editing = false; IV.answerRating = null; IV.participantText = ''; IV.participantVia = ''; }
 function ivSetBusy(s, text) { s._busy = text || ''; if (ivCur() === s) ivRenderAll(); }
 
 function ivSetMode(mode) {
@@ -3766,6 +3775,7 @@ function ivSaveRealAnswer() {
   const t = a[a.length - 1];
   t.rating = IV.answerRating;
   const source = IV.participantText && text === IV.participantText.trim() ? 'participant' : 'proxy';
+  if (source === 'participant') t.answerVia = IV.participantVia || 'text';
   ivPushAnswer(s, t, text, source);
   ivResetDrafts();
   if (ivCapped(s)) ivFinish(s, 'capped', `질문 ${IV_MAX_TURNS}개를 다 써서 중단`);
@@ -3803,6 +3813,7 @@ function ivSyncPoll() {
       const a = ivAsked(cur); const t = a[a.length - 1];
       if (ans && t && ans.turn === t.n && ans.text && ans.text !== IV.participantText) {
         IV.participantText = ans.text;
+        IV.participantVia = ans.via || 'text';
         IV.drafts.answer = ans.text;
         ivRenderComposer();
       }
@@ -4210,7 +4221,7 @@ function ivTurnHtml(s, t) {
   if (t.action === 'skipped') return html;
   const code = ivEsc(s.profile.code);
   if (t.answer != null) {
-    const label = s.kind === 'real' ? `<div class="iv-a-label">${t.answerSource === 'participant' ? '참가자 직접 작성' : '연구자 대리 입력 · 요약'}</div>` : '';
+    const label = s.kind === 'real' ? `<div class="iv-a-label">${t.answerSource === 'participant' ? `참가자 직접 작성${t.answerVia === 'voice' ? ' · 음성' : ''}` : '연구자 대리 입력 · 요약'}</div>` : '';
     html += `<div class="iv-a"><div class="iv-code">${code}</div><div>${label}<div class="iv-a-bubble">${ivEsc(t.answer)}</div></div></div>`;
   } else if (t.answerError) {
     html += `<div class="iv-a"><div class="iv-code">${code}</div><div><div class="iv-a-bubble pending" style="color:var(--cal-error)">응답 생성 실패: ${ivEsc(t.answerError)}</div><button class="iv-btn ghost" data-act="retry-answer">답변 다시 받기</button></div></div>`;
@@ -4563,7 +4574,7 @@ function ivTranscriptTxt(s) {
     txt += `[ 질문 ${tag} ]\n${t.utterance}\n`;
     if (t.action === 'edited') txt += `(AI 원래 질문: ${t.aiUtterance}${t.editReason ? ' / 이유: ' + t.editReason : ''})\n`;
     txt += '\n';
-    if (t.answer != null) txt += `[ ${p.code}${s.kind === 'real' ? (t.answerSource === 'participant' ? ' · 직접 작성' : ' · 대리 입력') : ''} ]\n${t.answer}\n\n`;
+    if (t.answer != null) txt += `[ ${p.code}${s.kind === 'real' ? (t.answerSource === 'participant' ? (t.answerVia === 'voice' ? ' · 직접 작성(음성)' : ' · 직접 작성') : ' · 대리 입력') : ''} ]\n${t.answer}\n\n`;
   });
   return txt;
 }
@@ -4588,7 +4599,7 @@ function ivAiLogRows(list) {
     const um = t.usage && t.usage.mod, up = t.usage && t.usage.persona;
     rows.push([s.profile.code, ivModeLabel(s.mode), s.kind === 'real' ? '실제 참가자' : (s.profile.answerMode || IV_ANSWER_MODE), s.profile.segment || ivProfileLine(s), t.n, t.stage, t.qid, IV_TYPE_LABEL[t.type] || t.type,
       { asked: '그대로', edited: '수정', skipped: '건너뜀' }[t.action], t.utterance, t.action === 'edited' ? t.aiUtterance : '', t.editReason,
-      t.answer, t.answerSource === 'persona' ? '합성 응답' : t.answerSource === 'participant' ? '참가자 직접 작성' : t.answerSource === 'proxy' ? '연구자 대리 입력' : '',
+      t.answer, t.answerSource === 'persona' ? '합성 응답' : t.answerSource === 'participant' ? (t.answerVia === 'voice' ? '참가자 직접 작성(음성)' : '참가자 직접 작성') : t.answerSource === 'proxy' ? '연구자 대리 입력' : '',
       t.rating === 'good' ? '적절' : t.rating === 'bad' ? '부적절' : '', n.prev_answer_tags, n.claims, n.flags, n.level, n.covered, n.skipped,
       n.ai_user == null ? '' : n.ai_user, n.reason,
       um ? um.calls : '', ...u4(um), ...u4(up), (um || up) ? (ivUsageCost(um) + ivUsageCost(up)).toFixed(4) : '']);
@@ -4608,7 +4619,7 @@ function ivEditLogRows(s) {
   const rows = [['코드', '턴', '질문 ID', '처리', 'AI가 고른 질문', '실제로 물은 질문', '이유', 'AI가 고른 질문이 적절했나', '답변 입력']];
   s.turns.forEach(t => rows.push([s.profile.code, t.n, t.qid, ivActLabel(t), t.aiUtterance,
     t.action === 'skipped' ? '' : t.utterance, t.editReason, t.rating === 'good' ? '적절' : t.rating === 'bad' ? '부적절' : (t.action === 'skipped' ? '' : '평가 전'),
-    t.answerSource === 'participant' ? '참가자 직접 작성' : t.answerSource === 'proxy' ? '연구자 대리 입력' : '']));
+    t.answerSource === 'participant' ? (t.answerVia === 'voice' ? '참가자 직접 작성(음성)' : '참가자 직접 작성') : t.answerSource === 'proxy' ? '연구자 대리 입력' : '']));
   return rows;
 }
 function ivLoadJsZip() {
@@ -4886,22 +4897,29 @@ function ivInitGuideEvents() {
 // ══════════════════════════════════════
 //  참가자 링크 화면 — ?answer=세션ID
 // ══════════════════════════════════════
+// 음성 답변 — 브라우저 내장 음성 인식(Web Speech API). 지원하는 브라우저에서만 말하기 버튼을 보여 준다
+const PA_SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const PA_IN_APP = /KAKAOTALK|Instagram|FBAN|FBAV|NAVER\(inapp|Line\/|DaumApps/i.test(navigator.userAgent);
+const PA_MIC_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
 function paInit(id) {
   const root = document.getElementById('participant-view');
   root.innerHTML = `
     <div class="pa-head"><b>투자 결정 인터뷰</b><span id="pa-code"></span></div>
     <div class="pa-body">
       <div class="pa-progress" id="pa-progress"></div>
-      <div class="pa-notice">정답은 없어요. 답하신 내용은 연구 목적으로 저장되고 AI 도구로 정리돼요. 계좌번호·잔고·실명은 적지 말고 구간이나 가명으로 적어 주세요.</div>
+      <div class="pa-notice">정답은 없어요. 답하신 내용은 연구 목적으로 저장되고 AI 도구로 정리돼요. 계좌번호·잔고·실명은 적지 말고 구간이나 가명으로 적어 주세요.${PA_SR ? ' 말하기를 쓰면 브라우저의 음성 인식이 말을 글자로 바꿔 입력칸에 채워요. 음성은 저장하지 않으니, 확인하고 고친 뒤 보내 주세요.' : ''}</div>
       <div class="pa-msgs" id="pa-msgs"><div class="iv-muted">질문을 불러오는 중…</div></div>
     </div>
     <div class="pa-compose" id="pa-compose">
       <label class="pa-agree" id="pa-agree-row"><input type="checkbox" id="pa-agree"> 답변이 저장되고 AI 도구로 분석되는 것에 동의합니다 (필수)</label>
       <textarea class="pa-input" id="pa-text" rows="3" placeholder="생각나는 대로 편하게 적어 주세요"></textarea>
-      <div class="pa-btns"><button class="pa-btn ghost" id="pa-unknown">잘 모르겠어요</button><button class="pa-btn dark" id="pa-send">답변 보내기</button></div>
+      <div class="pa-btns">${PA_SR ? `<button class="pa-btn mic" id="pa-mic" type="button" aria-label="말로 답하기">${PA_MIC_ICON}<span id="pa-mic-label">말하기</span></button>` : ''}<button class="pa-btn ghost" id="pa-unknown">잘 모르겠어요</button><button class="pa-btn dark" id="pa-send">답변 보내기</button></div>
+      ${!PA_SR && PA_IN_APP ? '<div class="pa-hint">말로 답하려면 오른쪽 위 메뉴에서 \'다른 브라우저로 열기\'(Safari·Chrome)를 눌러 주세요.</div>' : ''}
+      <div class="pa-listen" id="pa-listen" aria-live="polite"></div>
       <div class="pa-status" id="pa-status"></div>
     </div>`;
   const S = { s: null, pending: null, busy: '', error: '', lastKey: '', consentAt: null };
+  const V = { rec: null, on: false, base: '', used: false, turn: null };   // 음성 인식 상태
   const $ = x => document.getElementById(x);
 
   // 지금 답할 질문 (참가자가 답하지 않은 마지막 질문)
@@ -4944,6 +4962,8 @@ function paInit(id) {
       $('pa-agree-row').style.display = S.consentAt ? 'none' : '';
       const agreed = !!S.consentAt || $('pa-agree').checked;
       $('pa-send').disabled = !canAnswer || !agreed; $('pa-unknown').disabled = !canAnswer || !agreed; $('pa-text').disabled = !canAnswer;
+      if ($('pa-mic')) $('pa-mic').disabled = !canAnswer || !agreed;
+      if (V.on && (!canAnswer || (open && V.turn !== open.n))) stopVoice();   // 질문이 바뀌면 듣기를 멈춘다
     }
   }
   async function load() {
@@ -4982,10 +5002,56 @@ function paInit(id) {
     } catch (e) { S.error = e.message || '오류'; }
     S.busy = ''; render();
   }
+  // ── 말하기 ──
+  function renderMic() {
+    const b = $('pa-mic'); if (!b) return;
+    b.classList.toggle('on', V.on);
+    $('pa-mic-label').textContent = V.on ? '멈추기' : '말하기';
+    const st = $('pa-listen');
+    if (st) st.textContent = V.on ? '듣고 있어요… 말을 마치면 멈추기를 눌러 주세요.' : '';
+  }
+  function voiceError(code) {
+    const msg = {
+      'not-allowed': '마이크 사용이 허용되지 않았어요. 브라우저 설정에서 마이크를 허용하거나 글로 적어 주세요.',
+      'service-not-allowed': '이 브라우저에서는 음성 인식을 쓸 수 없어요. 글로 적어 주세요.',
+      'audio-capture': '마이크를 찾지 못했어요. 글로 적어 주세요.',
+      'no-speech': '말소리가 들리지 않았어요. 다시 눌러 말씀해 주세요.',
+      'network': '음성 인식 서버에 연결하지 못했어요. 잠시 뒤 다시 시도하거나 글로 적어 주세요.',
+    }[code];
+    if (msg) $('pa-status').textContent = msg;
+  }
+  function startVoice() {
+    const open = openTurn(S.s);
+    if (!PA_SR || !open) return;
+    if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
+    $('pa-status').textContent = '';
+    const cur = $('pa-text').value.trim();
+    V.base = cur ? cur + ' ' : '';
+    V.turn = open.n;
+    try {
+      const rec = new PA_SR();
+      rec.lang = 'ko-KR'; rec.continuous = true; rec.interimResults = true;
+      rec.onresult = e => {
+        let text = '';
+        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+        $('pa-text').value = V.base + text.trim();
+        V.used = true;
+      };
+      rec.onerror = e => voiceError(e.error);
+      rec.onend = () => { V.on = false; V.rec = null; renderMic(); };
+      rec.start();
+      V.rec = rec; V.on = true; renderMic();
+    } catch (e) { voiceError('service-not-allowed'); }
+  }
+  function stopVoice() { if (V.rec) { try { V.rec.stop(); } catch (e) { /* 무시 */ } } V.on = false; renderMic(); }
+  if ($('pa-mic')) $('pa-mic').addEventListener('click', () => (V.on ? stopVoice() : startVoice()));
+
   async function send(text) {
     const s = S.s; const open = openTurn(s);
     text = (text || '').trim();
     if (!s || !open || !text || S.busy) return;
+    stopVoice();
+    const via = V.used && text !== '잘 모르겠어요' ? 'voice' : 'text';
     if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
     S.busy = 'send'; render();
     $('pa-status').textContent = '';
@@ -5008,10 +5074,11 @@ function paInit(id) {
       if (cur.flow === 'solo') {
         cur.elapsedSec = ivWallElapsed(cur);
         cur.consent = Object.assign({}, cur.consent, { participantAt: (cur.consent && cur.consent.participantAt) || S.consentAt });
+        t.answerVia = via;
         ivPushAnswer(cur, t, text, 'participant');
         if (ivCapped(cur)) { cur.status = 'capped'; cur.endReason = `질문 ${IV_MAX_TURNS}개를 다 써서 중단`; cur.endedAt = Date.now(); cur.live = Object.assign({}, cur.live, { ended: true }); }
         await ivStoreUpsert(cur);
-        $('pa-text').value = '';
+        $('pa-text').value = ''; V.used = false;
         S.busy = ''; render();
         if (!cur.endedAt) soloNext();
         return;
@@ -5020,11 +5087,11 @@ function paInit(id) {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}`, {
         method: 'PATCH',
         headers: Object.assign({}, supabase._headers(), { 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({ participant_answer: { turn: t.n, text, at: new Date().toISOString(), consentAt: S.consentAt } }),
+        body: JSON.stringify({ participant_answer: { turn: t.n, text, at: new Date().toISOString(), consentAt: S.consentAt, via } }),
       });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       S.pending = { turn: t.n, text };
-      $('pa-text').value = '';
+      $('pa-text').value = ''; V.used = false;
     } catch (e) { $('pa-status').textContent = '보내지 못했어요. 다시 시도해 주세요. (' + e.message + ')'; }
     S.busy = ''; render();
   }
