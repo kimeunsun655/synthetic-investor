@@ -1217,6 +1217,12 @@
   .iv-pick.active { border-color: transparent; background: var(--cal-surface-soft); }
   .iv-pick.active .iv-code { background: var(--cal-primary); color: var(--cal-on-primary); }
   .iv-link:disabled { color: var(--cal-muted-soft); cursor: default; text-decoration: none; }
+  .tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; border-radius: 9px; background: var(--cal-error); color: #fff; font-size: 11px; font-weight: 700; }
+  .tab-badge[hidden] { display: none; }
+  .iv-toasts { position: fixed; top: 72px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; max-width: calc(100vw - 40px); }
+  .iv-toast { display: flex; align-items: center; gap: 12px; background: var(--cal-primary); color: var(--cal-on-primary); border-radius: 10px; padding: 12px 14px; font-size: 13px; box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+  .iv-toast .iv-link { color: #93c5fd; margin: 0; font-weight: 600; }
+  .iv-toast-x { background: none; border: none; color: #d1d5db; font-size: 16px; cursor: pointer; padding: 0 2px; }
   .iv-save { font-size: 12px; color: var(--cal-success); }
   .iv-save.warn { color: #b45309; }
   .iv-more { font-size: 12px; color: var(--cal-muted); padding: 2px 12px 12px; }
@@ -1469,7 +1475,7 @@
     페르소나 뱅크
   </button>
   <button class="tab-btn" data-tab="interview">
-    심층 인터뷰
+    심층 인터뷰<span class="tab-badge" id="iv-pending-badge" hidden></span>
   </button>
   <button class="tab-btn" data-tab="survey">
     설문
@@ -3850,12 +3856,14 @@ function ivSyncPoll() {
 }
 // 참가자가 링크 화면에서 동의한 시각 (없으면 null)
 function ivParticipantConsented(s) { return (s.consent && s.consent.participantAt) || s._paConsentAt || null; }
+// 실제 인터뷰가 시간 기준(연구자 동석·대리 입력)인지 — 자동 진행은 질문 수 기준
+function ivRealTimed(s) { return s ? s.flow !== 'solo' : !(IV.realSetup.inputMode === 'link' && IV.realSetup.flow === 'solo'); }
 function ivFmtClock(t) { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
 function ivActLabel(t) { return t.action === 'skipped' ? '건너뜀' : t.action === 'edited' ? '고쳐서 물음' : t.auto ? (t.autoFlow === 'solo' ? '바로 물음 (자동 진행)' : '바로 물음') : '그대로 물음'; }
 // 진행 방식 전환: 연구자 동석(attended) ↔ 자동 진행(solo)
 async function ivSetFlow(v) {
   const s = IV.current.real;
-  if (!s) { IV.realSetup.flow = v; if (v === 'solo') IV.realSetup.inputMode = 'link'; ivRenderLeft(); return; }
+  if (!s) { IV.realSetup.flow = v; if (v === 'solo') IV.realSetup.inputMode = 'link'; ivRenderAll(); return; }
   if (s.endedAt || s.flow === v) return;
   if (s._busy) { showDialog('잠시 후 다시 시도해주세요', 'AI가 질문을 고르는 중입니다.'); return; }
   s._switching = true;
@@ -4058,7 +4066,7 @@ function ivRenderControl() {
     else if (!b.running) btns = `<button class="iv-btn dark" data-act="batch-new">새로 실행</button>`;
     else btns = `<button class="iv-btn dark" data-act="batch-pause">${b.paused ? '재개' : '일시정지'}</button><button class="iv-btn ghost" data-act="batch-stop">중지</button>`;
     ivSetHtml(el, `<span>전체 ${done} / ${total} 완료</span>${btns}`);
-  } else if (IV.mode === 'real' && !(s && s.flow === 'solo')) {
+  } else if (IV.mode === 'real' && ivRealTimed(s)) {
     ivSetHtml(el, `${ivSaveBadge(s)}<span>경과 ${ivFmtTime(s ? s.elapsedSec : 0)} / ${IV_TOTAL_MINUTES}분</span>`);
   } else {
     ivSetHtml(el, `${ivSaveBadge(s)}<span>경과 ${ivFmtTime(s ? s.elapsedSec : 0)}</span><span class="gap">질문 ${s ? ivAsked(s).length : 0} / ${IV_MAX_TURNS}개</span>`);
@@ -4089,7 +4097,7 @@ function ivRenderStages() {
   const s = ivCur();
   const cur = s ? ivCurrentStage(s) : null;
   const curIdx = cur ? IV_STAGES.findIndex(x => x.key === cur) : -1;
-  const real = IV.mode === 'real' && !(s && s.flow === 'solo');   // 자동 진행은 시간 대신 턴 기준
+  const real = IV.mode === 'real' && ivRealTimed(s);   // 자동 진행은 시간 대신 턴 기준
   ivSetHtml(el, IV_STAGES.map((st, i) => {
     let cls = '', fill = 0, label = st.name;
     if (st.skip) { cls = 'skip'; label = '건너뜀'; }
@@ -4221,16 +4229,24 @@ function ivRenderLeft() {
 
 // 지난 실제 인터뷰 목록 (팀원이 진행한 인터뷰 포함 — 저장소 기준)
 function ivPastRealHtml() {
-  const list = Object.values(IV.sessions).filter(x => x.kind === 'real').sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  const P = IV.pending;
+  const pendingIds = new Set(P.done.concat(P.stalled).map(x => x.id));
+  let list = Object.values(IV.sessions).filter(x => x.kind === 'real').sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  if (P.onlyPending) list = list.filter(x => pendingIds.has(x.id));
   const fmt = d => { d = new Date(d); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const rows = list.slice(0, 12).map(x => {
-    const state = x.endedAt ? (x.review && x.review.status === 'done' ? '끝남 · 리뷰 완료' : '끝남 · 리뷰 전') : (x.flow === 'solo' ? '참가자 단독 진행 중' : '진행 중');
+    const stalled = ivSessionStalled(x);
+    const state = x.endedAt ? (x.review && x.review.status === 'done' ? '끝남 · 리뷰 완료' : '끝남 · 리뷰 전') : stalled ? `응답 멈춤 · ${IV_STALL_HOURS}시간 넘게 활동 없음` : (x.flow === 'solo' ? '자동 진행 중' : '진행 중');
     return `<div class="iv-pitem" data-act="real-open" data-id="${ivEsc(x.id)}">
       <div class="iv-code">${ivEsc(x.profile.code)}</div>
-      <div><div class="iv-pmain">${fmt(x.createdAt)} · 질문 ${ivAsked(x).length}개</div><div class="iv-psub ${x.endedAt ? '' : 'run'}">${state}</div></div></div>`;
+      <div><div class="iv-pmain">${fmt(x.createdAt)} · 질문 ${ivAsked(x).length}개</div><div class="iv-psub ${stalled || (x.endedAt && !(x.review && x.review.status === 'done')) ? 'bad' : x.endedAt ? '' : 'run'}">${state}</div></div></div>`;
   }).join('');
-  if (!rows) return '';
-  return `<div class="iv-panel"><div class="iv-panel-head plain">지난 인터뷰 <span class="aside">${list.length}건 · 자동 저장</span></div>
+  if (!rows && !P.onlyPending) return '';
+  const head = P.onlyPending
+    ? `리뷰 대기 <span class="aside">${list.length}건 · <button class="iv-link" style="margin:0" data-act="pending-all">전체 보기</button></span>`
+    : `지난 인터뷰 <span class="aside">${list.length}건 · 자동 저장${pendingIds.size ? ` · <button class="iv-link" style="margin:0" data-act="pending-only">리뷰 대기 ${pendingIds.size}건</button>` : ''}</span>`;
+  if (!rows) return `<div class="iv-panel"><div class="iv-panel-head plain">${head}</div><div class="iv-panel-body"><div class="iv-muted">리뷰를 기다리는 인터뷰가 없어요.</div></div></div>`;
+  return `<div class="iv-panel"><div class="iv-panel-head plain">${head}</div>
     <div class="iv-plist" style="padding-top:2px;max-height:260px;">${rows}</div></div>`;
 }
 
@@ -4310,6 +4326,13 @@ function ivRenderComposer() {
   if (!s) { el.innerHTML = ''; return; }
   if (s.endedAt) { el.innerHTML = ivDoneHtml(s); return; }
   const phase = ivPhase(s);
+  if (s.kind === 'real' && ivSessionStalled(s)) {
+    el.className = 'iv-composer soft';
+    el.innerHTML = `<div class="iv-comp-head"><b>응답이 멈췄어요</b><span class="iv-chip warn">참가자 활동이 ${IV_STALL_HOURS}시간 넘게 없음</span></div>
+      <div class="iv-reason">지금까지의 답으로 끝내고 리뷰하거나, 참가자가 돌아올 때까지 더 기다릴 수 있어요. 기다리는 동안에도 참가자는 같은 링크로 이어서 답할 수 있어요.</div>
+      <div class="iv-actions"><button class="iv-btn ghost lg" data-act="stall-wait">더 기다리기</button><button class="iv-btn dark lg" data-act="stall-end">끝내고 리뷰하기</button></div>`;
+    return;
+  }
   if (s.kind === 'real' && s.flow === 'solo') {
     const consented = ivParticipantConsented(s);
     const status = s._busy ? s._busy : phase === 'answer' ? (consented ? '참가자가 답을 쓰는 중입니다' : '첫 질문이 준비됐습니다. 참가자가 링크를 열고 답하면 이어집니다') : 'AI가 다음 질문을 고르는 중입니다';
@@ -4499,7 +4522,7 @@ function ivInitEvents() {
       if (cr && cr.flow === 'solo' && el.dataset.v === 'proxy') { showDialog('자동 진행 중입니다', "대리 입력으로 바꾸려면 먼저 '연구자가 이어받기'를 눌러주세요."); return; }
       if (cr) { cr.inputMode = el.dataset.v; ivSave(cr); }
       else { IV.realSetup.inputMode = el.dataset.v; }
-      ivRenderLeft(); ivRenderComposer(); ivSyncPoll();
+      ivRenderLeft(); ivRenderComposer(); ivRenderControl(); ivSyncPoll();
     }
     else if (act === 'copy-link') ivCopyLink();
     else if (act === 'flow') ivSetFlow(el.dataset.v);
@@ -4509,6 +4532,10 @@ function ivInitEvents() {
     else if (act === 'latest-save') ivEditLatest();
     else if (act === 'latest-skip') ivSkipLatest();
     else if (act === 'real-open') ivOpenRealSession(el.dataset.id);
+    else if (act === 'stall-wait') { IV.pending.stalled = IV.pending.stalled.filter(x => x.id !== (s && s.id)); const ack = ivAckRead(); if (s) ack.add(s.id); ivAckWrite(ack); ivRenderPendingBadge(); ivRenderAll(); }
+    else if (act === 'stall-end') { if (s) { (async () => { try { await ivRefreshFromStore(s); } catch (e) { /* 무시 */ } ivFinish(s, 'stopped', `응답 멈춤 (참가자 활동 ${IV_STALL_HOURS}시간 넘게 없음)`); IV.pending.stalled = IV.pending.stalled.filter(x => x.id !== s.id); ivRenderPendingBadge(); ivOpenReview(s.id); })(); } }
+    else if (act === 'pending-only') { IV.pending.onlyPending = true; ivRenderLeft(); }
+    else if (act === 'pending-all') { IV.pending.onlyPending = false; ivRenderLeft(); }
     else if (act === 'real-close') ivCloseRealSession();
     else if (act === 'real-save') ivSaveRealAnswer();
     else if (act === 'rate') { IV.answerRating = IV.answerRating === el.dataset.v ? null : el.dataset.v; ivRenderComposer(); }
@@ -4841,6 +4868,7 @@ function ivInitReviewEvents() {
     else if (act === 'save') {
       const left = ivCriteria(s).filter(c => !(s.review.criteria[c.key] && s.review.criteria[c.key].grade)).length;
       s.review.status = 'done'; s.review.savedAt = Date.now(); ivSave(s, true);
+      IV.pending.done = IV.pending.done.filter(x => x.id !== s.id); ivRenderPendingBadge();
       showDialog('리뷰를 저장했습니다', left ? `아직 판정하지 않은 기준이 ${left}개 있습니다.` : '팀원도 같은 리뷰를 볼 수 있습니다.', () => ivCloseView());
     }
     else if (act === 'resum') { delete s._summaryError; ivReviewSummaries(s); ivRenderReview(); }
@@ -5326,6 +5354,123 @@ function ivSaveBadge(s) {
   return `<span class="iv-save">자동 저장됨${t ? ` · ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}` : ''}</span>`;
 }
 
+// ══════════════════════════════════════
+//  리뷰 대기 알림 — 끝났는데 리뷰하지 않은 실제 인터뷰 · 응답이 멈춘 인터뷰
+// ══════════════════════════════════════
+const IV_STALL_HOURS = 24;          // 참가자 활동이 이 시간 넘게 없으면 '응답 멈춤'
+const IV_PENDING_POLL_MS = 30000;   // 열려 있는 동안 확인 주기
+IV.pending = { done: [], stalled: [], known: null, entryShown: false, onlyPending: false };
+
+function ivAckRead() { try { return new Set(JSON.parse(localStorage.getItem('iv_pending_ack_v1') || '[]')); } catch (e) { return new Set(); } }
+function ivAckWrite(ids) { try { localStorage.setItem('iv_pending_ack_v1', JSON.stringify(Array.from(ids).slice(-300))); } catch (e) { /* 무시 */ } }
+function ivLastActivity(row) {
+  const t = [Date.parse(row.updated_at || 0) || 0, Date.parse(row.pa_at || 0) || 0, Number(row.ended) || 0];
+  return Math.max.apply(null, t);
+}
+// 상태 값만 가볍게 읽는다 (대화 기록 전체를 받지 않음)
+async function ivFetchPendingSummary() {
+  const sel = 'id,updated_at,code:data->profile->>code,ended:data->>endedAt,review:data->review->>status,lt:data->live->>turn,pa_at:participant_answer->>at';
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?select=${sel}&data->>kind=eq.real&order=updated_at.desc&limit=200`, { headers: supabase._headers() });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+function ivIsPendingDone(x) { return !!x.ended && x.review !== 'done'; }
+function ivIsStalled(x) { return !x.ended && x.lt != null && Date.now() - ivLastActivity(x) > IV_STALL_HOURS * 3600e3; }
+async function ivPollPending() {
+  let rows;
+  try { rows = await ivFetchPendingSummary(); } catch (e) { return; }
+  // 끝났거나 멈춘 인터뷰는 전체 기록을 받아 둔다 (목록·리뷰에 쓰임). 지금 화면에서 직접 진행 중인 인터뷰는 덮어쓰지 않는다
+  const need = rows.filter(x => ivIsPendingDone(x) || ivIsStalled(x)).filter(x => {
+    const local = IV.sessions[x.id];
+    if (local && IV.current.real === local && local.flow !== 'solo' && !local.endedAt) return false;
+    return !local || String(local.endedAt || '') !== String(x.ended || '') || ((local.review && local.review.status) || null) !== (x.review || null) || String((local.live && local.live.turn) || '') !== String(x.lt || '');
+  });
+  for (const x of need) {
+    try {
+      const row = await ivFetchSessionData(x.id);
+      if (!row || !row.data) continue;
+      if (IV.sessions[x.id]) Object.keys(row.data).forEach(k => { IV.sessions[x.id][k] = row.data[k]; }); else IV.sessions[x.id] = row.data;
+    } catch (e) { /* 다음 확인 때 다시 */ }
+  }
+  const done = rows.filter(ivIsPendingDone), stalled = rows.filter(ivIsStalled);
+  const P = IV.pending;
+  const before = P.known;
+  P.done = done; P.stalled = stalled;
+  P.known = new Set(done.concat(stalled).map(x => x.id));
+  ivRenderPendingBadge();
+  if (IV.mode === 'real' && !IV.current.real) ivRenderLeft();
+  if (before === null) {
+    // 들어올 때 한 번: '나중에'로 넘긴 것 말고 새로 생긴 대기 건이 있으면 모달
+    const ack = ivAckRead();
+    if (Array.from(P.known).some(id => !ack.has(id)) && !document.querySelector('.dialog-overlay')) ivShowPendingModal();
+  } else {
+    // 보는 중에 새로 끝난 인터뷰는 작은 알림으로
+    done.filter(x => !before.has(x.id)).forEach(x => ivToast(`${x.code || '참가자'} 인터뷰가 끝났어요`, '리뷰하기', () => ivOpenPendingReview(x.id)));
+    stalled.filter(x => !before.has(x.id)).forEach(x => ivToast(`${x.code || '참가자'} 인터뷰의 응답이 ${IV_STALL_HOURS}시간 넘게 멈췄어요`, '보기', () => ivOpenRealFromPending(x.id)));
+  }
+}
+function ivRenderPendingBadge() {
+  const b = document.getElementById('iv-pending-badge');
+  if (!b) return;
+  const n = IV.pending.done.length + IV.pending.stalled.length;
+  b.hidden = !n; b.textContent = n;
+  b.title = `리뷰 대기 ${IV.pending.done.length}건${IV.pending.stalled.length ? ` · 응답 멈춤 ${IV.pending.stalled.length}건` : ''}`;
+}
+function ivShowPendingModal() {
+  const P = IV.pending;
+  const nd = P.done.length, ns = P.stalled.length;
+  if (!nd && !ns) return;
+  const ov = document.createElement('div');
+  ov.className = 'dialog-overlay';
+  ov.innerHTML = `<div class="dialog-box" role="dialog" aria-modal="true">
+    <div class="dialog-title">${nd ? `리뷰를 기다리는 인터뷰가 ${nd}건 있어요` : `응답이 멈춘 인터뷰가 ${ns}건 있어요`}</div>
+    <div class="dialog-msg">${nd && ns ? `참가자 응답이 ${IV_STALL_HOURS}시간 넘게 멈춘 인터뷰도 ${ns}건 있어요.` : ns && !nd ? `참가자 활동이 ${IV_STALL_HOURS}시간 넘게 없어요. 끝내고 리뷰할지 더 기다릴지 골라 주세요.` : '끝난 인터뷰를 리뷰해서 판정을 남겨 주세요.'}</div>
+    <div class="dialog-actions" style="gap:8px;"><button class="iv-btn ghost" data-v="later">나중에</button><button class="dialog-confirm" data-v="go">${nd ? '리뷰하기' : '보기'}</button></div>
+  </div>`;
+  ov.addEventListener('click', e => {
+    const v = e.target.dataset && e.target.dataset.v;
+    if (!v && e.target !== ov) return;
+    ov.remove();
+    if (v === 'go') ivOpenPendingList();
+    else { const ack = ivAckRead(); P.known.forEach(id => ack.add(id)); ivAckWrite(ack); }   // 나중에: 새 건이 생길 때까지 다시 묻지 않음
+  });
+  document.body.appendChild(ov);
+}
+// 1건이면 바로 리뷰, 여러 건이면 AI 모더레이터의 지난 인터뷰를 '리뷰 대기'만 걸러서 보여 준다
+function ivOpenPendingList() {
+  const P = IV.pending;
+  if (P.done.length === 1 && !P.stalled.length) return ivOpenPendingReview(P.done[0].id);
+  if (!P.done.length && P.stalled.length === 1) return ivOpenRealFromPending(P.stalled[0].id);
+  P.onlyPending = true;
+  IV.reviewId = null; ivShowView(null);
+  selectTab('interview');
+  IV.mode = 'real'; IV.current.real = null;
+  ivRenderAll();
+}
+async function ivOpenPendingReview(id) {
+  try { const row = await ivFetchSessionData(id); if (row && row.data) { if (IV.sessions[id]) Object.keys(row.data).forEach(k => { IV.sessions[id][k] = row.data[k]; }); else IV.sessions[id] = row.data; } } catch (e) { /* 이 브라우저의 기록으로 연다 */ }
+  if (!IV.sessions[id]) return;
+  selectTab('interview');
+  ivOpenReview(id);
+}
+async function ivOpenRealFromPending(id) {
+  ivShowView(null); selectTab('interview');
+  IV.mode = 'real';
+  if (!IV.sessions[id]) { try { const row = await ivFetchSessionData(id); if (row && row.data) IV.sessions[id] = row.data; } catch (e) { return; } }
+  ivOpenRealSession(id);
+}
+function ivSessionStalled(s) { return s && s.kind === 'real' && !s.endedAt && IV.pending.stalled.some(x => x.id === s.id); }
+function ivToast(msg, action, onAction) {
+  let box = document.getElementById('iv-toasts');
+  if (!box) { box = document.createElement('div'); box.id = 'iv-toasts'; box.className = 'iv-toasts'; document.body.appendChild(box); }
+  const t = document.createElement('div');
+  t.className = 'iv-toast'; t.setAttribute('role', 'status');
+  t.innerHTML = `<span>${ivEsc(msg)}</span><button class="iv-link" data-t="go">${ivEsc(action)}</button><button class="iv-toast-x" data-t="x" aria-label="닫기">×</button>`;
+  t.addEventListener('click', e => { const v = e.target.dataset && e.target.dataset.t; if (!v) return; t.remove(); if (v === 'go') onAction(); });
+  box.appendChild(t);
+  setTimeout(() => t.remove(), 20000);
+}
+
 function ivInit() {
   try { const m = localStorage.getItem('iv_mode'); if (m && ['direct', 'suggest', 'auto', 'real'].includes(m)) IV.mode = m; } catch (e) { /* 무시 */ }
   ivLocalRestore();
@@ -5341,6 +5486,8 @@ function ivInit() {
     if (r) { try { await ivRefreshFromStore(r); } catch (e) { /* 무시 */ } }
     ivRenderAll();
     ivSyncPoll();
+    ivPollPending();
+    setInterval(ivPollPending, IV_PENDING_POLL_MS);
   });
 }
 
