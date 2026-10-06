@@ -1364,7 +1364,7 @@
   .pa-head { position: sticky; top: 0; z-index: 10; height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: var(--cal-canvas); border-bottom: 1px solid var(--cal-hairline); }
   .pa-head b { font-size: 16px; color: var(--cal-ink); }
   .pa-head span { font-size: 13px; color: var(--cal-muted); }
-  .pa-body { padding: 16px 20px 210px; }
+  .pa-body { padding: 16px 20px 260px; }
   .pa-progress { position: sticky; top: 54px; z-index: 5; background: var(--cal-surface-soft); margin: -16px -20px 0; padding: 16px 20px 2px; }
   .pa-progress:empty { display: none; }
   .pa-progress-label { font-size: 12px; font-weight: 600; color: #1d4ed8; margin-bottom: 8px; }
@@ -1378,7 +1378,8 @@
   .pa-me { align-self: flex-end; max-width: 80%; background: var(--cal-primary); color: var(--cal-on-primary); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6; margin-bottom: 16px; white-space: pre-wrap; }
   .pa-sent { align-self: flex-end; font-size: 11px; color: var(--cal-muted); margin: -10px 2px 16px; }
   .pa-compose { position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; background: var(--cal-canvas); border-top: 1px solid var(--cal-hairline); padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px)); }
-  .pa-input { width: 100%; min-height: 84px; resize: none; border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 12px 14px; font-size: 14px; font-family: inherit; line-height: 1.6; outline: none; color: var(--cal-ink); }
+  /* 16px 미만이면 iPhone Safari가 입력칸을 누를 때 화면을 확대한다 */
+  .pa-input { width: 100%; min-height: 84px; resize: none; border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 12px 14px; font-size: 16px; font-family: inherit; line-height: 1.6; outline: none; color: var(--cal-ink); }
   .pa-input:focus { border-color: var(--cal-ink); }
   .pa-btns { display: flex; gap: 8px; margin-top: 10px; }
   .pa-btn { height: 46px; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; padding: 0 16px; }
@@ -1387,6 +1388,8 @@
   .pa-btn:disabled, .pa-input:disabled { opacity: 0.45; cursor: default; }
   .pa-status { font-size: 12px; color: #b45309; margin-top: 6px; }
   .pa-status:empty { display: none; }
+  .pa-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: var(--cal-ink); margin-bottom: 10px; cursor: pointer; }
+  .pa-agree input { width: 18px; height: 18px; margin-top: 0; accent-color: var(--cal-primary); flex-shrink: 0; }
   .pa-consent { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
   .pa-consent b { font-size: 16px; }
   .pa-consent p { font-size: 14px; line-height: 1.7; color: var(--cal-body); }
@@ -1401,6 +1404,8 @@
     .rv-layout { grid-template-columns: 1fr; }
   }
   @media (max-width: 760px) {
+    /* 휴대폰에서 입력칸을 누를 때 화면이 확대되지 않게 16px로 */
+    .iv-textarea, .iv-field input, .iv-field select, .iv-edit-reason input, .iv-qbank, .iv-mini-select, .iv-mini-num, .chat-input { font-size: 16px; }
     .iv-layout { grid-template-columns: 1fr; }
     .iv-stages { grid-template-columns: repeat(4, 1fr); }
     .iv-control-right { margin-left: 0; }
@@ -3700,7 +3705,30 @@ function ivStartReal() {
   IV.proposal = null; IV.proposalError = ''; ivResetDrafts();
   ivSave(s, true);
   ivRenderAll(); ivSyncPoll();
-  if (!solo) ivSuggestNext(s);   // 자동 진행은 참가자가 링크를 열고 동의하면 참가자 화면이 첫 질문을 만든다
+  if (solo) ivSoloFirstQuestion(s);   // 참가자가 링크를 열자마자 첫 질문이 보이도록 미리 만든다
+  else ivSuggestNext(s);
+}
+// 자동 진행의 첫 질문 — 그사이 참가자 화면이 먼저 만들었으면 그 질문을 쓴다
+async function ivSoloFirstQuestion(s) {
+  if (s.turns.length || s._busy) return;
+  if (!s.modHistory.length) s.modHistory.push({ role: 'user', content: ivStartMessage(s) });
+  ivSetBusy(s, 'AI가 첫 질문을 준비하는 중…');
+  try {
+    const obj = await ivModeratorNext(s);
+    let fresh = true;
+    try {
+      const row = await ivFetchSessionData(s.id);
+      if (row && row.data && row.data.turns && row.data.turns.length) { Object.keys(row.data).forEach(k => { s[k] = row.data[k]; }); fresh = false; }
+    } catch (e) { /* 저장소 없음 — 이 화면의 기록으로 진행 */ }
+    if (fresh) {
+      const t = ivRecordTurn(s, obj, {});
+      t.auto = true; t.autoFlow = 'solo';
+      s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: false };
+      ivSave(s, true);
+    }
+  } catch (e) { /* 실패하면 참가자가 링크를 열 때 참가자 화면이 다시 만든다 */ }
+  ivSetBusy(s, '');
+  ivRenderAll();
 }
 // 방금 보낸 질문을 참가자가 답하기 전에 고치거나 건너뛴다 (필요할 때만)
 function ivEditLatest() {
@@ -4245,7 +4273,7 @@ function ivRenderComposer() {
   const phase = ivPhase(s);
   if (s.kind === 'real' && s.flow === 'solo') {
     const consented = ivParticipantConsented(s);
-    const status = !consented ? '참가자가 링크를 열고 동의하면 첫 질문이 시작됩니다' : phase === 'answer' ? '참가자가 답을 쓰는 중입니다' : 'AI가 다음 질문을 고르는 중입니다';
+    const status = s._busy ? s._busy : phase === 'answer' ? (consented ? '참가자가 답을 쓰는 중입니다' : '첫 질문이 준비됐습니다. 참가자가 링크를 열고 답하면 이어집니다') : 'AI가 다음 질문을 고르는 중입니다';
     el.className = 'iv-composer soft';
     el.innerHTML = `<div class="iv-comp-head"><b>자동 진행 중</b><span class="iv-chip blue">AI가 고른 질문이 바로 참가자에게 갑니다</span></div>
       <div class="iv-busy"><div class="spinner" style="width:14px;height:14px;border-width:2px;"></div>${ivEsc(status)}</div>
@@ -4864,10 +4892,11 @@ function paInit(id) {
     <div class="pa-head"><b>투자 결정 인터뷰</b><span id="pa-code"></span></div>
     <div class="pa-body">
       <div class="pa-progress" id="pa-progress"></div>
-      <div class="pa-notice">정답은 없어요. 계좌번호·잔고·실명은 적지 말고 구간이나 가명으로 적어 주세요.</div>
+      <div class="pa-notice">정답은 없어요. 답하신 내용은 연구 목적으로 저장되고 AI 도구로 정리돼요. 계좌번호·잔고·실명은 적지 말고 구간이나 가명으로 적어 주세요.</div>
       <div class="pa-msgs" id="pa-msgs"><div class="iv-muted">질문을 불러오는 중…</div></div>
     </div>
     <div class="pa-compose" id="pa-compose">
+      <label class="pa-agree" id="pa-agree-row"><input type="checkbox" id="pa-agree"> 답변이 저장되고 AI 도구로 분석되는 것에 동의합니다 (필수)</label>
       <textarea class="pa-input" id="pa-text" rows="3" placeholder="생각나는 대로 편하게 적어 주세요"></textarea>
       <div class="pa-btns"><button class="pa-btn ghost" id="pa-unknown">잘 모르겠어요</button><button class="pa-btn dark" id="pa-send">답변 보내기</button></div>
       <div class="pa-status" id="pa-status"></div>
@@ -4881,55 +4910,11 @@ function paInit(id) {
     const a = ivAsked(s); const t = a[a.length - 1];
     return t && t.answer == null && t.type !== 'close' ? t : null;
   }
-  function renderConsent() {
-    const key = 'consent';
-    if (S.lastKey === key) return;
-    S.lastKey = key;
-    $('pa-progress').innerHTML = '';
-    $('pa-compose').style.display = 'none';
-    $('pa-msgs').innerHTML = `<div class="pa-consent">
-      <b>시작하기 전에</b>
-      <p>이 인터뷰는 AI 진행자가 질문하고, 답하신 내용은 연구 목적으로 저장되어 AI 도구로 정리됩니다. 정답은 없어요. 답하기 어려운 질문은 "잘 모르겠어요"로 넘기셔도 되고, 언제든 그만두셔도 됩니다.</p>
-      <p>계좌번호·잔고·실명처럼 나를 알아볼 수 있는 정보는 적지 말아 주세요.</p>
-      <label><input type="checkbox" id="pa-agree"> 답변이 저장되고 AI 도구로 분석되는 것에 동의합니다 (필수)</label>
-      <button class="pa-btn dark" id="pa-start" disabled>동의하고 시작하기</button>
-      <div class="pa-status" id="pa-consent-status"></div>
-    </div>`;
-    $('pa-agree').addEventListener('change', e => { $('pa-start').disabled = !e.target.checked; });
-    $('pa-start').addEventListener('click', giveConsent);
-  }
-  // 동의는 participant_answer 칸에 남긴다 — 연구자 화면이 기록 전체를 다시 저장해도 지워지지 않게
-  async function giveConsent() {
-    $('pa-start').disabled = true;
-    const at = new Date().toISOString();
-    try {
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}`, {
-        method: 'PATCH',
-        headers: Object.assign({}, supabase._headers(), { 'Prefer': 'return=minimal' }),
-        body: JSON.stringify({ participant_answer: { consentAt: at, turn: null, text: null } }),
-      });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      S.consentAt = at;
-      const latest = await ivFetchSessionData(id);
-      if (latest && latest.data) {
-        S.s = latest.data;
-        if (S.s.flow === 'solo') {   // 자동 진행은 기록에도 남긴다 (연구자 화면이 쓰지 않는 동안 참가자 화면이 기록을 관리)
-          S.s.consent = Object.assign({}, S.s.consent, { participantAt: at });
-          await ivStoreUpsert(S.s);
-        }
-      }
-      $('pa-compose').style.display = '';
-      S.lastKey = '';
-      render();
-      if (S.s && S.s.flow === 'solo' && !S.s.endedAt && !openTurn(S.s)) soloNext();
-    } catch (e) { $('pa-consent-status').textContent = '저장하지 못했어요. 다시 시도해 주세요. (' + e.message + ')'; $('pa-start').disabled = false; }
-  }
   function render() {
     const s = S.s;
     if (!s) return;
     $('pa-code').textContent = s.profile && s.profile.code || '';
-    if (!S.consentAt && !s.endedAt) { renderConsent(); return; }
-    $('pa-compose').style.display = '';
+
     const cur = ivCurrentStage(s);
     const st = cur && ivStageDef(cur);
     const p = st ? ivStageProgress(s, st) : null;
@@ -4954,7 +4939,12 @@ function paInit(id) {
     const canAnswer = !!open && !(S.pending && S.pending.turn === open.n && s.flow === 'solo') && !S.busy;
     $('pa-compose').classList.toggle('done', !!s.endedAt);
     if (s.endedAt) $('pa-compose').innerHTML = '<div class="pa-end">인터뷰가 끝났습니다. 참여해 주셔서 감사합니다.</div>';
-    else { $('pa-send').disabled = !canAnswer; $('pa-unknown').disabled = !canAnswer; $('pa-text').disabled = !canAnswer; }
+    else {
+      // 첫 답을 보내기 전에만 동의 체크박스를 보여 준다
+      $('pa-agree-row').style.display = S.consentAt ? 'none' : '';
+      const agreed = !!S.consentAt || $('pa-agree').checked;
+      $('pa-send').disabled = !canAnswer || !agreed; $('pa-unknown').disabled = !canAnswer || !agreed; $('pa-text').disabled = !canAnswer;
+    }
   }
   async function load() {
     if (S.busy) return;
@@ -4967,8 +4957,8 @@ function paInit(id) {
       const open = openTurn(S.s);
       S.pending = pa && open && pa.turn === open.n ? pa : null;
       render();
-      // 자동 진행: 동의 후 다음 질문이 없으면(첫 질문·새로고침·연구자 탭 닫힘) 참가자 화면이 이어서 진행한다
-      if (S.s.flow === 'solo' && S.consentAt && !S.s.endedAt && !open && !S.error) soloNext();
+      // 자동 진행: 다음 질문이 없으면(첫 질문을 못 만든 채 연구자 탭이 닫힘·새로고침) 참가자 화면이 이어서 진행한다
+      if (S.s.flow === 'solo' && !S.s.endedAt && !open && !S.error) soloNext();
     } catch (e) { if (!S.s) $('pa-msgs').innerHTML = `<div class="iv-muted">질문을 불러오지 못했습니다. 링크를 다시 확인해 주세요. (${ivEsc(e.message)})</div>`; }
   }
   // 단독 진행: 참가자 화면이 AI 진행자에게 다음 질문을 받아 저장한다
@@ -4996,15 +4986,28 @@ function paInit(id) {
     const s = S.s; const open = openTurn(s);
     text = (text || '').trim();
     if (!s || !open || !text || S.busy) return;
+    if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
     S.busy = 'send'; render();
     $('pa-status').textContent = '';
     try {
+      // 첫 답과 함께 동의를 남긴다 — participant_answer 칸이라 연구자 화면이 기록을 저장해도 지워지지 않는다
+      if (!S.consentAt) {
+        const at = new Date().toISOString();
+        const rc = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}`, {
+          method: 'PATCH',
+          headers: Object.assign({}, supabase._headers(), { 'Prefer': 'return=minimal' }),
+          body: JSON.stringify({ participant_answer: { consentAt: at, turn: null, text: null } }),
+        });
+        if (!rc.ok) throw new Error('HTTP ' + rc.status);
+        S.consentAt = at;
+      }
       const latest = await ivFetchSessionData(id);
       if (latest && latest.data) { S.s = latest.data; }
       const cur = S.s; const t = openTurn(cur);
       if (!t || t.n !== open.n) { S.busy = ''; return load(); }
       if (cur.flow === 'solo') {
         cur.elapsedSec = ivWallElapsed(cur);
+        cur.consent = Object.assign({}, cur.consent, { participantAt: (cur.consent && cur.consent.participantAt) || S.consentAt });
         ivPushAnswer(cur, t, text, 'participant');
         if (ivCapped(cur)) { cur.status = 'capped'; cur.endReason = `질문 ${IV_MAX_TURNS}개를 다 써서 중단`; cur.endedAt = Date.now(); cur.live = Object.assign({}, cur.live, { ended: true }); }
         await ivStoreUpsert(cur);
@@ -5026,6 +5029,7 @@ function paInit(id) {
     S.busy = ''; render();
   }
   $('pa-send').addEventListener('click', () => send($('pa-text').value));
+  $('pa-agree').addEventListener('change', render);
   $('pa-unknown').addEventListener('click', () => send('잘 모르겠어요'));
   load();
   setInterval(load, 2500);
