@@ -97,14 +97,19 @@
     color: var(--cal-ink);
     letter-spacing: -0.5px;
   }
+  /* 상태 라벨 — 누르는 요소가 아니므로 검정 대신 연한 색 + 점 */
   .header-badge {
     font-size: 12px;
-    font-weight: 700;
-    background: var(--cal-primary);
-    color: var(--cal-on-primary);
+    font-weight: 600;
+    background: var(--cal-success-tint);
+    color: #047857;
     padding: 3px 10px;
     border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
+  .header-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--cal-success); }
 
   /* ── 탭 네비 ── */
   .tab-nav {
@@ -439,7 +444,7 @@
   .sidebar-hint { padding: 8px 16px; font-size: 12px; color: var(--cal-muted); border-bottom: 1px solid var(--cal-hairline); }
   .tag-lit { background: var(--cal-accent-tint); color: #1e40af; }
   .tag-ai { background: #ecfeff; color: #0e7490; }
-  .tag-level-advanced { background: var(--cal-surface-dark); color: var(--cal-on-dark); }
+  .tag-level-advanced { background: #f5f3ff; color: #6d28d9; }
   .qbank-row { padding: 10px 16px 0; border-top: 1px solid var(--cal-hairline); }
   .qbank-row select { width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--cal-hairline); border-radius: 8px; font-size: 13px; color: var(--cal-body); background: var(--cal-surface-soft); font-family: inherit; outline: none; }
   .qbank-row + .chat-input-row { border-top: none; }
@@ -514,8 +519,8 @@
     border-radius: 4px 12px 12px 12px;
   }
   .msg.user .msg-bubble {
-    background: var(--cal-primary);
-    color: var(--cal-on-primary);
+    background: var(--cal-accent-tint);
+    color: #1e3a8a;
     border-radius: 12px 4px 12px 12px;
   }
   .msg-avatar {
@@ -668,10 +673,9 @@
   .workshop-header {
     padding: 14px 18px;
     border-bottom: 1px solid var(--cal-hairline);
-    background: var(--cal-ink);
-    border-radius: 16px 16px 0 0;
+    background: var(--cal-canvas);
   }
-  .workshop-header .title { font-size: 15px; font-weight: 600; color: white; }
+  .workshop-header .title { font-size: 15px; font-weight: 700; color: var(--cal-ink); }
   .workshop-header .sub { font-size: 12px; color: var(--cal-muted); margin-top: 2px; }
   .workshop-participants {
     padding: 10px 18px;
@@ -758,8 +762,8 @@
     justify-content: center;
     min-width: 22px; height: 22px;
     border-radius: 4px;
-    background: var(--cal-primary);
-    color: var(--cal-on-primary);
+    background: var(--cal-surface-strong);
+    color: var(--cal-ink);
     font-size: 12px;
     font-weight: 600;
     padding: 0 6px;
@@ -918,7 +922,7 @@
     align-items: center;
   }
   .mode-badge.explore { background: var(--cal-surface-strong); color: var(--cal-muted); }
-  .mode-badge.verify { background: var(--cal-surface-dark); color: var(--cal-on-dark); }
+  .mode-badge.verify { background: var(--cal-accent-tint); color: #1d4ed8; }
 
   /* ── 고도화: 타이머 + 질문 카운터 ── */
   .session-bar {
@@ -1004,7 +1008,7 @@
   }
   .source-bar-fill {
     height: 100%;
-    background: var(--cal-primary);
+    background: var(--cal-accent);
     border-radius: 4px;
     transition: width 0.4s ease;
   }
@@ -1161,13 +1165,18 @@
   .iv-label { font-size: 13px; color: var(--cal-body); }
   .iv-seg { display: inline-flex; background: var(--cal-surface-card); border-radius: 10px; padding: 3px; gap: 2px; }
   .iv-seg button { border: none; background: none; height: 32px; padding: 0 12px; border-radius: 7px; font-size: 13px; color: var(--cal-body); cursor: pointer; font-family: inherit; white-space: nowrap; }
-  .iv-seg button.active { background: var(--cal-primary); color: var(--cal-on-primary); font-weight: 700; }
+  .iv-seg button.active { background: var(--cal-canvas); color: var(--cal-ink); font-weight: 700; box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 0 0 1px var(--cal-hairline); }
+  /* 진행 방식은 화면을 바꾸는 탭 — 맨 위 탭처럼 밑줄로 표시 */
+  .iv-seg.tabs { background: none; padding: 0; gap: 4px; border-radius: 0; border-bottom: 1px solid var(--cal-hairline); }
+  .iv-seg.tabs button { border-radius: 0; height: 36px; color: var(--cal-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .iv-seg.tabs button:hover { color: var(--cal-body); }
+  .iv-seg.tabs button.active { background: none; box-shadow: none; color: var(--cal-ink); border-bottom-color: var(--cal-ink); }
   .iv-control-right { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--cal-body); font-variant-numeric: tabular-nums; }
   .iv-control-right .gap { margin-left: 12px; }
   .iv-stages { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; }
   .iv-stages.single { display: block; }
   .iv-stage-bar { height: 4px; border-radius: 2px; background: var(--cal-surface-strong); overflow: hidden; }
-  .iv-stage-bar i { display: block; height: 100%; background: var(--cal-primary); border-radius: 2px; }
+  .iv-stage-bar i { display: block; height: 100%; background: #93c5fd; border-radius: 2px; }
   .iv-stage.current .iv-stage-bar { background: #dbeafe; }
   .iv-stage.current .iv-stage-bar i { background: var(--cal-accent); }
   .iv-stage-label { font-size: 11px; color: var(--cal-muted); margin-top: 6px; display: flex; align-items: center; gap: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1176,7 +1185,7 @@
   .iv-stage.skip .iv-stage-label { color: var(--cal-muted-soft); }
   .iv-ic { display: inline-flex; width: 10px; height: 10px; flex-shrink: 0; }
   .iv-progress { height: 6px; border-radius: 3px; background: var(--cal-surface-strong); overflow: hidden; }
-  .iv-progress i { display: block; height: 100%; background: var(--cal-primary); }
+  .iv-progress i { display: block; height: 100%; background: var(--cal-accent); }
   .iv-store-warn { display: none; font-size: 12px; color: #92400e; background: var(--cal-warning-tint); border: 1px solid #fcd34d; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; line-height: 1.6; }
   .iv-store-warn.show { display: block; }
 
@@ -1195,7 +1204,7 @@
   .iv-pitem.active { border-color: var(--cal-primary); }
   .iv-pitem.running { border-color: var(--cal-accent); background: var(--cal-accent-tint); }
   .iv-code { width: 34px; height: 34px; border-radius: 8px; background: var(--cal-surface-card); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--cal-ink); flex-shrink: 0; letter-spacing: -0.3px; }
-  .iv-pitem.active .iv-code { background: var(--cal-primary); color: var(--cal-on-primary); }
+  .iv-pitem.active .iv-code { background: var(--cal-surface-strong); color: var(--cal-ink); }
   .iv-pmain { font-size: 13px; font-weight: 600; color: var(--cal-ink); line-height: 18px; }
   .iv-psub { font-size: 11px; color: var(--cal-muted); line-height: 16px; margin-top: 2px; }
   .iv-psub.ok { color: var(--cal-success); }
@@ -1215,7 +1224,7 @@
   .iv-pick { cursor: pointer; }
   .iv-pick input { width: 15px; height: 15px; accent-color: var(--cal-primary); flex-shrink: 0; }
   .iv-pick.active { border-color: transparent; background: var(--cal-surface-soft); }
-  .iv-pick.active .iv-code { background: var(--cal-primary); color: var(--cal-on-primary); }
+  .iv-pick.active .iv-code { background: var(--cal-surface-strong); color: var(--cal-ink); }
   .iv-link:disabled { color: var(--cal-muted-soft); cursor: default; text-decoration: none; }
   .tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 6px; border-radius: 9px; background: var(--cal-error); color: #fff; font-size: 11px; font-weight: 700; }
   .tab-badge[hidden] { display: none; }
@@ -1237,7 +1246,7 @@
   .iv-q { align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
   .iv-q.flash .iv-q-bubble { box-shadow: 0 0 0 3px #93c5fd; }
   .iv-q-chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-  .iv-q-bubble { background: var(--cal-primary); color: var(--cal-on-primary); padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+  .iv-q-bubble { background: var(--cal-accent-tint); color: #1e3a8a; padding: 12px 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
   .iv-q.skipped .iv-q-bubble { background: var(--cal-surface-card); color: var(--cal-muted); text-decoration: line-through; }
   .iv-a { display: flex; gap: 10px; max-width: 82%; align-items: flex-start; }
   .iv-a .iv-code { width: 30px; height: 30px; font-size: 10px; }
@@ -1265,8 +1274,8 @@
   .iv-actions { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
   .iv-actions .lead { margin-right: auto; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cal-body); flex-wrap: wrap; }
   .iv-pill { height: 32px; padding: 0 14px; border-radius: 16px; border: 1px solid var(--cal-hairline); background: var(--cal-canvas); font-size: 12px; color: var(--cal-ink); cursor: pointer; font-family: inherit; }
-  .iv-pill.on { background: var(--cal-primary); color: var(--cal-on-primary); border-color: var(--cal-primary); }
-  .iv-pill.on.bad { background: #b45309; border-color: #b45309; }
+  .iv-pill.on { background: var(--cal-canvas); color: var(--cal-ink); border-color: var(--cal-ink); box-shadow: inset 0 0 0 1px var(--cal-ink); font-weight: 600; }
+  .iv-pill.on.bad { background: var(--cal-warning-tint); color: #b45309; border-color: #b45309; box-shadow: inset 0 0 0 1px #b45309; }
   .iv-pii { font-size: 12px; color: #b45309; margin-top: 8px; }
   .iv-edit-reason { display: flex; gap: 6px; align-items: center; margin-top: 10px; flex-wrap: wrap; font-size: 12px; color: var(--cal-body); }
   .iv-edit-reason input { flex: 1; min-width: 180px; height: 32px; border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 0 10px; font-size: 13px; font-family: inherit; outline: none; }
@@ -1375,13 +1384,13 @@
   .pa-progress:empty { display: none; }
   .pa-progress-label { font-size: 12px; font-weight: 600; color: #1d4ed8; margin-bottom: 8px; }
   .pa-bar { height: 4px; border-radius: 2px; background: var(--cal-surface-strong); overflow: hidden; margin-bottom: 18px; }
-  .pa-bar i { display: block; height: 100%; background: var(--cal-primary); border-radius: 2px; transition: width 0.3s; }
+  .pa-bar i { display: block; height: 100%; background: var(--cal-accent); border-radius: 2px; transition: width 0.3s; }
   .pa-notice { font-size: 12px; color: var(--cal-body); background: var(--cal-surface-card); border-radius: 10px; padding: 10px 14px; line-height: 1.6; margin-bottom: 18px; }
   .pa-msgs { display: flex; flex-direction: column; }
   .pa-ai-label { font-size: 11px; color: var(--cal-muted); margin: 4px 0 4px; }
   .pa-ai { align-self: flex-start; max-width: 86%; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6; color: var(--cal-ink); margin-bottom: 16px; white-space: pre-wrap; }
   .pa-typing { color: var(--cal-muted); }
-  .pa-me { align-self: flex-end; max-width: 80%; background: var(--cal-primary); color: var(--cal-on-primary); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6; margin-bottom: 16px; white-space: pre-wrap; }
+  .pa-me { align-self: flex-end; max-width: 80%; background: var(--cal-accent-tint); color: #1e3a8a; border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.6; margin-bottom: 16px; white-space: pre-wrap; }
   .pa-sent { align-self: flex-end; font-size: 11px; color: var(--cal-muted); margin: -10px 2px 16px; }
   .pa-compose { position: fixed; left: 0; right: 0; bottom: 0; max-width: 480px; margin: 0 auto; background: var(--cal-canvas); border-top: 1px solid var(--cal-hairline); padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px)); }
   /* 16px 미만이면 iPhone Safari가 입력칸을 누를 때 화면을 확대한다 */
@@ -1610,7 +1619,7 @@
     <div class="iv-card iv-control">
       <div class="iv-control-row">
         <span class="iv-label">진행 방식</span>
-        <div class="iv-seg" id="iv-mode-seg">
+        <div class="iv-seg tabs" id="iv-mode-seg">
           <button data-mode="direct">직접 질문</button>
           <button data-mode="suggest">AI 제안 받기</button>
           <button data-mode="auto">AI 자동 진행</button>
@@ -4291,7 +4300,12 @@ function ivRenderCenter() {
       direct: '왼쪽에서 페르소나를 선택한 뒤<br>질문을 직접 쓰거나 질문지에서 골라 보내세요.',
       suggest: '왼쪽에서 페르소나를 선택하면<br>AI 진행자가 첫 질문을 제안합니다.',
       auto: `왼쪽 실행 대기열에서 인터뷰할 페르소나를 고르세요 (최대 ${IV_BATCH_MAX}명).<br>위의 <b>시작</b>을 누르면 고른 순서대로 질문 ${IV_MAX_TURNS}개 안에서 끝까지 자동으로 진행됩니다.`,
-      real: '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작하세요.<br>AI 진행자가 질문을 고르면 연구자가 확인한 뒤 묻습니다.',
+      real: (() => {
+        const { inputMode, flow } = IV.realSetup;
+        if (inputMode === 'link' && flow === 'solo') return '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작한 뒤, 참가자 링크를 보내 주세요.<br>참가자가 답을 보내면 AI 모더레이터가 바로 다음 질문을 이어갑니다.';
+        if (inputMode === 'link') return '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작한 뒤, 참가자 링크를 보내 주세요.<br>AI 모더레이터의 질문은 바로 참가자에게 가고, 연구자는 답을 확인해 저장합니다.';
+        return '왼쪽에 참가자 정보를 입력하고 인터뷰를 시작하세요.<br>AI 모더레이터의 질문이 바로 화면에 나오고, 연구자는 참가자의 답을 입력해 저장합니다.';
+      })(),
     }[IV.mode];
     msgs.innerHTML = `<div class="iv-empty">${empty}</div>`;
   } else {
@@ -4521,7 +4535,7 @@ function ivInitEvents() {
       const cr = IV.current.real;
       if (cr && cr.flow === 'solo' && el.dataset.v === 'proxy') { showDialog('자동 진행 중입니다', "대리 입력으로 바꾸려면 먼저 '연구자가 이어받기'를 눌러주세요."); return; }
       if (cr) { cr.inputMode = el.dataset.v; ivSave(cr); }
-      else { IV.realSetup.inputMode = el.dataset.v; }
+      else { IV.realSetup.inputMode = el.dataset.v; ivRenderCenter(); }
       ivRenderLeft(); ivRenderComposer(); ivRenderControl(); ivSyncPoll();
     }
     else if (act === 'copy-link') ivCopyLink();
