@@ -1392,8 +1392,18 @@
   @media (prefers-reduced-motion: reduce) { .pa-btn.mic.on { animation: none; } }
   .pa-btns .pa-btn { white-space: nowrap; }
   .pa-btns .pa-btn.dark { min-width: 0; }
-  .pa-listen { font-size: 12px; color: #b91c1c; margin-top: 6px; }
-  .pa-listen:empty { display: none; }
+  .pa-rec { display: flex; align-items: center; gap: 10px; height: 64px; padding: 0 8px; border: 1px solid var(--cal-hairline); border-radius: 32px; background: var(--cal-canvas); }
+  .pa-rec[hidden] { display: none; }
+  .pa-rec-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--cal-surface-card); color: var(--cal-ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .pa-rec-btn.stop span { width: 14px; height: 14px; border-radius: 3px; background: var(--cal-ink); display: block; }
+  .pa-rec-mid { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .pa-rec-text { font-size: 16px; color: var(--cal-muted); animation: pa-blink 1.2s ease-in-out infinite; }
+  .pa-wave { display: flex; align-items: center; gap: 4px; height: 24px; }
+  .pa-wave i { width: 4px; height: 4px; border-radius: 2px; background: var(--cal-muted-soft); animation: pa-wave 0.9s ease-in-out infinite; }
+  .pa-wave i:nth-child(n+15) { background: var(--cal-ink); }
+  @keyframes pa-wave { 0%, 100% { height: 4px; } 50% { height: 16px; } }
+  @keyframes pa-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+  @media (prefers-reduced-motion: reduce) { .pa-wave i, .pa-rec-text { animation: none; } .pa-wave i { height: 8px; } }
   .pa-vlog { font-size: 11px; line-height: 1.5; background: #111; color: #d1fae5; border-radius: 8px; padding: 8px 10px; margin-top: 8px; max-height: 160px; overflow: auto; white-space: pre-wrap; }
   .pa-tip { max-width: 340px; }
   .pa-tip .dialog-msg { text-align: left; line-height: 1.7; }
@@ -4919,17 +4929,21 @@ function paInit(id) {
     <div class="pa-compose" id="pa-compose">
       <label class="pa-agree" id="pa-agree-row"><input type="checkbox" id="pa-agree"> 답변이 저장되고 AI 도구로 분석되는 것에 동의합니다 (필수)</label>
       <textarea class="pa-input" id="pa-text" rows="3" placeholder="생각나는 대로 편하게 적어 주세요"></textarea>
+      <div class="pa-rec" id="pa-rec" hidden>
+        <button class="pa-rec-btn" id="pa-rec-cancel" type="button" aria-label="취소"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <div class="pa-rec-mid" id="pa-rec-mid" aria-live="polite"></div>
+        <button class="pa-rec-btn stop" id="pa-rec-stop" type="button" aria-label="멈추기"><span></span></button>
+      </div>
       <div class="pa-btns">${PA_SR ? `<button class="pa-btn mic" id="pa-mic" type="button" aria-label="말로 답하기">${PA_MIC_ICON}<span id="pa-mic-label">말하기</span></button>` : ''}<button class="pa-btn ghost" id="pa-unknown">잘 모르겠어요</button><button class="pa-btn dark" id="pa-send">답변 보내기</button></div>
       ${PA_SR
-        ? (PA_MOBILE ? '<div class="pa-hint">키보드의 마이크 버튼(받아쓰기)으로 말해도 돼요.</div>' : '')
+        ? ''
         : PA_MOBILE
           ? `<div class="pa-hint">말로 답하려면 입력칸을 누른 뒤 키보드의 마이크 버튼(받아쓰기)을 누르고 말해 주세요.${PA_IN_APP ? ' 말하기 버튼을 쓰려면 오른쪽 위 메뉴에서 \'다른 브라우저로 열기\'(Safari·Chrome)를 눌러 주세요.' : ''}</div>`
           : '<div class="pa-hint">이 브라우저에서는 말하기 버튼을 쓸 수 없어요. Chrome이나 Safari로 열면 말로 답할 수 있어요.</div>'}
-      <div class="pa-listen" id="pa-listen" aria-live="polite"></div>
       <div class="pa-status" id="pa-status"></div>
     </div>`;
   const S = { s: null, pending: null, busy: '', error: '', lastKey: '', consentAt: null };
-  const V = { rec: null, on: false, base: '', used: false, turn: null };   // 음성 인식 상태
+  const V = { rec: null, on: false, phase: 'idle', base: '', buf: '', used: false, turn: null, cancel: false };   // 음성 인식 상태 (idle · listening · transcribing)
   const $ = x => document.getElementById(x);
 
   // 지금 답할 질문 (참가자가 답하지 않은 마지막 질문)
@@ -4973,7 +4987,8 @@ function paInit(id) {
       const agreed = !!S.consentAt || $('pa-agree').checked;
       $('pa-send').disabled = !canAnswer || !agreed; $('pa-unknown').disabled = !canAnswer || !agreed; $('pa-text').disabled = !canAnswer;
       if ($('pa-mic')) $('pa-mic').disabled = !canAnswer || !agreed;
-      if (V.on && (!canAnswer || (open && V.turn !== open.n))) stopVoice();   // 질문이 바뀌면 듣기를 멈춘다
+      if (V.phase !== 'idle') { $('pa-send').disabled = true; $('pa-unknown').disabled = true; }
+      if (V.phase !== 'idle' && (!open || V.turn !== open.n)) cancelVoice();   // 질문이 바뀌면 듣기를 멈춘다
     }
   }
   async function load() {
@@ -5013,12 +5028,21 @@ function paInit(id) {
     S.busy = ''; render();
   }
   // ── 말하기 ──
+  const WAVE = '<div class="pa-wave" aria-label="듣는 중">' + Array.from({ length: 28 }, (_, i) => `<i style="animation-delay:${(i % 7) * 0.12}s"></i>`).join('') + '</div>';
   function renderMic() {
-    const b = $('pa-mic'); if (!b) return;
-    b.classList.toggle('on', V.on);
-    $('pa-mic-label').textContent = V.on ? '멈추기' : '말하기';
-    const st = $('pa-listen');
-    if (st) st.textContent = V.on ? '듣고 있어요… 말을 멈추면 자동으로 끝나요. 이어서 말하려면 다시 누르세요.' : '';
+    const rec = $('pa-rec'); if (!rec) return;
+    const busy = V.phase !== 'idle';
+    rec.hidden = !busy;
+    $('pa-text').style.display = busy ? 'none' : '';
+    if ($('pa-mic')) $('pa-mic').style.display = busy ? 'none' : '';
+    $('pa-rec-stop').style.visibility = V.phase === 'listening' ? 'visible' : 'hidden';
+    if (busy) { $('pa-send').disabled = true; $('pa-unknown').disabled = true; }   // 받아쓰는 동안은 보내기를 막는다
+    const mid = $('pa-rec-mid');
+    const want = V.phase === 'listening' ? 'listening' : V.phase === 'transcribing' ? 'transcribing' : '';
+    if (mid.dataset.state !== want) {
+      mid.dataset.state = want;
+      mid.innerHTML = want === 'listening' ? WAVE : want === 'transcribing' ? '<span class="pa-rec-text">받아쓰는 중…</span>' : '';
+    }
   }
   const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const SETTINGS_HINT = IS_IOS ? ' 아이폰 설정 > 일반 > 키보드 > 받아쓰기가 켜져 있는지도 확인해 주세요.' : '';
@@ -5056,6 +5080,7 @@ function paInit(id) {
     return acc;
   }
   // 한 번 누르면 한 문장을 듣고, 말을 멈추면 자동으로 끝난다 (아이폰 사파리는 계속 듣기 모드에서 결과를 잘 주지 않는다)
+  // 듣는 동안은 입력창 자리에 녹음 막대를 보여 주고, 끝나면 '받아쓰는 중…' 뒤에 입력창에 글자를 채운다
   function startVoice() {
     const open = openTurn(S.s);
     if (!PA_SR || !open) return;
@@ -5063,31 +5088,51 @@ function paInit(id) {
     $('pa-status').textContent = '';
     const cur = $('pa-text').value.trim();
     V.base = cur ? cur + ' ' : '';
-    V.turn = open.n; V.got = false; V.errored = false;
+    V.turn = open.n; V.got = false; V.errored = false; V.buf = ''; V.cancel = false;
     try {
       const rec = new PA_SR();
       rec.lang = 'ko-KR'; rec.continuous = false; rec.interimResults = true; rec.maxAlternatives = 1;
-      ['start', 'audiostart', 'soundstart', 'speechstart', 'speechend', 'soundend', 'audioend', 'nomatch'].forEach(ev => { rec['on' + ev] = () => vlog(ev); });
+      ['start', 'audiostart', 'soundstart', 'speechstart', 'soundend', 'audioend', 'nomatch'].forEach(ev => { rec['on' + ev] = () => vlog(ev); });
+      rec.onspeechend = () => { vlog('speechend'); if (V.phase === 'listening') { V.phase = 'transcribing'; V.transAt = Date.now(); renderMic(); } };
       rec.onresult = e => {
         const text = joinResults(e.results);
         vlog(`result(${e.results.length}) ${e.results[e.results.length - 1].isFinal ? 'final' : 'interim'}: ${text}`);
-        if (!text) return;
-        $('pa-text').value = V.base + text;
-        V.used = true; V.got = true;
+        if (text) { V.buf = text; V.got = true; }
       };
-      rec.onerror = e => { vlog('error ' + e.error + (e.message ? ' ' + e.message : '')); voiceError(e.error); };
+      rec.onerror = e => { vlog('error ' + e.error + (e.message ? ' ' + e.message : '')); if (!V.cancel) voiceError(e.error); };
       rec.onend = () => {
         vlog('end');
-        V.on = false; V.rec = null; renderMic();
-        if (!V.got && !V.errored) $('pa-status').textContent = '인식된 말이 없어요. 버튼을 누른 뒤 바로 말씀해 주세요.' + SETTINGS_HINT;
-        else if (V.got) $('pa-status').textContent = '';
+        V.on = false; V.rec = null;
+        if (V.cancel) { V.phase = 'idle'; renderMic(); return; }
+        // '받아쓰는 중…'이 잠깐이라도 보이도록 한 뒤 입력창에 채운다
+        if (V.phase === 'listening') { V.phase = 'transcribing'; V.transAt = Date.now(); renderMic(); }
+        const wait = Math.max(0, 500 - (Date.now() - (V.transAt || 0)));
+        setTimeout(() => {
+          if (V.cancel) return;
+          V.phase = 'idle';
+          if (V.got && V.buf) { $('pa-text').value = V.base + V.buf; V.used = true; $('pa-status').textContent = ''; }
+          else if (!V.errored) $('pa-status').textContent = '인식된 말이 없어요. 버튼을 누른 뒤 바로 말씀해 주세요.' + SETTINGS_HINT;
+          renderMic(); render();
+        }, wait);
       };
       rec.start();
       vlog('start() 호출 · ' + (window.SpeechRecognition ? 'SpeechRecognition' : 'webkitSpeechRecognition'));
-      V.rec = rec; V.on = true; renderMic();
-    } catch (e) { vlog('예외 ' + e.message); voiceError('service-not-allowed'); }
+      V.rec = rec; V.on = true; V.phase = 'listening'; renderMic();
+    } catch (e) { vlog('예외 ' + e.message); V.phase = 'idle'; renderMic(); render(); voiceError('service-not-allowed'); }
   }
-  function stopVoice() { if (V.rec) { try { V.rec.stop(); } catch (e) { /* 무시 */ } } V.on = false; renderMic(); }
+  // ■ 멈추기: 들은 내용을 받아쓴다
+  function stopVoice() {
+    if (V.phase === 'listening') { V.phase = 'transcribing'; V.transAt = Date.now(); renderMic(); }
+    if (V.rec) { try { V.rec.stop(); } catch (e) { /* 무시 */ } }
+  }
+  // ✕ 취소: 들은 내용을 버린다
+  function cancelVoice() {
+    V.cancel = true;
+    if (V.rec) { try { (V.rec.abort || V.rec.stop).call(V.rec); } catch (e) { /* 무시 */ } }
+    V.on = false; V.phase = 'idle'; renderMic(); render();
+  }
+  $('pa-rec-stop').addEventListener('click', stopVoice);
+  $('pa-rec-cancel').addEventListener('click', cancelVoice);
   // 아이폰: 처음 말하기를 누르면 받아쓰기 설정 안내를 먼저 보여 준다 (한 번 확인하면 이 기기에서는 다시 띄우지 않음)
   function voiceTipSeen() { try { return localStorage.getItem('pa_voice_tip_v1') === '1'; } catch (e) { return false; } }
   function showVoiceTip() {
@@ -5095,7 +5140,7 @@ function paInit(id) {
     ov.className = 'dialog-overlay';
     ov.innerHTML = `<div class="dialog-box pa-tip" role="dialog" aria-modal="true" aria-labelledby="pa-tip-title">
       <div class="dialog-title" id="pa-tip-title">말하기 전에 확인해 주세요</div>
-      <div class="dialog-msg">아이폰에서 말로 답하려면 <b>설정 &gt; 일반 &gt; 키보드 &gt; 받아쓰기</b>가 켜져 있어야 해요.<br><br>처음 쓰실 때 마이크와 음성 인식 권한을 묻는 창이 뜨면 <b>허용</b>을 눌러 주세요. 말을 멈추면 자동으로 끝나고, 이어서 말하려면 다시 누르면 돼요.</div>
+      <div class="dialog-msg">아이폰에서 말로 답하려면 <b>설정 &gt; 일반 &gt; 키보드 &gt; 받아쓰기</b>가 켜져 있어야 해요.</div>
       <div class="pa-tip-actions"><button class="pa-btn ghost" data-tip="cancel">취소</button><button class="pa-btn dark" data-tip="go">확인했어요, 말하기</button></div>
     </div>`;
     ov.addEventListener('click', e => {
@@ -5111,7 +5156,7 @@ function paInit(id) {
     ov.querySelector('[data-tip="go"]').focus();
   }
   if ($('pa-mic')) $('pa-mic').addEventListener('click', () => {
-    if (V.on) return stopVoice();
+    if (V.phase !== 'idle') return;
     if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
     if (IS_IOS && !voiceTipSeen()) return showVoiceTip();
     startVoice();
@@ -5120,8 +5165,7 @@ function paInit(id) {
   async function send(text) {
     const s = S.s; const open = openTurn(s);
     text = (text || '').trim();
-    if (!s || !open || !text || S.busy) return;
-    stopVoice();
+    if (!s || !open || !text || S.busy || V.phase !== 'idle') return;
     const via = V.used && text !== '잘 모르겠어요' ? 'voice' : 'text';
     if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
     S.busy = 'send'; render();
