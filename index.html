@@ -4914,7 +4914,9 @@ function paInit(id) {
       <label class="pa-agree" id="pa-agree-row"><input type="checkbox" id="pa-agree"> 답변이 저장되고 AI 도구로 분석되는 것에 동의합니다 (필수)</label>
       <textarea class="pa-input" id="pa-text" rows="3" placeholder="생각나는 대로 편하게 적어 주세요"></textarea>
       <div class="pa-btns">${PA_SR ? `<button class="pa-btn mic" id="pa-mic" type="button" aria-label="말로 답하기">${PA_MIC_ICON}<span id="pa-mic-label">말하기</span></button>` : ''}<button class="pa-btn ghost" id="pa-unknown">잘 모르겠어요</button><button class="pa-btn dark" id="pa-send">답변 보내기</button></div>
-      ${!PA_SR && PA_IN_APP ? '<div class="pa-hint">말로 답하려면 오른쪽 위 메뉴에서 \'다른 브라우저로 열기\'(Safari·Chrome)를 눌러 주세요.</div>' : ''}
+      ${PA_SR ? '' : PA_IN_APP
+        ? '<div class="pa-hint">이 화면에서는 말로 답할 수 없어요. 말로 답하려면 오른쪽 위 메뉴에서 \'다른 브라우저로 열기\'(Safari·Chrome)를 눌러 주세요.</div>'
+        : '<div class="pa-hint">이 브라우저에서는 말로 답할 수 없어요. Chrome이나 Safari로 열면 말하기 버튼으로 답할 수 있어요.</div>'}
       <div class="pa-listen" id="pa-listen" aria-live="polite"></div>
       <div class="pa-status" id="pa-status"></div>
     </div>`;
