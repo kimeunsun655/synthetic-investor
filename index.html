@@ -4899,6 +4899,7 @@ function ivInitGuideEvents() {
 // ══════════════════════════════════════
 // 음성 답변 — 브라우저 내장 음성 인식(Web Speech API). 지원하는 브라우저에서만 말하기 버튼을 보여 준다
 const PA_SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+const PA_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);   // 휴대폰 키보드에는 받아쓰기(마이크) 버튼이 있다
 const PA_IN_APP = /KAKAOTALK|Instagram|FBAN|FBAV|NAVER\(inapp|Line\/|DaumApps/i.test(navigator.userAgent);
 const PA_MIC_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>';
 function paInit(id) {
@@ -4914,9 +4915,11 @@ function paInit(id) {
       <label class="pa-agree" id="pa-agree-row"><input type="checkbox" id="pa-agree"> 답변이 저장되고 AI 도구로 분석되는 것에 동의합니다 (필수)</label>
       <textarea class="pa-input" id="pa-text" rows="3" placeholder="생각나는 대로 편하게 적어 주세요"></textarea>
       <div class="pa-btns">${PA_SR ? `<button class="pa-btn mic" id="pa-mic" type="button" aria-label="말로 답하기">${PA_MIC_ICON}<span id="pa-mic-label">말하기</span></button>` : ''}<button class="pa-btn ghost" id="pa-unknown">잘 모르겠어요</button><button class="pa-btn dark" id="pa-send">답변 보내기</button></div>
-      ${PA_SR ? '' : PA_IN_APP
-        ? '<div class="pa-hint">이 화면에서는 말로 답할 수 없어요. 말로 답하려면 오른쪽 위 메뉴에서 \'다른 브라우저로 열기\'(Safari·Chrome)를 눌러 주세요.</div>'
-        : '<div class="pa-hint">이 브라우저에서는 말로 답할 수 없어요. Chrome이나 Safari로 열면 말하기 버튼으로 답할 수 있어요.</div>'}
+      ${PA_SR
+        ? (PA_MOBILE ? '<div class="pa-hint">키보드의 마이크 버튼(받아쓰기)으로 말해도 돼요.</div>' : '')
+        : PA_MOBILE
+          ? `<div class="pa-hint">말로 답하려면 입력칸을 누른 뒤 키보드의 마이크 버튼(받아쓰기)을 누르고 말해 주세요.${PA_IN_APP ? ' 말하기 버튼을 쓰려면 오른쪽 위 메뉴에서 \'다른 브라우저로 열기\'(Safari·Chrome)를 눌러 주세요.' : ''}</div>`
+          : '<div class="pa-hint">이 브라우저에서는 말하기 버튼을 쓸 수 없어요. Chrome이나 Safari로 열면 말로 답할 수 있어요.</div>'}
       <div class="pa-listen" id="pa-listen" aria-live="polite"></div>
       <div class="pa-status" id="pa-status"></div>
     </div>`;
