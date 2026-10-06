@@ -1394,6 +1394,11 @@
   .pa-btns .pa-btn.dark { min-width: 0; }
   .pa-listen { font-size: 12px; color: #b91c1c; margin-top: 6px; }
   .pa-listen:empty { display: none; }
+  .pa-vlog { font-size: 11px; line-height: 1.5; background: #111; color: #d1fae5; border-radius: 8px; padding: 8px 10px; margin-top: 8px; max-height: 160px; overflow: auto; white-space: pre-wrap; }
+  .pa-tip { max-width: 340px; }
+  .pa-tip .dialog-msg { text-align: left; line-height: 1.7; }
+  .pa-tip-actions { display: flex; gap: 8px; margin-top: 18px; }
+  .pa-tip-actions .pa-btn.dark { flex: 1; }
   .pa-hint { font-size: 12px; color: var(--cal-muted); margin-top: 8px; line-height: 1.5; }
   .pa-status { font-size: 12px; color: #b45309; margin-top: 6px; }
   .pa-status:empty { display: none; }
@@ -5013,18 +5018,44 @@ function paInit(id) {
     b.classList.toggle('on', V.on);
     $('pa-mic-label').textContent = V.on ? '멈추기' : '말하기';
     const st = $('pa-listen');
-    if (st) st.textContent = V.on ? '듣고 있어요… 말을 마치면 멈추기를 눌러 주세요.' : '';
+    if (st) st.textContent = V.on ? '듣고 있어요… 말을 멈추면 자동으로 끝나요. 이어서 말하려면 다시 누르세요.' : '';
   }
+  const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const SETTINGS_HINT = IS_IOS ? ' 아이폰 설정 > 일반 > 키보드 > 받아쓰기가 켜져 있는지도 확인해 주세요.' : '';
   function voiceError(code) {
+    V.errored = true;
     const msg = {
-      'not-allowed': '마이크 사용이 허용되지 않았어요. 브라우저 설정에서 마이크를 허용하거나 글로 적어 주세요.',
-      'service-not-allowed': '이 브라우저에서는 음성 인식을 쓸 수 없어요. 글로 적어 주세요.',
+      'not-allowed': '마이크 사용이 허용되지 않았어요. 브라우저 설정에서 마이크를 허용하거나 글로 적어 주세요.' + SETTINGS_HINT,
+      'service-not-allowed': '이 브라우저에서는 음성 인식을 쓸 수 없어요. 키보드의 마이크 버튼(받아쓰기)이나 글로 답해 주세요.' + SETTINGS_HINT,
       'audio-capture': '마이크를 찾지 못했어요. 글로 적어 주세요.',
       'no-speech': '말소리가 들리지 않았어요. 다시 눌러 말씀해 주세요.',
       'network': '음성 인식 서버에 연결하지 못했어요. 잠시 뒤 다시 시도하거나 글로 적어 주세요.',
-    }[code];
-    if (msg) $('pa-status').textContent = msg;
+      'aborted': '음성 인식이 중간에 멈췄어요. 다시 눌러 말씀해 주세요.',
+      'language-not-supported': '이 기기에서는 한국어 음성 인식을 쓸 수 없어요. 키보드의 마이크 버튼(받아쓰기)이나 글로 답해 주세요.',
+    }[code] || `음성 인식에 실패했어요(${code}). 키보드의 마이크 버튼(받아쓰기)이나 글로 답해 주세요.`;
+    $('pa-status').textContent = msg;
   }
+  // 진단 모드(링크에 &voicedebug=1) — 음성 인식 단계를 화면에 남긴다
+  const VOICE_DEBUG = new URLSearchParams(location.search).get('voicedebug') === '1';
+  function vlog(msg) {
+    if (!VOICE_DEBUG) return;
+    let el = $('pa-vlog');
+    if (!el) { el = document.createElement('pre'); el.id = 'pa-vlog'; el.className = 'pa-vlog'; $('pa-compose').appendChild(el); }
+    const t = new Date(); el.textContent += `${String(t.getMinutes()).padStart(2, '0')}:${String(t.getSeconds()).padStart(2, '0')}.${String(t.getMilliseconds()).padStart(3, '0')} ${msg}\n`;
+  }
+  // 결과를 한 문장으로 합친다 — 사파리처럼 앞 결과를 누적해서 다시 보내는 경우 겹치지 않게
+  function joinResults(results) {
+    let acc = '';
+    for (let i = 0; i < results.length; i++) {
+      const tr = String(results[i][0] && results[i][0].transcript || '').trim();
+      if (!tr) continue;
+      if (acc && tr.startsWith(acc)) acc = tr;
+      else if (acc && acc.endsWith(tr)) continue;
+      else acc = acc ? acc + ' ' + tr : tr;
+    }
+    return acc;
+  }
+  // 한 번 누르면 한 문장을 듣고, 말을 멈추면 자동으로 끝난다 (아이폰 사파리는 계속 듣기 모드에서 결과를 잘 주지 않는다)
   function startVoice() {
     const open = openTurn(S.s);
     if (!PA_SR || !open) return;
@@ -5032,24 +5063,59 @@ function paInit(id) {
     $('pa-status').textContent = '';
     const cur = $('pa-text').value.trim();
     V.base = cur ? cur + ' ' : '';
-    V.turn = open.n;
+    V.turn = open.n; V.got = false; V.errored = false;
     try {
       const rec = new PA_SR();
-      rec.lang = 'ko-KR'; rec.continuous = true; rec.interimResults = true;
+      rec.lang = 'ko-KR'; rec.continuous = false; rec.interimResults = true; rec.maxAlternatives = 1;
+      ['start', 'audiostart', 'soundstart', 'speechstart', 'speechend', 'soundend', 'audioend', 'nomatch'].forEach(ev => { rec['on' + ev] = () => vlog(ev); });
       rec.onresult = e => {
-        let text = '';
-        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
-        $('pa-text').value = V.base + text.trim();
-        V.used = true;
+        const text = joinResults(e.results);
+        vlog(`result(${e.results.length}) ${e.results[e.results.length - 1].isFinal ? 'final' : 'interim'}: ${text}`);
+        if (!text) return;
+        $('pa-text').value = V.base + text;
+        V.used = true; V.got = true;
       };
-      rec.onerror = e => voiceError(e.error);
-      rec.onend = () => { V.on = false; V.rec = null; renderMic(); };
+      rec.onerror = e => { vlog('error ' + e.error + (e.message ? ' ' + e.message : '')); voiceError(e.error); };
+      rec.onend = () => {
+        vlog('end');
+        V.on = false; V.rec = null; renderMic();
+        if (!V.got && !V.errored) $('pa-status').textContent = '인식된 말이 없어요. 버튼을 누른 뒤 바로 말씀해 주세요.' + SETTINGS_HINT;
+        else if (V.got) $('pa-status').textContent = '';
+      };
       rec.start();
+      vlog('start() 호출 · ' + (window.SpeechRecognition ? 'SpeechRecognition' : 'webkitSpeechRecognition'));
       V.rec = rec; V.on = true; renderMic();
-    } catch (e) { voiceError('service-not-allowed'); }
+    } catch (e) { vlog('예외 ' + e.message); voiceError('service-not-allowed'); }
   }
   function stopVoice() { if (V.rec) { try { V.rec.stop(); } catch (e) { /* 무시 */ } } V.on = false; renderMic(); }
-  if ($('pa-mic')) $('pa-mic').addEventListener('click', () => (V.on ? stopVoice() : startVoice()));
+  // 아이폰: 처음 말하기를 누르면 받아쓰기 설정 안내를 먼저 보여 준다 (한 번 확인하면 이 기기에서는 다시 띄우지 않음)
+  function voiceTipSeen() { try { return localStorage.getItem('pa_voice_tip_v1') === '1'; } catch (e) { return false; } }
+  function showVoiceTip() {
+    const ov = document.createElement('div');
+    ov.className = 'dialog-overlay';
+    ov.innerHTML = `<div class="dialog-box pa-tip" role="dialog" aria-modal="true" aria-labelledby="pa-tip-title">
+      <div class="dialog-title" id="pa-tip-title">말하기 전에 확인해 주세요</div>
+      <div class="dialog-msg">아이폰에서 말로 답하려면 <b>설정 &gt; 일반 &gt; 키보드 &gt; 받아쓰기</b>가 켜져 있어야 해요.<br><br>처음 쓰실 때 마이크와 음성 인식 권한을 묻는 창이 뜨면 <b>허용</b>을 눌러 주세요. 말을 멈추면 자동으로 끝나고, 이어서 말하려면 다시 누르면 돼요.</div>
+      <div class="pa-tip-actions"><button class="pa-btn ghost" data-tip="cancel">취소</button><button class="pa-btn dark" data-tip="go">확인했어요, 말하기</button></div>
+    </div>`;
+    ov.addEventListener('click', e => {
+      const v = e.target.closest('[data-tip]');
+      if (!v && e.target !== ov) return;
+      ov.remove();
+      if (v && v.dataset.tip === 'go') {
+        try { localStorage.setItem('pa_voice_tip_v1', '1'); } catch (err) { /* 무시 */ }
+        startVoice();   // 버튼을 누른 그 순간에 시작해야 아이폰이 마이크를 허용한다
+      }
+    });
+    document.body.appendChild(ov);
+    ov.querySelector('[data-tip="go"]').focus();
+  }
+  if ($('pa-mic')) $('pa-mic').addEventListener('click', () => {
+    if (V.on) return stopVoice();
+    if (!S.consentAt && !$('pa-agree').checked) { $('pa-status').textContent = '동의에 체크해 주세요.'; return; }
+    if (IS_IOS && !voiceTipSeen()) return showVoiceTip();
+    startVoice();
+  });
 
   async function send(text) {
     const s = S.s; const open = openTurn(s);
