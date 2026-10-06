@@ -1595,7 +1595,7 @@
           <button data-mode="direct">직접 질문</button>
           <button data-mode="suggest">AI 제안 받기</button>
           <button data-mode="auto">AI 자동 진행</button>
-          <button data-mode="real">실제 인터뷰 보조</button>
+          <button data-mode="real">AI 모더레이터</button>
         </div>
         <div class="iv-control-right" id="iv-control-right"></div>
       </div>
@@ -3117,13 +3117,13 @@ const IV_GUIDE_MODES = [
   ['직접 질문', '연구자가 질문을 직접 쓰거나 질문지에서 골라 전송', '특정 질문만 따로 시험할 때'],
   ['AI 제안 받기', 'AI가 다음 질문을 제안 → 연구자가 확인·수정 후 전송', 'B-1 질문지 점검'],
   ['AI 자동 진행', 'AI 모더레이터와 페르소나가 종료까지 자동으로 주고받음', 'B-2 세그먼트 확장 (여러 명 같은 조건)'],
-  ['실제 인터뷰 보조', 'AI 모더레이터가 실제 참가자에게 직접 질문하고, 답변에 따라 후속 질문을 이어감. 질문은 자동 점검(평가어·한 턴 여러 질문·2문장 초과·질문지 밖 질문)을 거쳐 연구자 확인 없이 바로 나감. 기본은 참가자 링크 자동 진행(참가자가 링크에서 동의 후 혼자 답함), 필요하면 연구자 동석·대리 입력. 질문 수정·자동 점검 기록은 CSV와 리뷰에 남김', 'Track A 실제 인터뷰 (링크로 참가자 단독, 필요 시 연구자 동석)'],
+  ['AI 모더레이터', 'AI 모더레이터가 실제 참가자에게 직접 질문하고, 답변에 따라 후속 질문을 이어감. 질문은 자동 점검(평가어·한 턴 여러 질문·2문장 초과·질문지 밖 질문)을 거쳐 연구자 확인 없이 바로 나감. 기본은 참가자 링크 자동 진행(참가자가 링크에서 동의 후 혼자 답함), 필요하면 연구자 동석·대리 입력. 질문 수정·자동 점검 기록은 CSV와 리뷰에 남김', 'Track A 실제 인터뷰 (링크로 참가자 단독, 필요 시 연구자 동석)'],
 ];
 const IV_GUIDE_TODO = [
   '2×2 세그먼트에서 1명씩, \'AI 제안 받기\'로 파일럿 4회',
   '플래그가 2회 이상 나온 질문을 수정해 실제 인터뷰 질문지에 반영',
   '\'AI 자동 진행\'으로 12명 확장 실행 후 세그먼트 비교',
-  '\'실제 인터뷰 보조\'로 실제 인터뷰 8~12명 진행 (참가자 링크 기본, 필요 시 연구자 대리 입력)',
+  '\'AI 모더레이터\'로 실제 인터뷰 8~12명 진행 (참가자 링크 기본, 필요 시 연구자 대리 입력)',
   '실제 인터뷰 결과와 합성 응답을 비교해 맞은 곳·틀린 곳 기록',
 ];
 
@@ -3221,7 +3221,7 @@ function ivAnswered(s) { return s.turns.filter(t => t.answer != null); }
 function ivCur() { return IV.mode === 'auto' ? (IV.autoViewId ? IV.sessions[IV.autoViewId] : null) : IV.current[IV.mode]; }
 function ivFmtTime(sec) { sec = Math.max(0, Math.floor(sec || 0)); return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
 function ivProfileLine(s) { const p = s.profile || {}; return `${p.age || '—'} · ${p.level || '—'} · ${ivAiShort(p.aiUse)}`; }
-function ivModeLabel(m) { return { direct: '직접 질문', suggest: 'AI 제안 받기', auto: 'AI 자동 진행', real: '실제 인터뷰 보조' }[m] || m; }
+function ivModeLabel(m) { return { direct: '직접 질문', suggest: 'AI 제안 받기', auto: 'AI 자동 진행', real: 'AI 모더레이터' }[m] || m; }
 
 // ── 세션 ──
 function ivNewSession(mode, extra) {
@@ -3711,7 +3711,7 @@ function ivNewInterview() {
   ivRenderAll();
 }
 
-// ── 실제 인터뷰 보조 ──
+// ── AI 모더레이터 ──
 function ivRealProfile() {
   const r = IV.realSetup;
   const exp = { '초보': '초보 (1년 미만)', '중급': '중급 (1~5년)', '고급': '고급 (5년 이상)' }[r.level] || r.level;
@@ -4165,7 +4165,7 @@ function ivRenderLeft() {
       ${hiddenWaiting ? `<div class="iv-more">외 ${hiddenWaiting}명 대기</div>` : ''}</div>`;
     return;
   }
-  // 실제 인터뷰 보조
+  // AI 모더레이터
   const s = IV.current.real;
   const r = IV.realSetup;
   const inputMode = s ? s.inputMode : r.inputMode;
