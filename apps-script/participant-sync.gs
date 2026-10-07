@@ -81,7 +81,12 @@ function upsert_(sh, b) {
   set(COL.recorder, b.recorder || '');
   set(COL.status, STATUSES.indexOf(b.status) >= 0 ? b.status : '예정');
   set(COL.note, '플랫폼 ' + (b.code || '') + ' ' + marker_(b.key));
-  if (wasExample) set(COL.age, '');   // 예시 줄에 있던 연령대는 지운다 (스크리닝에서 묻지 않음)
+  if (wasExample) {
+    set(COL.age, '');   // 예시 줄에 있던 연령대는 지운다 (스크리닝에서 묻지 않음)
+    // 예시 줄의 회색 기울임 글씨를 보통 글씨로 되돌린다 (노란 입력 칸만)
+    [COL.name, COL.when, COL.career, COL.product, COL.picking, COL.ai, COL.loss, COL.multiApp, COL.age, COL.place, COL.host, COL.recorder, COL.status, COL.note]
+      .forEach(function (c) { sh.getRange(row, c).setFontStyle('normal').setFontColor('#000000'); });
+  }
   SpreadsheetApp.flush();
   return { ok: true, created: isNew, row: row, id: String(sh.getRange(row, COL.id).getValue()), tab: String(sh.getRange(row, COL.tab).getValue()) };
 }
