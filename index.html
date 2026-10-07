@@ -1375,6 +1375,9 @@
   .sc-adv { font-weight: 700; color: #6d28d9; }
   .sc-decision { height: 30px; border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 0 8px; font-size: 13px; font-family: inherit; background: var(--cal-canvas); color: var(--cal-ink); }
   .sc-mini { height: 30px; font-size: 12px; padding: 0 10px; }
+  .sc-table tr.sc-excluded td { color: var(--cal-muted-soft); }
+  .sc-table tr.sc-excluded td b, .sc-table tr.sc-excluded .sc-tags { opacity: 0.6; }
+  .sc-auto { display: inline-block; font-size: 12px; color: var(--cal-muted); background: var(--cal-surface-card); border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
   /* 참가자 스크리닝 화면 */
   .sc-body { padding: 16px 20px 40px; }
   .sc-intro { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 16px; font-size: 14px; line-height: 1.7; color: var(--cal-body); margin-bottom: 16px; }
@@ -5693,7 +5696,7 @@ function scInit() {
       const result = scJudge(answers);
       const id = 'sc_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       try {
-        await scRequest('', { method: 'POST', body: JSON.stringify([{ id, answers, result, contact: null, review: { decision: '미정' } }]) });
+        await scRequest('', { method: 'POST', body: JSON.stringify([{ id, answers, result, contact: null, review: result.verdict === '제외' ? { decision: '탈락', auto: true } : { decision: '미정' } }]) });
         Object.assign(S, { id, result, step: 'result', saving: false }); remember();
       } catch (err) { S.saving = false; S.err = '보내지 못했어요. 잠시 후 다시 눌러 주세요. (' + err.message + ')'; }
       render(); window.scrollTo(0, 0); return;
@@ -5740,20 +5743,22 @@ function scRender() {
   if (!el) return;
   const rows = SC.rows;
   const count = v => rows.filter(r => r.result && r.result.verdict === v).length;
-  const picked = rows.filter(r => r.review && r.review.decision === '선정').length;
+  const isPicked = r => r.review && r.review.decision === '선정' && !(r.result && r.result.verdict === '제외');
+  const picked = rows.filter(isPicked).length;
   document.getElementById('sc-summary').innerHTML = `전체 <b>${rows.length}</b> · 적합 <b>${count('적합')}</b> · 예비 <b>${count('예비')}</b> · 제외 <b>${count('제외')}</b> · 선정 <b>${picked}</b>`;
   document.querySelectorAll('#sc-filter button').forEach(b => b.classList.toggle('active', b.dataset.f === SC.filter));
   if (!SC.loaded) { el.innerHTML = '<div class="iv-muted" style="padding:24px;">불러오는 중…</div>'; return; }
   if (SC.error) { el.innerHTML = `<div class="iv-store-warn" style="display:block;margin:0;">스크리닝 저장소(<b>${SC_TABLE}</b> 테이블)에 연결하지 못했습니다. 저장소의 <b>supabase/screenings.sql</b>을 Supabase SQL Editor에서 한 번 실행하세요. (${ivEsc(SC.error)})</div>`; return; }
-  const list = SC.filter === '전체' ? rows : SC.filter === '선정' ? rows.filter(r => r.review && r.review.decision === '선정') : rows.filter(r => r.result && r.result.verdict === SC.filter);
+  const list = SC.filter === '전체' ? rows : SC.filter === '선정' ? rows.filter(isPicked) : rows.filter(r => r.result && r.result.verdict === SC.filter);
   if (!list.length) { el.innerHTML = `<div class="iv-muted" style="padding:24px;">${rows.length ? '해당하는 응답이 없어요' : '아직 응답이 없어요'}</div>`; return; }
   el.innerHTML = `<table class="sc-table"><thead><tr><th>응답</th><th>이름 · 연락처</th><th>가능 일정</th><th>판정</th><th>수준</th><th>특성</th><th>답</th><th>최종 선정</th><th>인터뷰</th></tr></thead><tbody>${list.map(r => {
     const res = r.result || {}; const c = r.contact; const rv = r.review || {};
     const iv = rv.interviewId && IV.sessions[rv.interviewId];
-    const ivCell = rv.interviewId
+    const auto = res.verdict === '제외';   // 1번 ① — 자동 제외 (선정·인터뷰 불가)
+    const ivCell = auto ? '<span class="iv-muted">—</span>' : rv.interviewId
       ? `<button class="iv-btn ghost sc-mini" data-sc="open" data-id="${ivEsc(r.id)}">${ivEsc(rv.code || '인터뷰')} 보기</button>${iv && iv.endedAt ? '<div class="iv-muted">끝남</div>' : ''}`
       : rv.decision === '선정' ? `<button class="iv-btn dark sc-mini" data-sc="start" data-id="${ivEsc(r.id)}">인터뷰 시작</button>` : '<span class="iv-muted">—</span>';
-    return `<tr>
+    return `<tr${auto ? ' class="sc-excluded"' : ''}>
       <td class="nowrap">${scFmt(r.created_at)}</td>
       <td>${c ? `<b>${ivEsc(c.name)}</b><div>${ivEsc(c.phone)}</div>` : '<span class="iv-muted">' + (res.verdict === '제외' ? '받지 않음' : '미입력') + '</span>'}</td>
       <td>${c ? ivEsc((c.days || []).join(', ')) + (c.time ? `<div class="iv-muted">${ivEsc(c.time)}</div>` : '') : '<span class="iv-muted">—</span>'}</td>
@@ -5761,7 +5766,7 @@ function scRender() {
       <td class="nowrap"><span class="${res.level === '고급' ? 'sc-adv' : ''}">${ivEsc(res.level)}</span> <span class="iv-muted">${res.score}점</span></td>
       <td><div class="sc-tags">${scTags(res)}</div></td>
       <td class="nowrap" title="${ivEsc(scAnswerText(r.answers || {}))}">${ivEsc(scAnswerCode(r.answers || {}))}</td>
-      <td><select class="sc-decision" data-id="${ivEsc(r.id)}">${['미정', '선정', '보류', '탈락'].map(d => `<option${(rv.decision || '미정') === d ? ' selected' : ''}>${d}</option>`).join('')}</select></td>
+      <td>${auto ? '<span class="sc-auto">자동 제외</span>' : `<select class="sc-decision" data-id="${ivEsc(r.id)}">${['미정', '선정', '보류', '탈락'].map(d => `<option${(rv.decision || '미정') === d ? ' selected' : ''}>${d}</option>`).join('')}</select>`}</td>
       <td>${ivCell}</td>
     </tr>`;
   }).join('')}</tbody></table>`;
@@ -5784,6 +5789,7 @@ function scConfirm(title, msg, okLabel, onOk) {
 }
 // 선정된 사람으로 AI 모더레이터 인터뷰를 바로 만든다 (코드·경력·AI 사용·손실 경험 자동 입력)
 function scStartInterview(row) {
+  if (row.result && row.result.verdict === '제외') return;   // 자동 제외는 인터뷰를 만들 수 없다
   const cur = IV.current.real;
   const go = () => {
     if (cur) ivCloseRealSession();
@@ -5812,7 +5818,7 @@ function scStartInterview(row) {
 function scExportCsv() {
   const head = ['응답 시각', '이름', '연락처', '가능 날짜', '가능 시간대', '판정', '판정 이유', '수준', '점수', 'AI 사용', '손실·후회', '고위험 상품', '앱 2개 이상', '답', '최종 선정', '인터뷰 코드'];
   const rows = SC.rows.map(r => { const res = r.result || {}, a = res.attrs || {}, c = r.contact || {}, rv = r.review || {};
-    return [scFmt(r.created_at), c.name, c.phone, (c.days || []).join(' / '), c.time, res.verdict, (res.reasons || []).join(' · '), res.level, res.score, a.ai ? 'O' : 'X', a.loss ? 'Y' : 'N', a.highRisk ? 'Y' : 'N', a.multiApp ? 'Y' : 'N', scAnswerCode(r.answers || {}), rv.decision || '미정', rv.code]; });
+    return [scFmt(r.created_at), c.name, c.phone, (c.days || []).join(' / '), c.time, res.verdict, (res.reasons || []).join(' · '), res.level, res.score, a.ai ? 'O' : 'X', a.loss ? 'Y' : 'N', a.highRisk ? 'Y' : 'N', a.multiApp ? 'Y' : 'N', scAnswerCode(r.answers || {}), res.verdict === '제외' ? '자동 제외' : (rv.decision || '미정'), rv.code]; });
   const csv = '﻿' + [head].concat(rows).map(r => r.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
