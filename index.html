@@ -3842,6 +3842,23 @@ function ivRealProfile() {
   const segment = `${r.level === '초보' ? '입문자' : '경험자'} × ${r.aiUse === '사용 안 함' ? 'AI 비활용' : 'AI 활용'}`;
   return { code: r.code.trim().toUpperCase(), age: r.age, level: r.level, experience: exp, aiUse: r.aiUse, loss: r.loss, segment };
 }
+// AI 모더레이터에서 바로 시작하면 스크리닝 이력에 남지 않는다 — 스크리닝 탭에서 시작하도록 안내한다
+function ivStartRealGuard() {
+  const ov = document.createElement('div');
+  ov.className = 'dialog-overlay';
+  ov.innerHTML = `<div class="dialog-box" role="dialog" aria-modal="true" style="max-width:380px;text-align:left;">
+    <div class="dialog-title" style="text-align:left;">스크리닝 탭에서 시작해 주세요</div>
+    <div class="dialog-msg" style="text-align:left;">스크리닝 탭에서 스크리닝 링크 복사 후 인터뷰를 시작해주세요.\n여기서 바로 시작하면 스크리닝 이력에 남지 않아요.</div>
+    <div class="dialog-actions" style="gap:8px;"><button class="iv-btn ghost" data-c="anyway">그래도 바로 시작</button><button class="dialog-confirm" data-c="go">스크리닝 탭으로 가기</button></div></div>`;
+  ov.addEventListener('click', e => {
+    const c = e.target.dataset && e.target.dataset.c;
+    if (e.target === ov) ov.remove();
+    else if (c === 'go') { ov.remove(); selectTab('screening'); }
+    else if (c === 'anyway') { ov.remove(); ivStartReal(); }
+  });
+  document.body.appendChild(ov);
+  ov.querySelector('.dialog-confirm').focus();
+}
 function ivStartReal() {
   const r = IV.realSetup;
   if (!r.code.trim()) { showDialog('참가자 코드를 입력해주세요', '예: P01. 실명은 쓰지 마세요.'); return; }
@@ -4620,7 +4637,7 @@ function ivInitEvents() {
     }
     else if (act === 'copy-link') ivCopyLink();
     else if (act === 'flow') ivSetFlow(el.dataset.v);
-    else if (act === 'real-start') ivStartReal();
+    else if (act === 'real-start') ivStartRealGuard();
     else if (act === 'latest-edit') { IV.editLatest = true; IV.drafts.prop = ''; IV.drafts.reason = ''; ivRenderComposer(); }
     else if (act === 'latest-cancel') { IV.editLatest = false; ivRenderComposer(); }
     else if (act === 'latest-save') ivEditLatest();
