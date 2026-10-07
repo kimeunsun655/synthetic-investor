@@ -1397,6 +1397,8 @@
   .sc-dialog .dialog-title, .sc-dialog .dialog-msg { text-align: left; }
   .sc-form { display: flex; flex-direction: column; gap: 2px; margin: 8px 0 12px; }
   .sc-form select, .sc-form input { height: 38px; }
+  .sc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sc-sheet-err { color: var(--cal-error); }
   .sc-msg { width: 100%; border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.6; font-family: inherit; color: var(--cal-ink); resize: none; margin: 8px 0 12px; }
   .sc-table tr.sc-excluded td { color: var(--cal-muted-soft); }
   .sc-table tr.sc-excluded td b, .sc-table tr.sc-excluded .sc-tags { opacity: 0.6; }
@@ -5839,7 +5841,10 @@ function scRender() {
 }
 
 // 인터뷰 칸 — 선정하면 진행 방식(직접 인터뷰 / AI 링크)을 고른다
-const SC_DIRECT_STATUS = ['예정', '완료', '불참'];
+const SC_DIRECT_STATUS = ['예정', '확정', '완료', '노쇼'];   // 「3_참가자 관리」 상태 드롭다운과 같은 값 (취소는 플랫폼에서 선정 취소·방식 변경할 때 자동)
+const SC_DIRECT_MAX = 3;      // 직접 인터뷰는 팀원 3명이 1명씩
+const SC_YEAR = 2026;
+function scDirectStatus(d) { return (d && d.status === '불참') ? '노쇼' : ((d && d.status) || '예정'); }
 function scMethod(rv) { return rv.method || (rv.interviewId ? 'ai' : null); }
 // 진행 칸 — 단계에 따라 하나만 보여 준다: 미정이면 판단 버튼 → 선정이면 방식 고르기 → 시작했으면 상태
 function scProgressCell(r) {
@@ -5856,8 +5861,9 @@ function scProgressCell(r) {
   }
   if (method === 'direct') {
     const d = rv.direct || {};
-    return `<div class="sc-iv"><span class="sc-method">직접 · ${ivEsc(rv.code || '')}</span>${chip(d.status || '예정', d.status === '완료' ? 'done' : d.status === '불참' ? 'off' : 'wait')}</div>
-      <div class="sc-sub sc-when">${ivEsc([d.date, d.time, d.place].filter(Boolean).join(' · ') || '일정 미정')}</div>`;
+    const st = scDirectStatus(d);
+    return `<div class="sc-iv"><span class="sc-method">직접 · ${ivEsc(rv.code || '')}</span>${chip(st, st === '완료' ? 'done' : st === '노쇼' ? 'off' : 'wait')}</div>
+      <div class="sc-sub sc-when">${ivEsc([d.date, d.time, d.place, d.host ? '진행 ' + d.host : ''].filter(Boolean).join(' · ') || '일정 미정')}</div>${scSheetLine(rv)}`;
   }
   return `<div class="sc-iv-btns"><button class="iv-btn ghost sc-mini" data-sc="direct" data-id="${id}">직접 인터뷰</button><button class="iv-btn ghost sc-mini" data-sc="start" data-id="${id}">AI 링크</button></div>`;
 }
@@ -5870,7 +5876,7 @@ function scMenuItems(r) {
   const finished = method === 'ai' ? !!(iv && iv.endedAt) : method === 'direct' ? (rv.direct || {}).status === '완료' : false;
   const items = [];
   if (method === 'ai') { items.push(['open', '인터뷰 보기']); if (!finished) items.push(['to-direct', '직접 인터뷰로 변경']); }
-  if (method === 'direct') { items.push(['direct', '일정·완료 기록']); if (!finished) items.push(['start', 'AI 링크로 변경']); }
+  if (method === 'direct') { items.push(['direct', '일정·완료 기록']); if (rv.sheet && rv.sheet.error) items.push(['sheet', '시트에 다시 보내기']); if (!finished) items.push(['start', 'AI 링크로 변경']); }
   if (!finished) items.push(['unpick', '선정 취소']);
   return items;
 }
@@ -5890,8 +5896,13 @@ function scOpenMenu(btn, row) {
 }
 async function scSetDecision(row, decision) {
   const prev = row.review;
+  const wasPicked = (row.review || {}).decision === '선정';
+  if (decision === '선정' && !wasPicked && scMethod(row.review || {}) === 'direct' && scDirectCount(row.id) >= SC_DIRECT_MAX) {
+    showDialog(`직접 인터뷰는 ${SC_DIRECT_MAX}명까지예요`, '이 사람은 직접 인터뷰로 기록돼 있어요. 다른 사람의 직접 인터뷰를 정리한 뒤 다시 선정해 주세요.'); return;
+  }
   row.review = Object.assign({}, row.review, { decision, decidedAt: new Date().toISOString() });
   scRender();
+  if (decision === '선정' && !wasPicked && scMethod(row.review) === 'direct' && row.review.sheet) scSheetSync(row, 'upsert');
   try { await scPatch(row.id, { review: row.review }); }
   catch (err) { row.review = prev; scRender(); showDialog('저장하지 못했습니다', err.message); }
 }
@@ -5933,8 +5944,9 @@ function scEditDirect(r) {
       <label class="iv-field">날짜<select data-f="date"><option value="">정하지 않음</option>${dayOpts}</select></label>
       <label class="iv-field">시간<input type="time" data-f="time" value="${ivEsc(d.time || '')}"></label>
       <div class="iv-field">방식<div class="iv-seg full small" data-f="place">${['대면', '화상'].map(x => `<button type="button" class="${(d.place || '화상') === x ? 'active' : ''}" data-v="${x}">${x}</button>`).join('')}</div></div>
-      <div class="iv-field">상태<div class="iv-seg full small" data-f="status">${SC_DIRECT_STATUS.map(x => `<button type="button" class="${(d.status || '예정') === x ? 'active' : ''}" data-v="${x}">${x}</button>`).join('')}</div></div>
-      <label class="iv-field">메모 (선택)<input data-f="memo" maxlength="100" value="${ivEsc(d.memo || '')}" placeholder="예: 줌 링크 보냄, 진행자 OO"></label>
+      <div class="iv-field">상태<div class="iv-seg full small" data-f="status">${SC_DIRECT_STATUS.map(x => `<button type="button" class="${scDirectStatus(d) === x ? 'active' : ''}" data-v="${x}">${x}</button>`).join('')}</div></div>
+      <div class="sc-form-row"><label class="iv-field">진행자<input data-f="host" maxlength="20" value="${ivEsc(d.host || '')}" placeholder="팀원 이름"></label><label class="iv-field">기록자 (선택)<input data-f="recorder" maxlength="20" value="${ivEsc(d.recorder || '')}"></label></div>
+      <label class="iv-field">메모 (선택)<input data-f="memo" maxlength="100" value="${ivEsc(d.memo || '')}" placeholder="예: 줌 링크 보냄"></label>
     </div>
     <div class="dialog-actions" style="gap:8px;"><button class="iv-btn ghost" data-c="no">취소</button><button class="dialog-confirm" data-c="ok">저장</button></div></div>`;
   ov.addEventListener('click', async e => {
@@ -5945,15 +5957,82 @@ function scEditDirect(r) {
     if (c !== 'ok') return;
     const val = f => ov.querySelector(`[data-f="${f}"]`);
     const seg = f => { const b = val(f).querySelector('button.active'); return b ? b.dataset.v : ''; };
-    const direct = { date: val('date').value, time: val('time').value, place: seg('place'), status: seg('status'), memo: val('memo').value.trim() };
+    const direct = { date: val('date').value, time: val('time').value, place: seg('place'), status: seg('status'), host: val('host').value.trim(), recorder: val('recorder').value.trim(), memo: val('memo').value.trim() };
     if (direct.status === '완료' && d.status !== '완료') direct.doneAt = new Date().toISOString(); else if (d.doneAt && direct.status === '완료') direct.doneAt = d.doneAt;
     const prev = r.review;
     r.review = Object.assign({}, rv, { method: 'direct', code: rv.code || scNextCode(), direct });
     e.target.disabled = true;
-    try { await scPatch(r.id, { review: r.review }); ov.remove(); scRender(); }
+    try { await scPatch(r.id, { review: r.review }); ov.remove(); scRender(); scSheetSync(r, 'upsert'); }
     catch (err) { r.review = prev; e.target.disabled = false; showDialog('저장하지 못했습니다', err.message); }
   });
   document.body.appendChild(ov);
+}
+// ── 구글 시트 「3_참가자 관리」 연동 (직접 인터뷰) — /api/sheet → Apps Script
+// 실명은 시트로 보내지 않고 호칭(김*수)만 보낸다
+function scMaskName(n) {
+  const c = Array.from(String(n || '').replace(/\s+/g, ''));
+  if (c.length <= 1) return c.join('');
+  if (c.length === 2) return c[0] + '*';
+  return c[0] + '*'.repeat(c.length - 2) + c[c.length - 1];
+}
+// '10/8 (목)' + '19:00' → '2026-10-08 (목) 19:00'
+function scSheetWhen(d) {
+  const m = String(d.date || '').match(/(\d+)\/(\d+)\s*(\([^)]*\))?/);
+  if (!m) return d.time || '';
+  return `${SC_YEAR}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}${m[3] ? ' ' + m[3] : ''}${d.time ? ' ' + d.time : ''}`;
+}
+// 스크리닝 답 → 시트 드롭다운 문구 그대로
+function scSheetPayload(r) {
+  const a = r.answers || {}, q5 = a.q5 || [], rv = r.review || {}, d = rv.direct || {};
+  return {
+    key: r.id, code: rv.code || '',
+    name: scMaskName(r.contact && r.contact.name),
+    when: scSheetWhen(d),
+    career: ['① 1년 미만', '② 1~3년', '③ 3년 이상'][(a.q2 || 1) - 1],
+    product: q5.includes(3) ? '파생·레버리지 (5번 ③)' : q5.includes(2) ? 'ETF·해외·펀드 (5번 ②만)' : '국내 주식만 (5번 ②③ 없음)',
+    picking: ['① 추천대로', '② 직접 확인', '③ 직접 분석'][(a.q6 || 1) - 1],
+    ai: ['① 없음', '② 1~2번', '③ 3번 이상', '④ 기억 안 남'][(a.q3 || 1) - 1],
+    loss: q5.includes(1) ? 'Y' : 'N',
+    multiApp: q5.includes(4) ? 'Y' : 'N',
+    place: d.place || '화상', host: d.host || '', recorder: d.recorder || '',
+    status: scDirectStatus(d),
+  };
+}
+function scSheetLine(rv) {
+  const sh = rv.sheet;
+  if (!sh) return SC.sheetOff ? '' : '<div class="sc-sub">시트 등록 중…</div>';
+  if (sh.error) return `<div class="sc-sub sc-sheet-err">시트 등록 실패 · ⋯에서 다시 보내기</div>`;
+  if (sh.cancelled) return `<div class="sc-sub">시트 ${ivEsc(sh.id || '')} · 취소로 표시</div>`;
+  return `<div class="sc-sub">시트 ${ivEsc(sh.id || '')} · ${ivEsc(String(sh.tab || '').replace('_질문지', ''))} 질문지</div>`;
+}
+async function scSheetSync(row, action) {
+  const rv = row.review || {};
+  if (action === 'cancel' && !rv.sheet) return;   // 시트에 보낸 적 없으면 할 일 없음
+  let res, data;
+  try {
+    res = await fetch('/api/sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(action === 'cancel' ? { action, key: row.id } : Object.assign({ action }, scSheetPayload(row))) });
+    data = await res.json().catch(() => ({}));
+  } catch (e) { data = { error: e.message }; res = { status: 0 }; }
+  if (res.status === 501) { SC.sheetOff = true; scRender(); return; }   // 연동을 아직 설정하지 않음 — 플랫폼 기록만 남긴다
+  const prev = row.review.sheet || {};
+  row.review = Object.assign({}, row.review, {
+    sheet: res.status === 200 && data.ok
+      ? { row: data.row || prev.row, id: data.id || prev.id, tab: data.tab || prev.tab, cancelled: action === 'cancel', syncedAt: new Date().toISOString() }
+      : Object.assign({}, prev, { error: data.error || `HTTP ${res.status}` }),
+  });
+  scRender();
+  try { await scPatch(row.id, { review: row.review }); } catch (e) { /* 다음 저장 때 다시 남는다 */ }
+  if (row.review.sheet.error && action === 'upsert') showDialog('시트에 등록하지 못했어요', `플랫폼에는 저장됐어요. ⋯ 메뉴의 '시트에 다시 보내기'로 다시 시도해 주세요.\n(${row.review.sheet.error})`);
+}
+// 직접 인터뷰 인원 — 선정 상태에서 직접으로 진행 중인 사람 (본인 제외)
+function scDirectCount(exceptId) {
+  return SC.rows.filter(r => r.id !== exceptId && r.review && r.review.decision === '선정' && scMethod(r.review) === 'direct').length;
+}
+function scCanAddDirect(row) {
+  if (scMethod(row.review || {}) === 'direct') return true;
+  if (scDirectCount(row.id) < SC_DIRECT_MAX) return true;
+  showDialog(`직접 인터뷰는 ${SC_DIRECT_MAX}명까지예요`, '팀원 3명이 1명씩 맡기로 했어요. 다른 사람의 직접 인터뷰를 선정 취소하거나 AI 링크로 바꾼 뒤 다시 시도해 주세요.');
+  return false;
 }
 // 다음 참가자 코드 — 실제 인터뷰와 스크리닝에서 이미 쓴 P 번호 다음
 function scNextCode() {
@@ -5975,10 +6054,13 @@ function scConfirm(title, msg, okLabel, onOk) {
 function scStartInterview(row) {
   if (row.result && row.result.verdict === '제외') return;   // 자동 제외는 인터뷰를 만들 수 없다
   const rv0 = row.review || {};
+  const wasDirect = scMethod(rv0) === 'direct';   // 직접 인터뷰에서 AI 링크로 바꾸면 시트 줄은 '취소'로
   if (rv0.interviewId && IV.sessions[rv0.interviewId]) {   // 직접 인터뷰로 바꿨다가 다시 AI 링크로 — 만들어 둔 인터뷰를 그대로 쓴다
     row.review = Object.assign({}, rv0, { method: 'ai' });
     scPatch(row.id, { review: row.review }).catch(() => {});
-    scRender(); scShowAiMessage(row); return;
+    scRender(); scShowAiMessage(row);
+    if (wasDirect) scSheetSync(row, 'cancel');
+    return;
   }
   const cur = IV.current.real;
   const go = () => {
@@ -6000,15 +6082,16 @@ function scStartInterview(row) {
     ivSave(s, true);
     row.review = Object.assign({}, row.review, { method: 'ai', code, interviewId: s.id, startedAt: new Date().toISOString() });
     scPatch(row.id, { review: row.review }).catch(() => {});
+    if (wasDirect) scSheetSync(row, 'cancel');
     scShowAiMessage(row);   // 링크와 함께 보낼 안내 문구
   };
   if (cur && !cur.endedAt) scConfirm('진행 중인 인터뷰가 있어요', `${cur.profile.code} 인터뷰는 그대로 저장되고 지난 인터뷰 목록에 남아요. 새 인터뷰를 만들까요?`, '새로 만들기', go);
   else go();
 }
 function scExportCsv() {
-  const head = ['응답 시각', '이름', '가능 날짜', '가능 시간대', '판정', '판정 이유', '수준', '점수', 'AI 사용', '손실·후회', '고위험 상품', '앱 2개 이상', '답', '최종 선정', '인터뷰 코드', '진행 방식', '직접 인터뷰 일정', '대면/화상', '직접 인터뷰 상태', '메모'];
+  const head = ['응답 시각', '이름', '가능 날짜', '가능 시간대', '판정', '판정 이유', '수준', '점수', 'AI 사용', '손실·후회', '고위험 상품', '앱 2개 이상', '답', '최종 선정', '인터뷰 코드', '진행 방식', '직접 인터뷰 일정', '대면/화상', '직접 인터뷰 상태', '진행자', '기록자', '메모', '시트 ID', '시트 질문지'];
   const rows = SC.rows.map(r => { const res = r.result || {}, a = res.attrs || {}, c = r.contact || {}, rv = r.review || {};
-    return [scFmt(r.created_at), c.name, (c.days || []).join(' / '), c.time, res.verdict, (res.reasons || []).join(' · '), res.level, res.score, a.ai ? 'O' : 'X', a.loss ? 'Y' : 'N', a.highRisk ? 'Y' : 'N', a.multiApp ? 'Y' : 'N', scAnswerCode(r.answers || {}), res.verdict === '제외' ? '자동 제외' : (rv.decision || '미정'), rv.code, { ai: 'AI 링크', direct: '직접' }[scMethod(rv)] || '', rv.direct ? [rv.direct.date, rv.direct.time].filter(Boolean).join(' ') : '', rv.direct ? rv.direct.place : '', rv.direct ? rv.direct.status : '', rv.direct ? rv.direct.memo : '']; });
+    return [scFmt(r.created_at), c.name, (c.days || []).join(' / '), c.time, res.verdict, (res.reasons || []).join(' · '), res.level, res.score, a.ai ? 'O' : 'X', a.loss ? 'Y' : 'N', a.highRisk ? 'Y' : 'N', a.multiApp ? 'Y' : 'N', scAnswerCode(r.answers || {}), res.verdict === '제외' ? '자동 제외' : (rv.decision || '미정'), rv.code, { ai: 'AI 링크', direct: '직접' }[scMethod(rv)] || '', rv.direct ? [rv.direct.date, rv.direct.time].filter(Boolean).join(' ') : '', rv.direct ? rv.direct.place : '', rv.direct ? scDirectStatus(rv.direct) : '', rv.direct ? rv.direct.host : '', rv.direct ? rv.direct.recorder : '', rv.direct ? rv.direct.memo : '', rv.sheet ? rv.sheet.id : '', rv.sheet ? rv.sheet.tab : '']; });
   const csv = '﻿' + [head].concat(rows).map(r => r.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
@@ -6154,13 +6237,16 @@ function scHandleAction(b) {
   else if (act === 'decide') scSetDecision(row, b.dataset.v);
   else if (act === 'unpick') {
     const rv = row.review || {};
-    if (rv.code) scConfirm(`${rv.code} 선정을 취소할까요?`, '최종 선정이 미정으로 돌아가요. 기록해 둔 진행 방식과 만든 인터뷰는 지워지지 않고, 다시 선정하면 그대로 보여요.', '선정 취소', () => scSetDecision(row, '미정'));
-    else scSetDecision(row, '미정');
+    const sheetNote = scMethod(rv) === 'direct' && rv.sheet ? '\n시트 「3_참가자 관리」의 이 줄은 지우지 않고 상태만 「취소」로 바꿔요.' : '';
+    const go = () => { scSetDecision(row, '미정'); if (scMethod(rv) === 'direct') scSheetSync(row, 'cancel'); };
+    if (rv.code) scConfirm(`${rv.code} 선정을 취소할까요?`, '최종 선정이 미정으로 돌아가요. 기록해 둔 진행 방식과 만든 인터뷰는 지워지지 않고, 다시 선정하면 그대로 보여요.' + sheetNote, '선정 취소', go);
+    else go();
   }
+  else if (act === 'sheet') scSheetSync(row, 'upsert');
   else if (act === 'start') scStartInterview(row);
   else if (act === 'open') scViewOpen(row);   // 읽기 전용 보기 — 작업 화면은 패널의 '작업 화면에서 열기'로
-  else if (act === 'direct') scEditDirect(row);
-  else if (act === 'to-direct') scConfirm(`${row.review.code} 직접 인터뷰로 바꿀까요?`, '만들어 둔 AI 링크 인터뷰는 지난 인터뷰 목록에 그대로 남아요. 이미 링크를 보냈다면 참가자에게 링크로 답하지 않아도 된다고 알려 주세요.', '바꾸기', () => scEditDirect(row));
+  else if (act === 'direct') { if (scCanAddDirect(row)) scEditDirect(row); }
+  else if (act === 'to-direct' && scCanAddDirect(row)) scConfirm(`${row.review.code} 직접 인터뷰로 바꿀까요?`, '만들어 둔 AI 링크 인터뷰는 지난 인터뷰 목록에 그대로 남아요. 이미 링크를 보냈다면 참가자에게 링크로 답하지 않아도 된다고 알려 주세요.', '바꾸기', () => scEditDirect(row));
 }
 function scInitEvents() {
   const tab = document.getElementById('tab-screening');
