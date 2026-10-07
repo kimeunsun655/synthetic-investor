@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>투자자 합성 사용자 플랫폼</title>
-<script>if (new URLSearchParams(location.search).get('answer')) document.documentElement.classList.add('participant-mode');</script>
+<script>{ const q = new URLSearchParams(location.search); if (q.get('answer') || q.get('screen')) document.documentElement.classList.add('participant-mode'); }</script>
 <style>
   /* ── Cal.com Design System 토큰 ── */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -1354,6 +1354,53 @@
   .gd-wrap pre { white-space: pre-wrap; font-size: 12px; line-height: 1.6; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 16px; margin-top: 10px; font-family: ui-monospace, Menlo, monospace; color: var(--cal-body); }
 
   /* 참가자 링크 화면 — 휴대폰 채팅형 */
+
+  /* ── 스크리닝 ── */
+  .sc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sc-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .sc-summary { font-size: 13px; color: var(--cal-muted); }
+  .sc-summary b { color: var(--cal-ink); }
+  .sc-list { overflow-x: auto; }
+  .sc-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 980px; }
+  .sc-table th { text-align: left; font-size: 12px; font-weight: 600; color: var(--cal-muted); padding: 12px 12px; border-bottom: 1px solid var(--cal-hairline); white-space: nowrap; }
+  .sc-table td { padding: 12px; border-bottom: 1px solid var(--cal-hairline-soft); vertical-align: top; color: var(--cal-body); line-height: 1.5; }
+  .sc-table tr:last-child td { border-bottom: none; }
+  .sc-table .nowrap { white-space: nowrap; }
+  .sc-table .iv-muted { font-size: 12px; }
+  .sc-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .sc-verdict { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 6px; }
+  .sc-verdict.v-적합 { background: var(--cal-success-tint); color: #047857; }
+  .sc-verdict.v-예비 { background: var(--cal-warning-tint); color: #92400e; }
+  .sc-verdict.v-제외 { background: var(--cal-surface-card); color: var(--cal-muted); }
+  .sc-adv { font-weight: 700; color: #6d28d9; }
+  .sc-decision { height: 30px; border: 1px solid var(--cal-hairline); border-radius: 8px; padding: 0 8px; font-size: 13px; font-family: inherit; background: var(--cal-canvas); color: var(--cal-ink); }
+  .sc-mini { height: 30px; font-size: 12px; padding: 0 10px; }
+  /* 참가자 스크리닝 화면 */
+  .sc-body { padding: 16px 20px 40px; }
+  .sc-intro { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 16px; font-size: 14px; line-height: 1.7; color: var(--cal-body); margin-bottom: 16px; }
+  .sc-intro p { margin: 0 0 6px; }
+  .sc-intro ul { margin: 4px 0 8px; padding-left: 18px; }
+  .sc-q { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .sc-q-title { font-size: 15px; font-weight: 700; color: var(--cal-ink); line-height: 1.5; margin-bottom: 10px; }
+  .sc-q-title span { font-size: 12px; font-weight: 500; color: var(--cal-muted); }
+  .sc-opts { display: flex; flex-direction: column; gap: 6px; }
+  .sc-days { flex-direction: row; flex-wrap: wrap; }
+  .sc-opt { display: flex; align-items: center; gap: 8px; text-align: left; min-height: 44px; padding: 10px 12px; border: 1px solid var(--cal-hairline); border-radius: 10px; background: var(--cal-canvas); font-size: 15px; color: var(--cal-ink); font-family: inherit; cursor: pointer; }
+  .sc-opt.on { border-color: var(--cal-ink); box-shadow: inset 0 0 0 1px var(--cal-ink); font-weight: 600; }
+  .sc-num { color: var(--cal-muted); font-size: 14px; }
+  .sc-opt.on .sc-num { color: var(--cal-ink); }
+  .sc-submit { width: 100%; margin-top: 8px; }
+  .sc-err { font-size: 13px; color: var(--cal-error); margin: 8px 0; }
+  .sc-done { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 20px 16px; margin-bottom: 12px; }
+  .sc-done-title { font-size: 18px; font-weight: 700; color: var(--cal-ink); margin-bottom: 6px; }
+  .sc-done p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--cal-body); }
+  .sc-field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--cal-body); margin-bottom: 12px; }
+  .sc-field input { height: 44px; border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 0 12px; font-size: 16px; font-family: inherit; color: var(--cal-ink); outline: none; }
+  .sc-field input:focus { border-color: var(--cal-ink); }
+  .sc-days { margin-bottom: 12px; }
+  .sc-days .sc-opt { min-height: 40px; padding: 8px 12px; font-size: 14px; }
+  .sc-consent { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: var(--cal-body); }
+  .sc-consent input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--cal-primary); flex-shrink: 0; }
   .pa-wrap { display: none; }
   html.participant-mode .site-header, html.participant-mode .tab-nav, html.participant-mode .main { display: none !important; }
   html.participant-mode body { background: var(--cal-surface-soft); }
@@ -1463,6 +1510,9 @@
 <nav class="tab-nav" id="tab-nav">
   <button class="tab-btn active" data-tab="bank">
     페르소나 뱅크
+  </button>
+  <button class="tab-btn" data-tab="screening">
+    스크리닝
   </button>
   <button class="tab-btn" data-tab="interview">
     심층 인터뷰<span class="tab-badge" id="iv-pending-badge" hidden></span>
@@ -1812,6 +1862,25 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ══════════ 스크리닝 ══════════ -->
+  <div class="tab-panel" id="tab-screening">
+    <div class="section-header">
+      <div>
+        <div class="section-title">스크리닝</div>
+      </div>
+      <div class="sc-actions">
+        <button class="btn btn-secondary btn-sm" id="sc-refresh">새로고침</button>
+        <button class="btn btn-secondary btn-sm" id="sc-csv">CSV 받기</button>
+        <button class="btn btn-primary btn-sm" id="sc-copy">스크리닝 링크 복사</button>
+      </div>
+    </div>
+    <div class="sc-bar">
+      <div class="iv-seg small" id="sc-filter"><button data-f="전체">전체</button><button data-f="적합">적합</button><button data-f="예비">예비</button><button data-f="제외">제외</button><button data-f="선정">선정</button></div>
+      <div class="sc-summary" id="sc-summary"></div>
+    </div>
+    <div class="iv-card sc-list" id="sc-list"></div>
   </div>
 
   <!-- ══════════ 인터뷰 리뷰 · 질문지 보기 (탭 밖 전체 화면) ══════════ -->
@@ -2847,8 +2916,9 @@ document.getElementById('save-survey-btn').addEventListener('click', () => {
 function selectTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + tabId));
-  document.querySelector('.main').classList.toggle('wide', tabId === 'interview');
+  document.querySelector('.main').classList.toggle('wide', tabId === 'interview' || tabId === 'screening');
   if (tabId === 'interview') ivRenderAll();
+  if (tabId === 'screening') scLoad();
   try { localStorage.setItem('last_tab', tabId); } catch (e) { /* 무시 */ }
 }
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -5483,11 +5553,304 @@ function ivInit() {
   });
 }
 
-// 참가자 링크로 열린 경우 참가자 화면만 띄운다
+// ══════════════════════════════════════
+//  스크리닝 — 인터뷰 참여자 사전 질문 (?screen=1) · 연구자 스크리닝 탭
+// ══════════════════════════════════════
+const SC_TABLE = 'screenings';
+const SC_REWARD = '';   // 사례 안내 (팀에서 정하면 채운다 — 비어 있으면 안내문에 표시하지 않음)
+const SC_QUESTIONS = [
+  { n: 1, q: '최근 6개월 주식·ETF 사고판 횟수?', opts: ['없음', '1~2번', '3~9번', '10번 이상'] },
+  { n: 2, q: '투자 경력?', opts: ['1년 미만', '1~3년', '3년 이상'] },
+  { n: 3, q: '최근 3개월, 투자 관련해 AI(ChatGPT·증권앱 챗봇 등)에 직접 질문한 횟수?', opts: ['없음', '1~2번', '3번 이상', '기억 안 남'] },
+  { n: 4, q: '기억나는 최근 투자가 있고, 그 종목 화면을 앱에서 다시 열 수 있나요?', opts: ['예', '아니오'] },
+  { n: 5, q: '해당하는 것 모두', multi: true, opts: ['손실·후회 경험 있음', 'ETF·해외주식·펀드 경험', '해외옵션·선물·레버리지 ETF 경험', '증권 앱 2개 이상 사용', '없음'] },
+  { n: 6, q: '종목은 주로 어떻게 고르세요?', opts: ['지인·유튜브·커뮤니티 추천대로', '추천 참고 + 뉴스·차트 직접 확인', '재무제표·공시·실적 직접 분석'] },
+];
+// 인터뷰 가능 날짜 (2026년)
+const SC_DAYS = ['10/8 (목)', '10/9 (금)', '10/10 (토)', '10/11 (일)', '10/12 (월)', '10/13 (화)'];
+const SC_CIRCLED = ['①', '②', '③', '④', '⑤', '⑥'];
+
+// 판정 — 답은 보기 번호(1부터). 5번은 번호 배열
+function scJudge(a) {
+  const q5 = a.q5 || [];
+  // 수준 점수 = 경력 + 상품 + 고르는 방식 (0~2 초급 · 3~4 중급 · 5~6 고급)
+  const career = (a.q2 || 1) - 1;
+  const product = q5.includes(3) ? 2 : q5.includes(2) ? 1 : 0;
+  const picking = (a.q6 || 1) - 1;
+  const score = career + product + picking;
+  const level = score >= 5 ? '고급' : score >= 3 ? '중급' : '초급';
+  const reasons = [];
+  let verdict = '적합';
+  if (a.q1 === 1) { verdict = '제외'; reasons.push('최근 6개월 거래 없음'); }
+  else if (a.q4 === 2) { verdict = '예비'; reasons.push('화면 다시 열 수 없음'); }
+  if (level === '고급') reasons.push('고급 — 연구팀 판단');
+  return {
+    verdict, reasons, score, level, parts: { career, product, picking },
+    attrs: {
+      ai: a.q3 === 2 || a.q3 === 3,          // AI 직접 질문 1번 이상
+      loss: q5.includes(1),                  // 손실·후회 경험
+      highRisk: q5.includes(3),              // 해외옵션·선물·레버리지 ETF
+      multiApp: q5.includes(4),              // 증권 앱 2개 이상
+    },
+  };
+}
+// "1-3 2-1 3-2 4-1 5-1,2 6-2" 형태
+function scAnswerCode(a) {
+  return SC_QUESTIONS.map(q => `${q.n}-${q.multi ? (a['q' + q.n] || []).join(',') : a['q' + q.n]}`).join(' ');
+}
+function scAnswerText(a) {
+  return SC_QUESTIONS.map(q => {
+    const v = a['q' + q.n];
+    const picked = q.multi ? (v || []).map(i => q.opts[i - 1]).join(', ') : q.opts[v - 1];
+    return `${q.n}. ${q.q} → ${picked || '—'}`;
+  }).join('\n');
+}
+async function scRequest(path, opts) {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${SC_TABLE}${path}`, Object.assign({ headers: supabase._headers() }, opts || {}));
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.status === 204 || r.status === 201 ? null : r.json();
+}
+async function scPatch(id, body) {
+  await scRequest(`?id=eq.${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(Object.assign({}, body, { updated_at: new Date().toISOString() })) });
+}
+
+// ── 참가자 화면 ──
+function scInit() {
+  const root = document.getElementById('participant-view');
+  const S = { a: { q5: [] }, step: 'form', id: null, result: null, saving: false, err: '' };
+  try { const done = JSON.parse(localStorage.getItem('sc_done_v1') || 'null'); if (done && done.id) Object.assign(S, { step: done.contact ? 'thanks' : 'result', id: done.id, result: done.result }); } catch (e) { /* 무시 */ }
+  const remember = extra => { try { localStorage.setItem('sc_done_v1', JSON.stringify(Object.assign({ id: S.id, result: S.result }, extra || {}))); } catch (e) { /* 무시 */ } };
+  const complete = () => SC_QUESTIONS.every(q => q.multi ? (S.a.q5 || []).length : S.a['q' + q.n]);
+  function render() {
+    let body = '';
+    if (S.step === 'form') {
+      body = `
+        <div class="sc-intro">
+          <p><b>안녕하세요! 홍익대 대학원 서비스디자인 연구팀이에요.</b></p>
+          <p>"투자할 때 무엇을 보고 믿는지" 인터뷰 참여자를 찾고 있어요.</p>
+          <ul>
+            <li>1:1 60분 (대면/화상), 10/8~10/13 중</li>
+            <li>녹음·화면 캡처는 하지만 계좌·잔고·금액은 안 봐요</li>
+            ${SC_REWARD ? `<li>사례: ${ivEsc(SC_REWARD)}</li>` : ''}
+          </ul>
+          <p>괜찮으시면 아래 질문에 답해 주세요!</p>
+        </div>
+        ${SC_QUESTIONS.map(q => `
+          <div class="sc-q">
+            <div class="sc-q-title">${q.n}. ${ivEsc(q.q)}${q.multi ? ' <span>(여러 개 선택)</span>' : ''}</div>
+            <div class="sc-opts">${q.opts.map((o, i) => {
+              const v = i + 1;
+              const on = q.multi ? (S.a.q5 || []).includes(v) : S.a['q' + q.n] === v;
+              return `<button class="sc-opt${on ? ' on' : ''}" data-q="${q.n}" data-v="${v}" aria-pressed="${on}"><span class="sc-num">${SC_CIRCLED[i]}</span>${ivEsc(o)}</button>`;
+            }).join('')}</div>
+          </div>`).join('')}
+        ${S.err ? `<div class="sc-err">${ivEsc(S.err)}</div>` : ''}
+        <button class="pa-btn dark sc-submit" id="sc-submit" ${complete() && !S.saving ? '' : 'disabled'}>${S.saving ? '보내는 중…' : '답변 보내기'}</button>`;
+    } else if (S.step === 'result') {
+      const v = S.result.verdict;
+      if (v === '제외') {
+        body = `<div class="sc-done"><div class="sc-done-title">응답해 주셔서 감사해요</div><p>이번 인터뷰는 참여 조건이 맞는 분들께 따로 연락드리고 있어요. 시간 내 주셔서 감사합니다.</p></div>`;
+      } else {
+        body = `
+          <div class="sc-done">
+            <div class="sc-done-title">${v === '적합' ? '참여 가능해요!' : '응답 감사해요'}</div>
+            <p>${v === '적합' ? '일정 안내를 위해 연락받을 방법을 남겨 주세요.' : '조건이 맞으면 연락드릴게요. 연락받을 방법을 남겨 주세요.'}</p>
+          </div>
+          <div class="sc-q">
+            <label class="sc-field">이름 또는 닉네임<input id="sc-name" maxlength="20" autocomplete="nickname"></label>
+            <label class="sc-field">연락처 (전화번호 또는 카카오톡 ID)<input id="sc-phone" maxlength="40" autocomplete="tel"></label>
+            <div class="sc-field">가능한 날짜 (여러 개 선택)</div>
+            <div class="sc-opts sc-days">${SC_DAYS.map(d => `<button class="sc-opt" data-day="${ivEsc(d)}" aria-pressed="false">${ivEsc(d)}</button>`).join('')}</div>
+            <label class="sc-field">가능한 시간대 (선택)<input id="sc-time" maxlength="60" placeholder="예: 평일 저녁 7시 이후"></label>
+            <label class="sc-consent"><input type="checkbox" id="sc-agree"> 인터뷰 일정 안내를 위해 이름(닉네임)·연락처를 받는 것에 동의합니다. 일정 안내에만 쓰고 연구가 끝나면 삭제합니다.</label>
+          </div>
+          ${S.err ? `<div class="sc-err">${ivEsc(S.err)}</div>` : ''}
+          <button class="pa-btn dark sc-submit" id="sc-contact" ${S.saving ? 'disabled' : ''}>${S.saving ? '보내는 중…' : '연락처 남기기'}</button>`;
+      }
+    } else {
+      body = `<div class="sc-done"><div class="sc-done-title">접수됐어요!</div><p>${S.result && S.result.verdict === '적합' ? '10/8~10/13 중 일정을 정해 연락드릴게요.' : '조건이 맞으면 남겨 주신 연락처로 연락드릴게요.'} 감사합니다.</p></div>`;
+    }
+    root.innerHTML = `<div class="pa-head"><b>인터뷰 참여 신청</b><span>약 1분</span></div><div class="sc-body">${body}</div>`;
+  }
+  root.addEventListener('click', async e => {
+    const opt = e.target.closest('.sc-opt');
+    if (opt && opt.dataset.q) {
+      const n = +opt.dataset.q, v = +opt.dataset.v;
+      if (n === 5) {
+        let l = S.a.q5 || [];
+        if (v === 5) l = l.includes(5) ? [] : [5];                       // '없음'은 다른 보기와 함께 고를 수 없다
+        else l = l.includes(v) ? l.filter(x => x !== v) : l.filter(x => x !== 5).concat(v).sort();
+        S.a.q5 = l;
+      } else S.a['q' + n] = v;
+      S.err = ''; render(); return;
+    }
+    if (opt && opt.dataset.day) { const on = opt.getAttribute('aria-pressed') !== 'true'; opt.setAttribute('aria-pressed', on); opt.classList.toggle('on', on); return; }
+    if (e.target.id === 'sc-submit' && complete() && !S.saving) {
+      S.saving = true; S.err = ''; render();
+      const answers = Object.assign({}, S.a);
+      const result = scJudge(answers);
+      const id = 'sc_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      try {
+        await scRequest('', { method: 'POST', body: JSON.stringify([{ id, answers, result, contact: null, review: { decision: '미정' } }]) });
+        Object.assign(S, { id, result, step: 'result', saving: false }); remember();
+      } catch (err) { S.saving = false; S.err = '보내지 못했어요. 잠시 후 다시 눌러 주세요. (' + err.message + ')'; }
+      render(); window.scrollTo(0, 0); return;
+    }
+    if (e.target.id === 'sc-contact' && !S.saving) {
+      const name = document.getElementById('sc-name').value.trim();
+      const phone = document.getElementById('sc-phone').value.trim();
+      const days = Array.from(root.querySelectorAll('.sc-days .sc-opt.on')).map(b => b.dataset.day);
+      const time = document.getElementById('sc-time').value.trim();
+      const errs = [];
+      if (!name) errs.push('이름 또는 닉네임');
+      if (!phone) errs.push('연락처');
+      if (!days.length) errs.push('가능한 날짜');
+      const showErr = msg => { const old = root.querySelector('.sc-err'); if (old) old.remove(); e.target.insertAdjacentHTML('beforebegin', `<div class="sc-err">${ivEsc(msg)}</div>`); };
+      if (errs.length) { showErr('입력해 주세요: ' + errs.join(', ')); return; }
+      if (!document.getElementById('sc-agree').checked) { showErr('연락처 수집에 동의해 주세요.'); return; }
+      e.target.disabled = true; e.target.textContent = '보내는 중…';
+      try {
+        await scPatch(S.id, { contact: { name, phone, days, time, consentAt: new Date().toISOString() } });
+        S.step = 'thanks'; remember({ contact: true }); render();
+      } catch (err) { e.target.disabled = false; e.target.textContent = '연락처 남기기'; showErr('보내지 못했어요. 잠시 후 다시 눌러 주세요. (' + err.message + ')'); }
+    }
+  });
+  render();
+}
+
+// ── 연구자 스크리닝 탭 ──
+const SC = { rows: [], loaded: false, error: '', filter: '전체' };
+function scLink() { return `${location.origin}${location.pathname}?screen=1`; }
+async function scLoad() {
+  try {
+    SC.rows = await scRequest('?select=*&order=created_at.desc&limit=500') || [];
+    SC.error = ''; SC.loaded = true;
+  } catch (e) { SC.error = e.message; SC.loaded = true; }
+  scRender();
+}
+function scFmt(iso) { const d = new Date(iso); return isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+function scTags(res) {
+  const a = res.attrs || {};
+  return [a.ai ? 'AI O' : 'AI X', a.loss && '손실·후회', a.highRisk && '고위험 상품', a.multiApp && '앱 2개+'].filter(Boolean).map(t => `<span class="iv-chip line">${t}</span>`).join('');
+}
+function scRender() {
+  const el = document.getElementById('sc-list');
+  if (!el) return;
+  const rows = SC.rows;
+  const count = v => rows.filter(r => r.result && r.result.verdict === v).length;
+  const picked = rows.filter(r => r.review && r.review.decision === '선정').length;
+  document.getElementById('sc-summary').innerHTML = `전체 <b>${rows.length}</b> · 적합 <b>${count('적합')}</b> · 예비 <b>${count('예비')}</b> · 제외 <b>${count('제외')}</b> · 선정 <b>${picked}</b>`;
+  document.querySelectorAll('#sc-filter button').forEach(b => b.classList.toggle('active', b.dataset.f === SC.filter));
+  if (!SC.loaded) { el.innerHTML = '<div class="iv-muted" style="padding:24px;">불러오는 중…</div>'; return; }
+  if (SC.error) { el.innerHTML = `<div class="iv-store-warn" style="display:block;margin:0;">스크리닝 저장소(<b>${SC_TABLE}</b> 테이블)에 연결하지 못했습니다. 저장소의 <b>supabase/screenings.sql</b>을 Supabase SQL Editor에서 한 번 실행하세요. (${ivEsc(SC.error)})</div>`; return; }
+  const list = SC.filter === '전체' ? rows : SC.filter === '선정' ? rows.filter(r => r.review && r.review.decision === '선정') : rows.filter(r => r.result && r.result.verdict === SC.filter);
+  if (!list.length) { el.innerHTML = `<div class="iv-muted" style="padding:24px;">${rows.length ? '해당하는 응답이 없어요' : '아직 응답이 없어요'}</div>`; return; }
+  el.innerHTML = `<table class="sc-table"><thead><tr><th>응답</th><th>이름 · 연락처</th><th>가능 일정</th><th>판정</th><th>수준</th><th>특성</th><th>답</th><th>최종 선정</th><th>인터뷰</th></tr></thead><tbody>${list.map(r => {
+    const res = r.result || {}; const c = r.contact; const rv = r.review || {};
+    const iv = rv.interviewId && IV.sessions[rv.interviewId];
+    const ivCell = rv.interviewId
+      ? `<button class="iv-btn ghost sc-mini" data-sc="open" data-id="${ivEsc(r.id)}">${ivEsc(rv.code || '인터뷰')} 보기</button>${iv && iv.endedAt ? '<div class="iv-muted">끝남</div>' : ''}`
+      : rv.decision === '선정' ? `<button class="iv-btn dark sc-mini" data-sc="start" data-id="${ivEsc(r.id)}">인터뷰 시작</button>` : '<span class="iv-muted">—</span>';
+    return `<tr>
+      <td class="nowrap">${scFmt(r.created_at)}</td>
+      <td>${c ? `<b>${ivEsc(c.name)}</b><div>${ivEsc(c.phone)}</div>` : '<span class="iv-muted">' + (res.verdict === '제외' ? '받지 않음' : '미입력') + '</span>'}</td>
+      <td>${c ? ivEsc((c.days || []).join(', ')) + (c.time ? `<div class="iv-muted">${ivEsc(c.time)}</div>` : '') : '<span class="iv-muted">—</span>'}</td>
+      <td><span class="sc-verdict v-${ivEsc(res.verdict)}">${ivEsc(res.verdict)}</span>${res.reasons && res.reasons.length ? `<div class="iv-muted">${ivEsc(res.reasons.join(' · '))}</div>` : ''}</td>
+      <td class="nowrap"><span class="${res.level === '고급' ? 'sc-adv' : ''}">${ivEsc(res.level)}</span> <span class="iv-muted">${res.score}점</span></td>
+      <td><div class="sc-tags">${scTags(res)}</div></td>
+      <td class="nowrap" title="${ivEsc(scAnswerText(r.answers || {}))}">${ivEsc(scAnswerCode(r.answers || {}))}</td>
+      <td><select class="sc-decision" data-id="${ivEsc(r.id)}">${['미정', '선정', '보류', '탈락'].map(d => `<option${(rv.decision || '미정') === d ? ' selected' : ''}>${d}</option>`).join('')}</select></td>
+      <td>${ivCell}</td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+}
+// 다음 참가자 코드 — 실제 인터뷰와 스크리닝에서 이미 쓴 P 번호 다음
+function scNextCode() {
+  let max = 0;
+  const take = c => { const m = String(c || '').match(/^P(\d+)$/i); if (m) max = Math.max(max, +m[1]); };
+  Object.values(IV.sessions).forEach(s => { if (s.kind === 'real' && s.profile) take(s.profile.code); });
+  SC.rows.forEach(r => take(r.review && r.review.code));
+  return 'P' + String(max + 1).padStart(2, '0');
+}
+function scConfirm(title, msg, okLabel, onOk) {
+  const ov = document.createElement('div');
+  ov.className = 'dialog-overlay';
+  ov.innerHTML = `<div class="dialog-box" role="dialog" aria-modal="true"><div class="dialog-title">${ivEsc(title)}</div><div class="dialog-msg">${ivEsc(msg)}</div>
+    <div class="dialog-actions" style="gap:8px;"><button class="iv-btn ghost" data-c="no">취소</button><button class="dialog-confirm" data-c="ok">${ivEsc(okLabel)}</button></div></div>`;
+  ov.addEventListener('click', e => { const c = e.target.dataset && e.target.dataset.c; if (e.target === ov || c === 'no') ov.remove(); if (c === 'ok') { ov.remove(); onOk(); } });
+  document.body.appendChild(ov);
+}
+// 선정된 사람으로 AI 모더레이터 인터뷰를 바로 만든다 (코드·경력·AI 사용·손실 경험 자동 입력)
+function scStartInterview(row) {
+  const cur = IV.current.real;
+  const go = () => {
+    if (cur) ivCloseRealSession();
+    const a = row.answers || {}, res = row.result || {};
+    const code = scNextCode();
+    Object.assign(IV.realSetup, {
+      code,
+      level: { 초급: '초보', 중급: '중급', 고급: '고급' }[res.level] || '중급',
+      aiUse: { 2: '가끔 사용', 3: '자주 사용' }[a.q3] || '사용 안 함',   // '기억 안 남'은 사용 안 함으로 두고, ②에서 모더레이터가 다시 판단한다
+      loss: (a.q5 || []).includes(1) ? '있음' : '없음',
+    });
+    selectTab('interview');
+    ivSetMode('real');
+    ivStartReal();
+    const s = IV.current.real;
+    if (!s || s.profile.code !== code) return;
+    s.screeningId = row.id;
+    ivSave(s, true);
+    row.review = Object.assign({}, row.review, { code, interviewId: s.id, startedAt: new Date().toISOString() });
+    scPatch(row.id, { review: row.review }).catch(() => {});
+    showDialog(`${code} 인터뷰를 만들었어요`, `${(row.contact && row.contact.name) || '선정된 참가자'}님 스크리닝 답으로 경력·AI 사용·손실 경험을 채웠어요.\n왼쪽 '참가자 링크 복사'로 링크를 보내 주세요.`);
+  };
+  if (cur && !cur.endedAt) scConfirm('진행 중인 인터뷰가 있어요', `${cur.profile.code} 인터뷰는 그대로 저장되고 지난 인터뷰 목록에 남아요. 새 인터뷰를 만들까요?`, '새로 만들기', go);
+  else go();
+}
+function scExportCsv() {
+  const head = ['응답 시각', '이름', '연락처', '가능 날짜', '가능 시간대', '판정', '판정 이유', '수준', '점수', 'AI 사용', '손실·후회', '고위험 상품', '앱 2개 이상', '답', '최종 선정', '인터뷰 코드'];
+  const rows = SC.rows.map(r => { const res = r.result || {}, a = res.attrs || {}, c = r.contact || {}, rv = r.review || {};
+    return [scFmt(r.created_at), c.name, c.phone, (c.days || []).join(' / '), c.time, res.verdict, (res.reasons || []).join(' · '), res.level, res.score, a.ai ? 'O' : 'X', a.loss ? 'Y' : 'N', a.highRisk ? 'Y' : 'N', a.multiApp ? 'Y' : 'N', scAnswerCode(r.answers || {}), rv.decision || '미정', rv.code]; });
+  const csv = '﻿' + [head].concat(rows).map(r => r.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `screening_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+}
+function scInitEvents() {
+  const tab = document.getElementById('tab-screening');
+  tab.addEventListener('click', async e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    if (b.id === 'sc-copy') { try { await navigator.clipboard.writeText(scLink()); showDialog('스크리닝 링크를 복사했습니다', scLink()); } catch (err) { showDialog('스크리닝 링크', scLink()); } }
+    else if (b.id === 'sc-refresh') scLoad();
+    else if (b.id === 'sc-csv') scExportCsv();
+    else if (b.dataset.f) { SC.filter = b.dataset.f; scRender(); }
+    else if (b.dataset.sc) {
+      const row = SC.rows.find(r => r.id === b.dataset.id);
+      if (!row) return;
+      if (b.dataset.sc === 'start') scStartInterview(row);
+      else if (b.dataset.sc === 'open') ivOpenRealFromPending(row.review.interviewId);
+    }
+  });
+  tab.addEventListener('change', async e => {
+    if (!e.target.classList.contains('sc-decision')) return;
+    const row = SC.rows.find(r => r.id === e.target.dataset.id);
+    if (!row) return;
+    const prev = row.review;
+    row.review = Object.assign({}, row.review, { decision: e.target.value, decidedAt: new Date().toISOString() });
+    setTimeout(scRender, 0);
+    try { await scPatch(row.id, { review: row.review }); }
+    catch (err) { row.review = prev; scRender(); showDialog('저장하지 못했습니다', err.message); }
+  });
+}
+
+// 참가자 링크로 열린 경우 참가자 화면만 띄운다 (인터뷰 ?answer= · 스크리닝 ?screen=)
 const IV_PARTICIPANT_ID = new URLSearchParams(location.search).get('answer');
 if (IV_PARTICIPANT_ID) paInit(IV_PARTICIPANT_ID);
+else if (new URLSearchParams(location.search).get('screen')) scInit();
 else {
-  ivInit(); initApp();
+  ivInit(); initApp(); scInitEvents();
   // 새로고침해도 보던 탭으로 돌아온다
   try { const t = localStorage.getItem('last_tab'); if (t && t !== 'bank' && document.getElementById('tab-' + t)) selectTab(t); } catch (e) { /* 무시 */ }
 }
