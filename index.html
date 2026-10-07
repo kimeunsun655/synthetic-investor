@@ -5836,10 +5836,13 @@ function scMenuItems(r) {
   const rv = r.review || {}, decision = rv.decision || '미정', method = scMethod(rv);
   if (decision === '미정') return [];
   if (decision !== '선정') return [['decide:선정', '선정하기'], decision === '보류' ? ['decide:탈락', '탈락 처리'] : ['decide:보류', '보류로'], ['decide:미정', '미정으로']];
+  // 인터뷰가 끝난 사람은 보기·기록만 남긴다 (방식 변경·선정 취소 없음)
+  const iv = rv.interviewId && IV.sessions[rv.interviewId];
+  const finished = method === 'ai' ? !!(iv && iv.endedAt) : method === 'direct' ? (rv.direct || {}).status === '완료' : false;
   const items = [];
-  if (method === 'ai') items.push(['open', '인터뷰 보기'], ['to-direct', '직접 인터뷰로 변경']);
-  if (method === 'direct') { items.push(['direct', '일정·완료 기록']); if ((rv.direct || {}).status !== '완료') items.push(['start', 'AI 링크로 변경']); }
-  items.push(['unpick', '선정 취소']);
+  if (method === 'ai') { items.push(['open', '인터뷰 보기']); if (!finished) items.push(['to-direct', '직접 인터뷰로 변경']); }
+  if (method === 'direct') { items.push(['direct', '일정·완료 기록']); if (!finished) items.push(['start', 'AI 링크로 변경']); }
+  if (!finished) items.push(['unpick', '선정 취소']);
   return items;
 }
 function scCloseMenu() { const m = document.getElementById('sc-menu'); if (m) m.remove(); document.querySelectorAll('.sc-dots.open').forEach(b => b.classList.remove('open')); }
