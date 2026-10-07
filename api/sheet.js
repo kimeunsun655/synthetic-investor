@@ -26,7 +26,13 @@ export default async function handler(req) {
   }
   const text = await res.text();
   let data;
-  try { data = JSON.parse(text); } catch (e) { return json({ error: `시트 응답을 읽지 못했습니다 (HTTP ${res.status})` }, 502); }
+  try { data = JSON.parse(text); } catch (e) {
+    // JSON이 아니면 대개 구글 로그인·권한 화면이다 — 원인을 알 수 있게 앞부분을 함께 돌려준다
+    const hint = /accounts\.google\.com|ServiceLogin|로그인|Sign in/i.test(text) ? ' · 웹 앱 접근 권한이 "모든 사용자"인지 확인하세요'
+      : /doPost|함수를 찾을 수 없|Script function not found/i.test(text) ? ' · 웹 앱에 doPost가 없습니다. 코드를 저장한 뒤 새 버전으로 다시 배포하세요' : '';
+    const title = (text.match(/<title>([^<]*)<\/title>/i) || [])[1] || text.replace(/\s+/g, ' ').slice(0, 120);
+    return json({ error: `시트 응답을 읽지 못했습니다 (HTTP ${res.status}${title ? ' · ' + title : ''})${hint}` }, 502);
+  }
   if (!data || !data.ok) return json({ error: (data && data.error) || '시트 오류' }, 502);
   return json(data);
 }

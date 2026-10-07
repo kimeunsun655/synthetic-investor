@@ -1399,6 +1399,7 @@
   .sc-form select, .sc-form input { height: 38px; }
   .sc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .sc-sheet-err { color: var(--cal-error); }
+  #sc-sheet-why { margin: 0; font-size: inherit; color: var(--cal-error); }
   .sc-sheet-ok { color: #047857; }
   .sc-sheet-off { color: var(--cal-muted); }
   .sc-msg { width: 100%; border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.6; font-family: inherit; color: var(--cal-ink); resize: none; margin: 8px 0 12px; }
@@ -5836,7 +5837,7 @@ function scRender() {
   document.getElementById('sc-summary').innerHTML = `전체 <b>${rows.length}</b> · 적합 <b>${count('적합')}</b> · 예비 <b>${count('예비')}</b> · 제외 <b>${count('제외')}</b> · 선정 <b>${picked}</b> · 직접 <b>${byMethod('direct')}</b> (완료 ${doneDirect}) · AI 링크 <b>${byMethod('ai')}</b>`;
   if (SC.sheetState) document.getElementById('sc-summary').insertAdjacentHTML('beforeend', SC.sheetState === 'ok' ? ' · <span class="sc-sheet-ok">● 시트 연결됨</span>'
     : SC.sheetState === 'off' ? ' · <span class="sc-sheet-off" title="Vercel 환경 변수 SHEET_WEBHOOK_URL · SHEET_TOKEN이 이 배포에 없습니다">● 시트 연동 설정 안 됨</span>'
-    : ` · <span class="sc-sheet-err" title="${ivEsc(SC.sheetState)}">● 시트 연결 안 됨</span>`);
+    : ` · <button class="iv-link sc-sheet-err" id="sc-sheet-why" title="${ivEsc(SC.sheetState)}">● 시트 연결 안 됨 (이유 보기)</button>`);
   document.querySelectorAll('#sc-filter button').forEach(b => b.classList.toggle('active', b.dataset.f === SC.filter));
   if (!SC.loaded) { el.innerHTML = '<div class="iv-muted" style="padding:24px;">불러오는 중…</div>'; return; }
   if (SC.error) { el.innerHTML = `<div class="iv-store-warn" style="display:block;margin:0;">스크리닝 저장소(<b>${SC_TABLE}</b> 테이블)에 연결하지 못했습니다. 저장소의 <b>supabase/screenings.sql</b>을 Supabase SQL Editor에서 한 번 실행하세요. (${ivEsc(SC.error)})</div>`; return; }
@@ -6271,6 +6272,7 @@ function scInitEvents() {
   tab.addEventListener('click', async e => {
     const b = e.target.closest('button');
     if (!b) return;
+    if (b.id === 'sc-sheet-why') { showDialog('시트 연결 안 됨', ivEsc(SC.sheetState)); return; }
     if (b.id === 'sc-copy') { try { await navigator.clipboard.writeText(scLink()); showDialog('스크리닝 링크를 복사했습니다', scLink()); } catch (err) { showDialog('스크리닝 링크', scLink()); } }
     else if (b.id === 'sc-refresh') scLoad();
     else if (b.id === 'sc-csv') scExportCsv();
