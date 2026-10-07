@@ -5685,11 +5685,11 @@ function scInit() {
             <p>${v === '적합' ? '이름과 가능한 날짜를 남겨 주세요.' : '조건이 맞으면 연락드릴게요. 이름과 가능한 날짜를 남겨 주세요.'}</p>
           </div>
           <div class="sc-q">
-            <label class="sc-field">이름 또는 닉네임<input id="sc-name" maxlength="20" autocomplete="nickname"></label>
+            <label class="sc-field">이름 (실명)<input id="sc-name" maxlength="20" autocomplete="name" placeholder="예: 홍길동"></label>
             <div class="sc-field">가능한 날짜 (여러 개 선택)</div>
             <div class="sc-opts sc-days">${SC_DAYS.map(d => `<button class="sc-opt" data-day="${ivEsc(d)}" aria-pressed="false">${ivEsc(d)}</button>`).join('')}</div>
             <label class="sc-field">가능한 시간대 (선택)<input id="sc-time" maxlength="60" placeholder="예: 평일 저녁 7시 이후"></label>
-            <label class="sc-consent"><input type="checkbox" id="sc-agree"> 인터뷰 일정을 정하기 위해 이름(닉네임)을 받는 것에 동의합니다. 일정을 정하는 데만 쓰고 연구가 끝나면 삭제합니다.</label>
+            <label class="sc-consent"><input type="checkbox" id="sc-agree"> 인터뷰 일정을 정하기 위해 이름(실명)을 받는 것에 동의합니다. 일정을 정하는 데만 쓰고 연구가 끝나면 삭제합니다.</label>
           </div>
           ${S.err ? `<div class="sc-err">${ivEsc(S.err)}</div>` : ''}
           <button class="pa-btn dark sc-submit" id="sc-contact" ${S.saving ? 'disabled' : ''}>${S.saving ? '보내는 중…' : '보내기'}</button>`;
@@ -5728,7 +5728,7 @@ function scInit() {
       const days = Array.from(root.querySelectorAll('.sc-days .sc-opt.on')).map(b => b.dataset.day);
       const time = document.getElementById('sc-time').value.trim();
       const errs = [];
-      if (!name) errs.push('이름 또는 닉네임');
+      if (!name) errs.push('이름');
       if (!days.length) errs.push('가능한 날짜');
       const showErr = msg => { const old = root.querySelector('.sc-err'); if (old) old.remove(); e.target.insertAdjacentHTML('beforebegin', `<div class="sc-err">${ivEsc(msg)}</div>`); };
       if (errs.length) { showErr('입력해 주세요: ' + errs.join(', ')); return; }
