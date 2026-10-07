@@ -1400,6 +1400,7 @@
   .sc-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .sc-sheet-err { color: var(--cal-error); }
   .sc-sheet-ok { color: #047857; }
+  .sc-sheet-off { color: var(--cal-muted); }
   .sc-msg { width: 100%; border: 1px solid var(--cal-hairline); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.6; font-family: inherit; color: var(--cal-ink); resize: none; margin: 8px 0 12px; }
   .sc-table tr.sc-excluded td { color: var(--cal-muted-soft); }
   .sc-table tr.sc-excluded td b, .sc-table tr.sc-excluded .sc-tags { opacity: 0.6; }
@@ -5805,7 +5806,7 @@ async function scSheetPing() {
   try {
     const res = await fetch('/api/sheet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'ping' }) });
     const data = await res.json().catch(() => ({}));
-    if (res.status === 501) { SC.sheetOff = true; SC.sheetState = ''; }
+    if (res.status === 501) { SC.sheetOff = true; SC.sheetState = 'off'; }
     else SC.sheetState = res.ok && data.ok ? 'ok' : (data.error || `HTTP ${res.status}`);
   } catch (e) { SC.sheetState = e.message; }
   scRender();
@@ -5833,7 +5834,9 @@ function scRender() {
   const byMethod = m => rows.filter(r => scMethod(r.review || {}) === m).length;
   const doneDirect = rows.filter(r => r.review && r.review.direct && r.review.direct.status === '완료').length;
   document.getElementById('sc-summary').innerHTML = `전체 <b>${rows.length}</b> · 적합 <b>${count('적합')}</b> · 예비 <b>${count('예비')}</b> · 제외 <b>${count('제외')}</b> · 선정 <b>${picked}</b> · 직접 <b>${byMethod('direct')}</b> (완료 ${doneDirect}) · AI 링크 <b>${byMethod('ai')}</b>`;
-  if (SC.sheetState) document.getElementById('sc-summary').insertAdjacentHTML('beforeend', SC.sheetState === 'ok' ? ' · <span class="sc-sheet-ok">● 시트 연결됨</span>' : ` · <span class="sc-sheet-err" title="${ivEsc(SC.sheetState)}">● 시트 연결 안 됨</span>`);
+  if (SC.sheetState) document.getElementById('sc-summary').insertAdjacentHTML('beforeend', SC.sheetState === 'ok' ? ' · <span class="sc-sheet-ok">● 시트 연결됨</span>'
+    : SC.sheetState === 'off' ? ' · <span class="sc-sheet-off" title="Vercel 환경 변수 SHEET_WEBHOOK_URL · SHEET_TOKEN이 이 배포에 없습니다">● 시트 연동 설정 안 됨</span>'
+    : ` · <span class="sc-sheet-err" title="${ivEsc(SC.sheetState)}">● 시트 연결 안 됨</span>`);
   document.querySelectorAll('#sc-filter button').forEach(b => b.classList.toggle('active', b.dataset.f === SC.filter));
   if (!SC.loaded) { el.innerHTML = '<div class="iv-muted" style="padding:24px;">불러오는 중…</div>'; return; }
   if (SC.error) { el.innerHTML = `<div class="iv-store-warn" style="display:block;margin:0;">스크리닝 저장소(<b>${SC_TABLE}</b> 테이블)에 연결하지 못했습니다. 저장소의 <b>supabase/screenings.sql</b>을 Supabase SQL Editor에서 한 번 실행하세요. (${ivEsc(SC.error)})</div>`; return; }
