@@ -5618,6 +5618,8 @@ async function scPatch(id, body) {
 function scInit() {
   const root = document.getElementById('participant-view');
   const S = { a: { q5: [] }, step: 'form', id: null, result: null, saving: false, err: '' };
+  // 같은 기기로 다시 열면 접수 화면을 보여 준다. 테스트할 때는 주소에 &again=1을 붙이면 새로 답할 수 있다
+  if (new URLSearchParams(location.search).get('again')) { try { localStorage.removeItem('sc_done_v1'); } catch (e) { /* 무시 */ } }
   try { const done = JSON.parse(localStorage.getItem('sc_done_v1') || 'null'); if (done && done.id) Object.assign(S, { step: done.contact ? 'thanks' : 'result', id: done.id, result: done.result }); } catch (e) { /* 무시 */ }
   const remember = extra => { try { localStorage.setItem('sc_done_v1', JSON.stringify(Object.assign({ id: S.id, result: S.result }, extra || {}))); } catch (e) { /* 무시 */ } };
   const complete = () => SC_QUESTIONS.every(q => q.multi ? (S.a.q5 || []).length : S.a['q' + q.n]);
