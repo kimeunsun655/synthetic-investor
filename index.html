@@ -3342,6 +3342,7 @@ const IV = {
   autoPickN: 12,           // '고르게 뽑기' 인원
   storeOk: null,
   reviewId: null,
+  reviewReturn: null,      // 읽기 전용 패널에서 리뷰를 열었을 때 돌아갈 곳 { sid, rowId, tab }
   pollTimer: null,
 };
 
@@ -3674,7 +3675,7 @@ function ivRecordTurn(s, obj, meta) {
   return t;
 }
 function ivPushAnswer(s, t, answer, source) {
-  t.answer = answer; t.answerSource = source;
+  t.answer = answer; t.answerSource = source; t.answeredAt = Date.now();
   if (s.mode === 'direct') return;
   const label = source === 'persona' ? '[참가자 답변]' : source === 'participant' ? '[참가자 답변 · 참가자 직접 작성]' : '[참가자 답변 · 연구자 대리 입력 요약]';
   s.modHistory.push({ role: 'user', content: `${label}\n${answer}\n\n${ivStateLine(s)}` });
@@ -4851,7 +4852,17 @@ function ivShowView(id) {
   document.body.classList.toggle('iv-view-open', !!id);
   window.scrollTo(0, 0);
 }
-function ivCloseView() { IV.reviewId = null; ivShowView(null); selectTab('interview'); ivRenderAll(); }
+function ivCloseView() {
+  const back = IV.reviewReturn && IV.reviewReturn.sid === IV.reviewId ? IV.reviewReturn : null;
+  IV.reviewId = null; IV.reviewReturn = null;
+  ivShowView(null);
+  if (back) {   // 읽기 전용 패널에서 리뷰를 열었으면 왔던 탭과 패널로 그대로 돌아간다
+    selectTab(back.tab);
+    ivReadOpen(back.sid, back.rowId ? SC.rows.find(r => r.id === back.rowId) : null);
+    return;
+  }
+  selectTab('interview'); ivRenderAll();
+}
 
 function ivCriteria(s) {
   const ai = s.aiUser !== false && (s.profile.aiUse !== '사용 안 함' || s.aiUser === true);
@@ -4952,7 +4963,7 @@ function ivRenderReview() {
   const ended = s.endedAt ? new Date(s.endedAt) : null;
   const okIcon = '<span class="ok"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5.2l2 2 4-4.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
   el.innerHTML = `
-    <button class="iv-back" data-rv="back">← 대화로 돌아가기</button>
+    <button class="iv-back" data-rv="back">${IV.reviewReturn && IV.reviewReturn.sid === IV.reviewId ? '← 돌아가기' : '← 대화로 돌아가기'}</button>
     <div class="rv-head">
       <div><div class="rv-title">인터뷰 리뷰 · ${ivEsc(s.profile.code)}</div>
         <div class="rv-meta">${ivEsc(ivProfileLine(s))} · ${ivModeLabel(s.mode)} · 질문 ${ivAsked(s).length}개${ended ? ` · ${String(ended.getHours()).padStart(2, '0')}:${String(ended.getMinutes()).padStart(2, '0')} 종료` : ''}</div></div>
@@ -5004,6 +5015,10 @@ function ivInitReviewEvents() {
     else if (act === 'draft') { s.review.status = s.review.status === 'done' ? 'done' : 'draft'; ivSave(s, true); showDialog('임시 저장했습니다', '나중에 이어서 판정할 수 있습니다.'); }
     else if (act === 'save') {
       const left = ivCriteria(s).filter(c => !(s.review.criteria[c.key] && s.review.criteria[c.key].grade)).length;
+      if (left === ivCriteria(s).length && !b.dataset.force) {
+        scConfirm('판정한 기준이 없어요', '기준을 하나도 판정하지 않았어요. 이대로 리뷰를 끝낼까요?\n끝내면 이 인터뷰는 작업 화면에서 내려가고 보기만 할 수 있어요.', '그대로 저장', () => { b.dataset.force = '1'; b.click(); delete b.dataset.force; });
+        return;
+      }
       s.review.status = 'done'; s.review.savedAt = Date.now(); ivSave(s, true);
       IV.pending.done = IV.pending.done.filter(x => x.id !== s.id); ivRenderPendingBadge();
       ivCloseReviewed(s);
@@ -6066,6 +6081,17 @@ function scExportCsv() {
   a.download = `screening_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
 }
+// 마지막 답 시각 — 답 시각(answeredAt)이 없는 예전 기록은 다음 질문이 나온 시각이나 끝난 시각으로 추정한다
+function ivLastAnswerAt(s, pa) {
+  let last = pa && pa.at ? pa.at : 0;
+  s.turns.forEach((t, i) => {
+    if (t.answer == null) return;
+    const next = s.turns[i + 1];
+    const at = t.answeredAt || (next && next.at) || s.endedAt || 0;
+    if (at > last) last = at;
+  });
+  return last || null;
+}
 // ── 인터뷰 보기 (읽기 전용 패널) — 저장소를 읽기만 하고, 진행 중 세션·저장·AI 호출을 건드리지 않는다
 // 스크리닝 탭의 '인터뷰 보기'와 심층 인터뷰 탭의 '리뷰가 끝난 지난 인터뷰'에서 함께 쓴다
 const SC_VIEW = { sid: null, rowId: null, s: null, pa: null, timer: null, err: '' };
@@ -6105,9 +6131,12 @@ function ivReadOpen(sid, row) {
     if (act === 'close') scViewClose();
     else if (act === 'work') { scViewClose(); ivOpenRealFromPending(sid); }
     else if (act === 'review') {
+      const back = { sid, rowId: SC_VIEW.rowId, tab: document.querySelector('.tab-btn.active') ? document.querySelector('.tab-btn.active').dataset.tab : 'interview' };
       scViewClose();
       if (!IV.sessions[sid] && s) IV.sessions[sid] = s;
-      selectTab('interview'); ivOpenReview(sid);
+      ivOpenReview(sid);
+      IV.reviewReturn = back;   // 리뷰에서 돌아가거나 저장하면 이 패널로 돌아온다
+      ivRenderReview();
     }
     else if (act === 'txt' && s) { if (!s.turns.length) return showDialog('저장할 대화가 없습니다', '아직 질문이 없어요.'); downloadTxt(ivTranscriptTxt(s), ivFileName(s, 'txt')); }
     else if (act === 'csv' && s) { if (!s.turns.length) return showDialog('받을 기록이 없습니다', '아직 질문이 없어요.'); ivDownloadCsv(ivAiLogRows([s]), ivFileName(s, 'csv', 'ai-log')); }
@@ -6131,7 +6160,7 @@ function scViewRender() {
   else {
     const asked = ivAsked(s), answered = ivAnswered(s);
     const state = s.endedAt ? chip(reviewed ? '끝남 · 리뷰 완료' : '끝남', 'done') : answered.length ? chip('진행 중', 'wait') : chip('시작 전', 'wait');
-    const last = SC_VIEW.pa && SC_VIEW.pa.at ? SC_VIEW.pa.at : null;   // 참가자가 링크로 보낸 마지막 답 시각
+    const last = ivLastAnswerAt(s, SC_VIEW.pa);
     const consent = (s.consent && s.consent.participantAt) || (SC_VIEW.pa && SC_VIEW.pa.consentAt);
     const facts = [
       ['상태', state + (s.endReason ? ` <span class="sc-sub">${ivEsc(s.endReason)}</span>` : '')],
