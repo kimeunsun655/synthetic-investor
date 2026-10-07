@@ -1374,6 +1374,11 @@
   .sc-verdict.v-제외 { background: var(--cal-surface-card); color: var(--cal-muted); }
   .sc-adv { font-weight: 700; color: #6d28d9; }
   .sc-mini { height: 30px; font-size: 12px; padding: 0 10px; }
+  .sc-link { display: block; margin: 6px 0 0; font-size: 12px; color: var(--cal-muted); }
+  .sc-link-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; margin: 4px 0 14px; }
+  .sc-link-item { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border: 1px solid var(--cal-hairline); border-radius: 10px; font-size: 13px; color: var(--cal-body); cursor: pointer; }
+  .sc-link-item:has(input:checked) { border-color: var(--cal-ink); }
+  .sc-link-item input { accent-color: var(--cal-primary); }
   .sc-iv { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; white-space: nowrap; }
   .sc-method { font-size: 12px; font-weight: 700; color: var(--cal-ink); }
   .sc-st { font-size: 11px; font-weight: 600; padding: 0 6px; line-height: 18px; border-radius: 5px; }
@@ -5644,6 +5649,7 @@ function ivInit() {
     const r = IV.current.real;
     if (r) { try { await ivRefreshFromStore(r); } catch (e) { /* 무시 */ } }
     ivRenderAll();
+    scRender();   // 스크리닝 탭의 '이미 진행한 인터뷰 연결' 후보가 인터뷰 목록에 달려 있다
     ivSyncPoll();
     ivPollPending();
     setInterval(ivPollPending, IV_PENDING_POLL_MS);
@@ -5901,7 +5907,49 @@ function scProgressCell(r) {
     return `<div class="sc-iv"><span class="sc-method">직접 · ${ivEsc(rv.code || '')}</span>${chip(st, st === '완료' ? 'done' : st === '노쇼' ? 'off' : 'wait')}</div>
       <div class="sc-sub sc-when">${ivEsc([d.date, d.time, d.place, d.host ? '진행 ' + d.host : ''].filter(Boolean).join(' · ') || '일정 미정')}</div>${scSheetLine(rv)}`;
   }
-  return `<div class="sc-iv-btns"><button class="iv-btn ghost sc-mini" data-sc="direct" data-id="${id}">직접 인터뷰</button><button class="iv-btn ghost sc-mini" data-sc="start" data-id="${id}">AI 링크</button></div>`;
+  return `<div class="sc-iv-btns"><button class="iv-btn ghost sc-mini" data-sc="direct" data-id="${id}">직접 인터뷰</button><button class="iv-btn ghost sc-mini" data-sc="start" data-id="${id}">AI 링크</button></div>
+    ${scLinkCandidates().length ? `<button class="iv-link sc-link" data-sc="link" data-id="${id}">이미 진행한 인터뷰 연결</button>` : ''}`;
+}
+// 스크리닝 없이 시작한 실제 인터뷰 — 어떤 스크리닝 응답에도 연결되지 않은 것
+function scLinkCandidates() {
+  const used = new Set(SC.rows.map(r => r.review && r.review.interviewId).filter(Boolean));
+  return Object.values(IV.sessions)
+    .filter(x => x.kind === 'real' && !x.screeningId && !used.has(x.id))
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+}
+// 이미 진행한 인터뷰를 이 스크리닝 응답에 연결한다 (예: AI 모더레이터에서 바로 시작한 인터뷰에, 나중에 받은 스크리닝 응답을 붙이기)
+function scLinkInterview(row) {
+  const list = scLinkCandidates();
+  if (!list.length) { showDialog('연결할 인터뷰가 없어요', '스크리닝 없이 진행한 인터뷰가 없어요.'); return; }
+  const name = (row.contact && row.contact.name) || '이 응답';
+  const ov = document.createElement('div');
+  ov.className = 'dialog-overlay';
+  ov.innerHTML = `<div class="dialog-box sc-dialog" role="dialog" aria-modal="true">
+    <div class="dialog-title">이미 진행한 인터뷰 연결</div>
+    <div class="dialog-msg">${ivEsc(name)}님의 스크리닝 응답에 연결할 인터뷰를 골라 주세요. 스크리닝 없이 시작한 인터뷰만 보여요.</div>
+    <div class="sc-link-list">${list.map((x, i) => {
+      const state = x.endedAt ? '끝남' : ivAnswered(x).length ? '진행 중' : '시작 전';
+      return `<label class="sc-link-item"><input type="radio" name="sc-link" value="${ivEsc(x.id)}"${i === 0 ? ' checked' : ''}>
+        <span><b>${ivEsc(x.profile.code)}</b> · ${ivEsc(ivFmtClock(x.createdAt))} 시작 · 질문 ${ivAsked(x).length}개 · ${state}${x.review && x.review.status === 'done' ? ' · 리뷰 완료' : ''}</span></label>`;
+    }).join('')}</div>
+    <div class="dialog-actions" style="gap:8px;"><button class="iv-btn ghost" data-c="no">취소</button><button class="dialog-confirm" data-c="ok">연결</button></div></div>`;
+  ov.addEventListener('click', async e => {
+    const c = e.target.dataset && e.target.dataset.c;
+    if (e.target === ov || c === 'no') { ov.remove(); return; }
+    if (c !== 'ok') return;
+    const sid = (ov.querySelector('input[name="sc-link"]:checked') || {}).value;
+    const s = sid && IV.sessions[sid];
+    if (!s) return;
+    e.target.disabled = true;
+    try { await ivRefreshFromStore(s); } catch (err) { /* 저장소를 못 읽으면 이 화면의 기록으로 */ }
+    s.screeningId = row.id;
+    ivSave(s, true);
+    const prev = row.review;
+    row.review = Object.assign({}, row.review, { decision: '선정', method: 'ai', code: s.profile.code, interviewId: s.id, linkedAt: new Date().toISOString() });
+    try { await scPatch(row.id, { review: row.review }); ov.remove(); scRender(); showDialog('연결했어요', `${s.profile.code} 인터뷰를 ${name}님의 스크리닝 응답에 연결했어요.`); }
+    catch (err) { row.review = prev; e.target.disabled = false; showDialog('연결하지 못했습니다', err.message); }
+  });
+  document.body.appendChild(ov);
 }
 function scMenuItems(r) {
   const rv = r.review || {}, decision = rv.decision || '미정', method = scMethod(rv);
@@ -5913,6 +5961,7 @@ function scMenuItems(r) {
   const items = [];
   if (method === 'ai') { items.push(['open', '인터뷰 보기']); if (!finished) items.push(['to-direct', '직접 인터뷰로 변경']); }
   if (method === 'direct') { items.push(['direct', '일정·완료 기록']); if (rv.sheet && rv.sheet.error) items.push(['sheet', '시트에 다시 보내기']); if (!finished) items.push(['start', 'AI 링크로 변경']); }
+  if (!method && scLinkCandidates().length) items.push(['link', '이미 진행한 인터뷰 연결']);
   if (!finished) items.push(['unpick', '선정 취소']);
   return items;
 }
@@ -6282,6 +6331,7 @@ function scHandleAction(b) {
   else if (act === 'start') scStartInterview(row);
   else if (act === 'open') scViewOpen(row);   // 읽기 전용 보기 — 작업 화면은 패널의 '작업 화면에서 열기'로
   else if (act === 'direct') { if (scCanAddDirect(row)) scEditDirect(row); }
+  else if (act === 'link') scLinkInterview(row);
   else if (act === 'to-direct' && scCanAddDirect(row)) scConfirm(`${row.review.code} 직접 인터뷰로 바꿀까요?`, '만들어 둔 AI 링크 인터뷰는 지난 인터뷰 목록에 그대로 남아요. 이미 링크를 보냈다면 참가자에게 링크로 답하지 않아도 된다고 알려 주세요.', '바꾸기', () => scEditDirect(row));
 }
 function scInitEvents() {
