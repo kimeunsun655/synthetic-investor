@@ -6,7 +6,7 @@ create table if not exists public.screenings (
   id          text primary key,                  -- 응답 ID (sc_...)
   answers     jsonb not null default '{}'::jsonb, -- 1~6번 답 (보기 번호)
   result      jsonb,                             -- 판정 · 수준 점수 · 특성
-  contact     jsonb,                             -- 적합·예비일 때 받은 이름(닉네임) · 연락처 · 가능 일정
+  contact     jsonb,                             -- 적합·예비일 때 받은 이름(닉네임) · 가능 일정
   review      jsonb,                             -- 연구팀 최종 선정 · 인터뷰 코드
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()

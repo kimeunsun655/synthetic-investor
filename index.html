@@ -5659,21 +5659,20 @@ function scInit() {
         body = `
           <div class="sc-done">
             <div class="sc-done-title">${v === '적합' ? '참여 가능해요!' : '응답 감사해요'}</div>
-            <p>${v === '적합' ? '일정 안내를 위해 연락받을 방법을 남겨 주세요.' : '조건이 맞으면 연락드릴게요. 연락받을 방법을 남겨 주세요.'}</p>
+            <p>${v === '적합' ? '이름과 가능한 날짜를 남겨 주세요.' : '조건이 맞으면 연락드릴게요. 이름과 가능한 날짜를 남겨 주세요.'}</p>
           </div>
           <div class="sc-q">
             <label class="sc-field">이름 또는 닉네임<input id="sc-name" maxlength="20" autocomplete="nickname"></label>
-            <label class="sc-field">연락처 (전화번호 또는 카카오톡 ID)<input id="sc-phone" maxlength="40" autocomplete="tel"></label>
             <div class="sc-field">가능한 날짜 (여러 개 선택)</div>
             <div class="sc-opts sc-days">${SC_DAYS.map(d => `<button class="sc-opt" data-day="${ivEsc(d)}" aria-pressed="false">${ivEsc(d)}</button>`).join('')}</div>
             <label class="sc-field">가능한 시간대 (선택)<input id="sc-time" maxlength="60" placeholder="예: 평일 저녁 7시 이후"></label>
-            <label class="sc-consent"><input type="checkbox" id="sc-agree"> 인터뷰 일정 안내를 위해 이름(닉네임)·연락처를 받는 것에 동의합니다. 일정 안내에만 쓰고 연구가 끝나면 삭제합니다.</label>
+            <label class="sc-consent"><input type="checkbox" id="sc-agree"> 인터뷰 일정을 정하기 위해 이름(닉네임)을 받는 것에 동의합니다. 일정을 정하는 데만 쓰고 연구가 끝나면 삭제합니다.</label>
           </div>
           ${S.err ? `<div class="sc-err">${ivEsc(S.err)}</div>` : ''}
-          <button class="pa-btn dark sc-submit" id="sc-contact" ${S.saving ? 'disabled' : ''}>${S.saving ? '보내는 중…' : '연락처 남기기'}</button>`;
+          <button class="pa-btn dark sc-submit" id="sc-contact" ${S.saving ? 'disabled' : ''}>${S.saving ? '보내는 중…' : '보내기'}</button>`;
       }
     } else {
-      body = `<div class="sc-done"><div class="sc-done-title">접수됐어요!</div><p>${S.result && S.result.verdict === '적합' ? '10/8~10/13 중 일정을 정해 연락드릴게요.' : '조건이 맞으면 남겨 주신 연락처로 연락드릴게요.'} 감사합니다.</p></div>`;
+      body = `<div class="sc-done"><div class="sc-done-title">접수됐어요!</div><p>${S.result && S.result.verdict === '적합' ? '10/8~10/13 중 일정을 정해 연락드릴게요.' : '조건이 맞으면 연락드릴게요.'} 감사합니다.</p></div>`;
     }
     root.innerHTML = `<div class="pa-head"><b>인터뷰 참여 신청</b><span>약 1분</span></div><div class="sc-body">${body}</div>`;
   }
@@ -5703,21 +5702,19 @@ function scInit() {
     }
     if (e.target.id === 'sc-contact' && !S.saving) {
       const name = document.getElementById('sc-name').value.trim();
-      const phone = document.getElementById('sc-phone').value.trim();
       const days = Array.from(root.querySelectorAll('.sc-days .sc-opt.on')).map(b => b.dataset.day);
       const time = document.getElementById('sc-time').value.trim();
       const errs = [];
       if (!name) errs.push('이름 또는 닉네임');
-      if (!phone) errs.push('연락처');
       if (!days.length) errs.push('가능한 날짜');
       const showErr = msg => { const old = root.querySelector('.sc-err'); if (old) old.remove(); e.target.insertAdjacentHTML('beforebegin', `<div class="sc-err">${ivEsc(msg)}</div>`); };
       if (errs.length) { showErr('입력해 주세요: ' + errs.join(', ')); return; }
-      if (!document.getElementById('sc-agree').checked) { showErr('연락처 수집에 동의해 주세요.'); return; }
+      if (!document.getElementById('sc-agree').checked) { showErr('이름 수집에 동의해 주세요.'); return; }
       e.target.disabled = true; e.target.textContent = '보내는 중…';
       try {
-        await scPatch(S.id, { contact: { name, phone, days, time, consentAt: new Date().toISOString() } });
+        await scPatch(S.id, { contact: { name, days, time, consentAt: new Date().toISOString() } });
         S.step = 'thanks'; remember({ contact: true }); render();
-      } catch (err) { e.target.disabled = false; e.target.textContent = '연락처 남기기'; showErr('보내지 못했어요. 잠시 후 다시 눌러 주세요. (' + err.message + ')'); }
+      } catch (err) { e.target.disabled = false; e.target.textContent = '보내기'; showErr('보내지 못했어요. 잠시 후 다시 눌러 주세요. (' + err.message + ')'); }
     }
   });
   render();
@@ -5751,7 +5748,7 @@ function scRender() {
   if (SC.error) { el.innerHTML = `<div class="iv-store-warn" style="display:block;margin:0;">스크리닝 저장소(<b>${SC_TABLE}</b> 테이블)에 연결하지 못했습니다. 저장소의 <b>supabase/screenings.sql</b>을 Supabase SQL Editor에서 한 번 실행하세요. (${ivEsc(SC.error)})</div>`; return; }
   const list = SC.filter === '전체' ? rows : SC.filter === '선정' ? rows.filter(isPicked) : rows.filter(r => r.result && r.result.verdict === SC.filter);
   if (!list.length) { el.innerHTML = `<div class="iv-muted" style="padding:24px;">${rows.length ? '해당하는 응답이 없어요' : '아직 응답이 없어요'}</div>`; return; }
-  el.innerHTML = `<table class="sc-table"><thead><tr><th>응답</th><th>이름 · 연락처</th><th>가능 일정</th><th>판정</th><th>수준</th><th>특성</th><th>답</th><th>최종 선정</th><th>인터뷰</th></tr></thead><tbody>${list.map(r => {
+  el.innerHTML = `<table class="sc-table"><thead><tr><th>응답</th><th>이름</th><th>가능 일정</th><th>판정</th><th>수준</th><th>특성</th><th>답</th><th>최종 선정</th><th>인터뷰</th></tr></thead><tbody>${list.map(r => {
     const res = r.result || {}; const c = r.contact; const rv = r.review || {};
     const iv = rv.interviewId && IV.sessions[rv.interviewId];
     const auto = res.verdict === '제외';   // 1번 ① — 자동 제외 (선정·인터뷰 불가)
@@ -5760,7 +5757,7 @@ function scRender() {
       : rv.decision === '선정' ? `<button class="iv-btn dark sc-mini" data-sc="start" data-id="${ivEsc(r.id)}">인터뷰 시작</button>` : '<span class="iv-muted">—</span>';
     return `<tr${auto ? ' class="sc-excluded"' : ''}>
       <td class="nowrap">${scFmt(r.created_at)}</td>
-      <td>${c ? `<b>${ivEsc(c.name)}</b><div>${ivEsc(c.phone)}</div>` : '<span class="iv-muted">' + (res.verdict === '제외' ? '받지 않음' : '미입력') + '</span>'}</td>
+      <td>${c ? `<b>${ivEsc(c.name)}</b>` : '<span class="iv-muted">' + (res.verdict === '제외' ? '받지 않음' : '미입력') + '</span>'}</td>
       <td>${c ? ivEsc((c.days || []).join(', ')) + (c.time ? `<div class="iv-muted">${ivEsc(c.time)}</div>` : '') : '<span class="iv-muted">—</span>'}</td>
       <td><span class="sc-verdict v-${ivEsc(res.verdict)}">${ivEsc(res.verdict)}</span>${res.reasons && res.reasons.length ? `<div class="iv-muted">${ivEsc(res.reasons.join(' · '))}</div>` : ''}</td>
       <td class="nowrap"><span class="${res.level === '고급' ? 'sc-adv' : ''}">${ivEsc(res.level)}</span> <span class="iv-muted">${res.score}점</span></td>
@@ -5816,9 +5813,9 @@ function scStartInterview(row) {
   else go();
 }
 function scExportCsv() {
-  const head = ['응답 시각', '이름', '연락처', '가능 날짜', '가능 시간대', '판정', '판정 이유', '수준', '점수', 'AI 사용', '손실·후회', '고위험 상품', '앱 2개 이상', '답', '최종 선정', '인터뷰 코드'];
+  const head = ['응답 시각', '이름', '가능 날짜', '가능 시간대', '판정', '판정 이유', '수준', '점수', 'AI 사용', '손실·후회', '고위험 상품', '앱 2개 이상', '답', '최종 선정', '인터뷰 코드'];
   const rows = SC.rows.map(r => { const res = r.result || {}, a = res.attrs || {}, c = r.contact || {}, rv = r.review || {};
-    return [scFmt(r.created_at), c.name, c.phone, (c.days || []).join(' / '), c.time, res.verdict, (res.reasons || []).join(' · '), res.level, res.score, a.ai ? 'O' : 'X', a.loss ? 'Y' : 'N', a.highRisk ? 'Y' : 'N', a.multiApp ? 'Y' : 'N', scAnswerCode(r.answers || {}), res.verdict === '제외' ? '자동 제외' : (rv.decision || '미정'), rv.code]; });
+    return [scFmt(r.created_at), c.name, (c.days || []).join(' / '), c.time, res.verdict, (res.reasons || []).join(' · '), res.level, res.score, a.ai ? 'O' : 'X', a.loss ? 'Y' : 'N', a.highRisk ? 'Y' : 'N', a.multiApp ? 'Y' : 'N', scAnswerCode(r.answers || {}), res.verdict === '제외' ? '자동 제외' : (rv.decision || '미정'), rv.code]; });
   const csv = '﻿' + [head].concat(rows).map(r => r.map(v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
