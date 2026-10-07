@@ -1383,6 +1383,7 @@
   .sc-st.st-off { background: var(--cal-surface-card); color: var(--cal-muted); }
   .sc-iv-btns { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
   .sc-iv-btns:first-child { margin-top: 0; }
+  .sc-switch { display: block; margin: 6px 0 0; font-size: 12px; color: var(--cal-muted); }
   .sc-dialog { max-width: 420px; width: calc(100% - 32px); text-align: left; }
   .sc-dialog .dialog-title, .sc-dialog .dialog-msg { text-align: left; }
   .sc-form { display: flex; flex-direction: column; gap: 2px; margin: 8px 0 12px; }
@@ -5791,14 +5792,16 @@ function scInterviewCell(r, iv) {
   if (method === 'ai') {
     const state = !iv ? '' : iv.endedAt ? '끝남' : ivAsked(iv).some(t => t.answer != null) ? '진행 중' : '시작 전';
     return `<div class="sc-iv"><span class="sc-method">AI 링크 · ${ivEsc(rv.code || '')}</span>${state ? `<span class="sc-st st-${state === '끝남' ? 'done' : 'wait'}">${state}</span>` : ''}</div>
-      <div class="sc-iv-btns"><button class="iv-btn ghost sc-mini" data-sc="msg" data-id="${id}">안내 문구</button><button class="iv-btn ghost sc-mini" data-sc="open" data-id="${id}">보기</button></div>`;
+      <div class="sc-iv-btns"><button class="iv-btn ghost sc-mini" data-sc="msg" data-id="${id}">안내 문구</button><button class="iv-btn ghost sc-mini" data-sc="open" data-id="${id}">보기</button></div>
+      <button class="iv-link sc-switch" data-sc="to-direct" data-id="${id}">직접 인터뷰로 바꾸기</button>`;
   }
   if (method === 'direct') {
     const d = rv.direct || {};
     const when = [d.date, d.time].filter(Boolean).join(' ');
     return `<div class="sc-iv"><span class="sc-method">직접 · ${ivEsc(rv.code || '')}</span><span class="sc-st st-${d.status === '완료' ? 'done' : d.status === '불참' ? 'off' : 'wait'}">${ivEsc(d.status || '예정')}</span></div>
       <div class="iv-muted">${when ? ivEsc(when) + (d.place ? ' · ' + ivEsc(d.place) : '') : '일정 미정'}</div>
-      <div class="sc-iv-btns"><button class="iv-btn ghost sc-mini" data-sc="direct" data-id="${id}">일정·완료 기록</button></div>`;
+      <div class="sc-iv-btns"><button class="iv-btn ghost sc-mini" data-sc="direct" data-id="${id}">일정·완료 기록</button></div>
+      ${d.status === '완료' ? '' : `<button class="iv-link sc-switch" data-sc="start" data-id="${id}">AI 링크로 바꾸기</button>`}`;
   }
   if (rv.decision !== '선정') return '<span class="iv-muted">—</span>';
   return `<div class="sc-iv-btns"><button class="iv-btn ghost sc-mini" data-sc="direct" data-id="${id}">직접 인터뷰</button><button class="iv-btn dark sc-mini" data-sc="start" data-id="${id}">AI 링크 보내기</button></div>`;
@@ -5882,11 +5885,17 @@ function scConfirm(title, msg, okLabel, onOk) {
 // 선정된 사람으로 AI 모더레이터 인터뷰를 바로 만든다 (코드·경력·AI 사용·손실 경험 자동 입력)
 function scStartInterview(row) {
   if (row.result && row.result.verdict === '제외') return;   // 자동 제외는 인터뷰를 만들 수 없다
+  const rv0 = row.review || {};
+  if (rv0.interviewId && IV.sessions[rv0.interviewId]) {   // 직접 인터뷰로 바꿨다가 다시 AI 링크로 — 만들어 둔 인터뷰를 그대로 쓴다
+    row.review = Object.assign({}, rv0, { method: 'ai' });
+    scPatch(row.id, { review: row.review }).catch(() => {});
+    scRender(); scShowAiMessage(row); return;
+  }
   const cur = IV.current.real;
   const go = () => {
     if (cur) ivCloseRealSession();
     const a = row.answers || {}, res = row.result || {};
-    const code = scNextCode();
+    const code = (row.review && row.review.code) || scNextCode();   // 직접 인터뷰에서 바꾸면 같은 코드를 쓴다
     Object.assign(IV.realSetup, {
       code,
       level: { 초급: '초보', 중급: '중급', 고급: '고급' }[res.level] || '중급',
@@ -5933,6 +5942,7 @@ function scInitEvents() {
       else if (b.dataset.sc === 'open') ivOpenRealFromPending(row.review.interviewId);
       else if (b.dataset.sc === 'msg') scShowAiMessage(row);
       else if (b.dataset.sc === 'direct') scEditDirect(row);
+      else if (b.dataset.sc === 'to-direct') scConfirm(`${row.review.code} 직접 인터뷰로 바꿀까요?`, '만들어 둔 AI 링크 인터뷰는 지난 인터뷰 목록에 그대로 남아요. 이미 링크를 보냈다면 참가자에게 링크로 답하지 않아도 된다고 알려 주세요.', '바꾸기', () => scEditDirect(row));
     }
   });
   tab.addEventListener('change', async e => {
