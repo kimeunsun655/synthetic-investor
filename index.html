@@ -1394,7 +1394,7 @@
   .sc-more { width: 44px; text-align: right; }
   .sc-dots { width: 30px; height: 30px; border: 1px solid transparent; border-radius: 8px; background: none; font-size: 16px; line-height: 1; color: var(--cal-muted); cursor: pointer; font-family: inherit; }
   .sc-dots:hover, .sc-dots.open { border-color: var(--cal-hairline); background: var(--cal-surface-soft); color: var(--cal-ink); }
-  .sc-menu { position: fixed; z-index: 50; min-width: 160px; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); padding: 4px; display: flex; flex-direction: column; }
+  .sc-menu { position: fixed; z-index: 150; min-width: 160px; background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); padding: 4px; display: flex; flex-direction: column; }
   .sc-menu button { text-align: left; border: none; background: none; padding: 8px 10px; border-radius: 6px; font-size: 13px; color: var(--cal-ink); cursor: pointer; font-family: inherit; white-space: nowrap; }
   .sc-menu button:hover { background: var(--cal-surface-soft); }
   .sc-menu button.bad { color: var(--cal-error); }
@@ -1406,6 +1406,26 @@
   .sc-table tr.sc-excluded td { color: var(--cal-muted-soft); }
   .sc-table tr.sc-excluded td b, .sc-table tr.sc-excluded .sc-tags { opacity: 0.6; }
   .sc-auto { display: inline-block; font-size: 12px; color: var(--cal-muted); background: var(--cal-surface-card); border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
+  /* 인터뷰 보기 — 읽기 전용 오른쪽 패널 */
+  .sc-view { position: fixed; inset: 0; z-index: 150; }   /* 사이트 머리(100) 위, 확인창(300) 아래 */
+  .sc-view-backdrop { position: absolute; inset: 0; background: rgba(17,17,17,0.18); }
+  .sc-view-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(520px, 100%); background: var(--cal-canvas); border-left: 1px solid var(--cal-hairline); box-shadow: -8px 0 24px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
+  .sc-view-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid var(--cal-hairline); }
+  .sc-view-title { font-size: 17px; font-weight: 700; color: var(--cal-ink); }
+  .sc-view-body { flex: 1; overflow-y: auto; padding: 16px 20px 24px; }
+  .sc-view-facts { display: flex; flex-direction: column; gap: 8px; padding-bottom: 16px; border-bottom: 1px solid var(--cal-hairline-soft); }
+  .sc-view-facts > div { display: grid; grid-template-columns: 72px 1fr; gap: 8px; font-size: 13px; color: var(--cal-body); }
+  .sc-view-facts span { color: var(--cal-muted); }
+  .sc-view-sec { font-size: 13px; font-weight: 700; color: var(--cal-ink); margin: 16px 0 8px; }
+  .sc-v-turn { padding: 12px 0; border-bottom: 1px solid var(--cal-hairline-soft); }
+  .sc-v-turn.skipped .sc-v-q { color: var(--cal-muted); text-decoration: line-through; }
+  .sc-v-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
+  .sc-v-q { background: var(--cal-accent-tint); color: #1e3a8a; border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+  .sc-v-note { font-size: 12px; color: var(--cal-muted); line-height: 1.6; margin: 6px 2px 0; }
+  .sc-v-a { margin-top: 8px; }
+  .sc-v-bubble { background: var(--cal-surface-card); color: var(--cal-ink); border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.6; white-space: pre-wrap; margin-top: 2px; }
+  .sc-v-bubble.wait { background: none; border: 1px dashed var(--cal-hairline); color: var(--cal-muted); font-size: 13px; }
+  .sc-view-foot { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--cal-hairline); background: var(--cal-canvas); }
   /* 참가자 스크리닝 화면 */
   .sc-body { padding: 16px 20px 40px; }
   .sc-intro { background: var(--cal-canvas); border: 1px solid var(--cal-hairline); border-radius: 12px; padding: 16px; font-size: 14px; line-height: 1.7; color: var(--cal-body); margin-bottom: 16px; }
@@ -6029,6 +6049,101 @@ function scExportCsv() {
   a.download = `screening_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
 }
+// ── 인터뷰 보기 (읽기 전용 패널) — 저장소를 읽기만 하고, 진행 중 세션·저장·AI 호출을 건드리지 않는다
+const SC_VIEW = { rowId: null, s: null, pa: null, timer: null, err: '' };
+function scViewClose() {
+  clearInterval(SC_VIEW.timer); SC_VIEW.timer = null; SC_VIEW.rowId = null; SC_VIEW.s = null;
+  const el = document.getElementById('sc-view'); if (el) el.remove();
+}
+async function scViewFetch() {
+  const row = SC.rows.find(r => r.id === SC_VIEW.rowId);
+  if (!row) return;
+  const id = row.review.interviewId;
+  try {
+    const got = await ivFetchSessionData(id);
+    if (got && got.data) { SC_VIEW.s = JSON.parse(JSON.stringify(got.data)); SC_VIEW.pa = got.participant_answer || null; SC_VIEW.err = ''; }
+    else if (!SC_VIEW.s) SC_VIEW.err = '저장소에서 이 인터뷰를 찾지 못했어요.';
+  } catch (e) {
+    // 저장소를 못 읽으면 이 브라우저에 있는 사본을 복사해서 보여 준다 (원본은 건드리지 않음)
+    if (!SC_VIEW.s && IV.sessions[id]) SC_VIEW.s = JSON.parse(JSON.stringify(ivSerialize(IV.sessions[id])));
+    if (!SC_VIEW.s) SC_VIEW.err = '인터뷰를 불러오지 못했어요. (' + e.message + ')';
+  }
+  if (SC_VIEW.rowId === row.id) scViewRender();
+  if (SC_VIEW.s && SC_VIEW.s.endedAt) { clearInterval(SC_VIEW.timer); SC_VIEW.timer = null; }
+}
+function scViewOpen(row) {
+  scViewClose();
+  SC_VIEW.rowId = row.id;
+  const el = document.createElement('div');
+  el.id = 'sc-view'; el.className = 'sc-view';
+  el.innerHTML = '<div class="sc-view-backdrop" data-v="close"></div><aside class="sc-view-panel" role="dialog" aria-modal="true" aria-label="인터뷰 보기"></aside>';
+  document.body.appendChild(el);
+  scViewRender();
+  scViewFetch();
+  SC_VIEW.timer = setInterval(scViewFetch, 10000);   // 진행 중이면 새 답이 오는지 10초마다 다시 읽는다
+  el.addEventListener('click', e => {
+    const v = e.target.closest('[data-v]'); if (!v) return;
+    const act = v.dataset.v, s = SC_VIEW.s;
+    if (act === 'close') scViewClose();
+    else if (act === 'work') { const id = row.review.interviewId; scViewClose(); ivOpenRealFromPending(id); }
+    else if (act === 'txt' && s) { if (!s.turns.length) return showDialog('저장할 대화가 없습니다', '아직 질문이 없어요.'); downloadTxt(ivTranscriptTxt(s), ivFileName(s, 'txt')); }
+    else if (act === 'csv' && s) { if (!s.turns.length) return showDialog('받을 기록이 없습니다', '아직 질문이 없어요.'); ivDownloadCsv(ivAiLogRows([s]), ivFileName(s, 'csv', 'ai-log')); }
+  });
+}
+function scViewRender() {
+  const panel = document.querySelector('#sc-view .sc-view-panel');
+  if (!panel) return;
+  const row = SC.rows.find(r => r.id === SC_VIEW.rowId) || {};
+  const rv = row.review || {}, res = row.result || {}, s = SC_VIEW.s;
+  const name = row.contact && row.contact.name;
+  const chip = (txt, cls) => `<span class="sc-st st-${cls}">${ivEsc(txt)}</span>`;
+  let head = `<div class="sc-view-head"><div><div class="sc-view-title">${ivEsc(rv.code || '')}${name ? ` · ${ivEsc(name)}` : ''}</div><div class="sc-sub">AI 링크 · 읽기 전용</div></div><button class="sc-dots" data-v="close" aria-label="닫기">×</button></div>`;
+  let body;
+  if (!s) body = `<div class="iv-muted" style="padding:20px 0;">${ivEsc(SC_VIEW.err || '불러오는 중…')}</div>`;
+  else {
+    const asked = ivAsked(s), answered = ivAnswered(s);
+    const state = s.endedAt ? chip('끝남', 'done') : answered.length ? chip('진행 중', 'wait') : chip('시작 전', 'wait');
+    const last = SC_VIEW.pa && SC_VIEW.pa.at ? SC_VIEW.pa.at : null;   // 참가자가 링크로 보낸 마지막 답 시각
+    const consent = (s.consent && s.consent.participantAt) || (SC_VIEW.pa && SC_VIEW.pa.consentAt);
+    const facts = [
+      ['상태', state + (s.endReason ? ` <span class="sc-sub">${ivEsc(s.endReason)}</span>` : '')],
+      ['질문', `${asked.length} / ${IV_MAX_TURNS}개 · 답 ${answered.length}개`],
+      ['시작', ivFmtClock(s.startedAtMs || s.createdAt)],
+      ['마지막 답', last ? ivFmtClock(last) : '—'],
+      ['동의', consent ? ivFmtClock(consent) : '아직 안 함'],
+      ['스크리닝', `${ivEsc(res.verdict || '')} · ${ivEsc(res.level || '')} ${res.score != null ? res.score + '점' : ''} <div class="sc-tags" style="margin-top:4px;">${scTags(res)}</div>`],
+    ];
+    const turns = s.turns.map(t => {
+      const n = t.note || {};
+      const stage = ivStageDef(t.stage);
+      const tags = [
+        `<span class="iv-chip">${IV_ICON}${ivEsc(t.qid || '—')}</span>`,
+        stage ? `<span class="iv-chip line">${ivEsc(stage.name)}</span>` : '',
+        t.action === 'edited' ? '<span class="iv-chip blue">수정함</span>' : t.action === 'skipped' ? '<span class="iv-chip line">건너뜀</span>' : '',
+        t.guard && t.guard.remaining && t.guard.remaining.length ? `<span class="iv-chip warn">자동 점검: ${ivEsc(t.guard.remaining.join(', '))}</span>` : '',
+      ].join('');
+      const flags = (n.flags || []).filter(f => IV_FLAG_INFO[f]).map(f => IV_FLAG_INFO[f].label);
+      const note = [
+        n.reason ? `고른 이유 · ${ivEsc(n.reason)}` : '',
+        (n.prev_answer_tags || []).length ? `직전 답 태그 · ${ivEsc(n.prev_answer_tags.join(', '))}` : '',
+        flags.length ? `주의 · ${ivEsc(flags.join(', '))}` : '',
+        t.guard && t.guard.retried ? `자동 점검 · ${ivEsc((t.guard.issues || []).join(', '))} → 다시 만듦` : '',
+      ].filter(Boolean);
+      const ans = t.action === 'skipped' ? '' : t.answer != null
+        ? `<div class="sc-v-a"><div class="sc-sub">${t.answerSource === 'participant' ? (t.answerVia === 'voice' ? '참가자 · 음성' : '참가자') : '대리 입력'}</div><div class="sc-v-bubble">${ivEsc(t.answer)}</div></div>`
+        : `<div class="sc-v-a"><div class="sc-v-bubble wait">답 대기</div></div>`;
+      return `<div class="sc-v-turn${t.action === 'skipped' ? ' skipped' : ''}"><div class="sc-v-tags">${tags}</div><div class="sc-v-q">${ivEsc(t.utterance)}</div>${note.length ? `<div class="sc-v-note">${note.map(x => `<div>${x}</div>`).join('')}</div>` : ''}${ans}</div>`;
+    }).join('');
+    body = `<div class="sc-view-facts">${facts.map(([k, v]) => `<div><span>${k}</span><div>${v}</div></div>`).join('')}</div>
+      <div class="sc-view-sec">대화 ${s.turns.length ? '' : '<span class="sc-sub">아직 질문이 없어요</span>'}</div>${turns}`;
+  }
+  const foot = `<div class="sc-view-foot"><button class="iv-btn ghost sc-mini" data-v="txt">대화 저장 (TXT)</button><button class="iv-btn ghost sc-mini" data-v="csv">AI 기록 (CSV)</button><button class="iv-btn sc-mini" data-v="work" style="margin-left:auto;">작업 화면에서 열기</button></div>`;
+  const scroller = panel.querySelector('.sc-view-body');
+  const keep = scroller ? scroller.scrollTop : 0;
+  panel.innerHTML = head + `<div class="sc-view-body">${body}</div>` + foot;
+  panel.querySelector('.sc-view-body').scrollTop = keep;
+}
+
 // 목록의 버튼 · ⋯ 메뉴 항목 하나를 처리한다
 function scHandleAction(b) {
   const row = SC.rows.find(r => r.id === b.dataset.id);
@@ -6042,7 +6157,7 @@ function scHandleAction(b) {
     else scSetDecision(row, '미정');
   }
   else if (act === 'start') scStartInterview(row);
-  else if (act === 'open') ivOpenRealFromPending(row.review.interviewId);
+  else if (act === 'open') scViewOpen(row);   // 읽기 전용 보기 — 작업 화면은 패널의 '작업 화면에서 열기'로
   else if (act === 'direct') scEditDirect(row);
   else if (act === 'link') scLinkInterview(row);
   else if (act === 'to-direct') scConfirm(`${row.review.code} 직접 인터뷰로 바꿀까요?`, '만들어 둔 AI 링크 인터뷰는 지난 인터뷰 목록에 그대로 남아요. 이미 링크를 보냈다면 참가자에게 링크로 답하지 않아도 된다고 알려 주세요.', '바꾸기', () => scEditDirect(row));
@@ -6065,7 +6180,7 @@ function scInitEvents() {
     if (inMenu) { const b = e.target.closest('button'); scCloseMenu(); if (b) scHandleAction(b); }
     else if (!dots) scCloseMenu();
   }, true);
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') scCloseMenu(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { scCloseMenu(); scViewClose(); } });
   window.addEventListener('scroll', scCloseMenu, true);
 }
 
