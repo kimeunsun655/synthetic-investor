@@ -2169,6 +2169,7 @@ async function callAI(messages, opts) {
     throw new Error((err.error) || ('서버 오류 ' + resp.status));
   }
   const data = await resp.json();
+  if (data.error) throw new Error(data.error);   // 서버가 응답을 먼저 열어 두므로 오류는 본문으로 온다
   const text = (data.content && data.content[0] && data.content[0].text) || '';
   // onText가 있으면 완성된 텍스트를 한 번에 전달
   if (onText) onText({ text: text, delta: text });
@@ -3987,7 +3988,8 @@ function ivSyncPoll() {
         const key = () => cur.turns.length + ':' + (cur.endedAt || '') + ':' + ivAnswered(cur).length + ':' + (ivParticipantConsented(cur) || '');
         const before = key();
         await ivRefreshFromStore(cur);
-        if (key() !== before) ivRenderAll();
+        const stuck = ivSoloWaiting(cur) > IV_SOLO_STUCK_MS;
+        if (key() !== before || stuck !== !!cur._stuckShown) { cur._stuckShown = stuck; ivRenderAll(); }
         if (cur.endedAt) ivSyncPoll();
       } catch (e) { ivStoreFailed(e.message); }
       return;
@@ -4008,6 +4010,40 @@ function ivSyncPoll() {
 }
 // 참가자가 링크 화면에서 동의한 시각 (없으면 null)
 function ivParticipantConsented(s) { return (s.consent && s.consent.participantAt) || s._paConsentAt || null; }
+// 자동 진행에서 다음 질문 없이 기다린 시간(ms) — 이 화면에서 처음 본 때부터 센다 (참가자 휴대폰 시계와 어긋나지 않게)
+const IV_SOLO_STUCK_MS = 40000;
+function ivSoloWaiting(s) {
+  if (!s || s.endedAt || s.flow !== 'solo' || ivPhase(s) !== 'proposal') { if (s) { s._waitSince = 0; s._kickError = ''; } return 0; }
+  if (!s._waitSince) s._waitSince = Date.now();
+  return Date.now() - s._waitSince;
+}
+// 참가자 화면이 다음 질문을 못 만들고 멈췄을 때 연구자 화면에서 대신 만든다 (참가자 화면은 저장소를 읽어 바로 이어간다)
+async function ivSoloKick(s) {
+  if (!s || s.endedAt || s.flow !== 'solo' || s._busy) return;
+  s._kickError = '';
+  ivSetBusy(s, 'AI가 다음 질문을 고르는 중…');
+  try {
+    await ivRefreshFromStore(s);
+    if (!s.endedAt && s.flow === 'solo' && ivPhase(s) === 'proposal') {
+      const n = s.turns.length;
+      s.elapsedSec = ivWallElapsed(s);
+      if (!s.modHistory.length) s.modHistory.push({ role: 'user', content: ivStartMessage(s) });
+      const obj = await ivModeratorNext(s);
+      const latest = await ivFetchSessionData(s.id);   // 그사이 참가자 화면이 먼저 만들었으면 버린다
+      if (latest && latest.data && (latest.data.turns.length !== n || latest.data.flow !== 'solo' || latest.data.endedAt)) await ivRefreshFromStore(s);
+      else {
+        const t = ivRecordTurn(s, obj, {});
+        t.auto = true; t.autoFlow = 'solo';
+        if (t.type === 'close') ivFinish(s, 'done', '인터뷰 종료');
+        else s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: false };
+        await ivStoreUpsert(s);
+      }
+    }
+  } catch (e) { s._kickError = e.message || '오류'; }
+  s._waitSince = s._kickError ? s._waitSince : 0;
+  ivSetBusy(s, '');
+  ivRenderAll(); ivSyncPoll();
+}
 // 실제 인터뷰가 시간 기준(연구자 동석·대리 입력)인지 — 자동 진행은 질문 수 기준
 function ivRealTimed(s) { return s ? s.flow !== 'solo' : !(IV.realSetup.inputMode === 'link' && IV.realSetup.flow === 'solo'); }
 function ivFmtClock(t) { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
@@ -4477,8 +4513,15 @@ function ivRenderComposer() {
   }
   if (s.kind === 'real' && s.flow === 'solo') {
     const consented = ivParticipantConsented(s);
+    const stuck = !s._busy && ivSoloWaiting(s) > IV_SOLO_STUCK_MS;
     const status = s._busy ? s._busy : phase === 'answer' ? (consented ? '참가자가 답을 쓰는 중입니다' : '첫 질문이 준비됐습니다. 참가자가 링크를 열고 답하면 이어집니다') : 'AI가 다음 질문을 고르는 중입니다';
     el.className = 'iv-composer soft';
+    if (stuck) {
+      el.innerHTML = `<div class="iv-comp-head"><b>다음 질문이 아직 안 만들어졌어요</b><span class="iv-chip warn">참가자 화면에서 다음 질문을 만들지 못하고 있어요</span></div>
+        ${s._kickError ? `<div class="iv-muted" style="margin:4px 0 0;">다시 만들지 못했어요. (${ivEsc(s._kickError)})</div>` : ''}
+        <div class="iv-actions"><button class="iv-btn ghost lg" data-act="end">인터뷰 끝내기</button><button class="iv-btn dark lg" data-act="solo-kick">다음 질문 만들기</button></div>`;
+      return;
+    }
     el.innerHTML = `<div class="iv-comp-head"><b>자동 진행 중</b><span class="iv-chip blue">AI가 고른 질문이 바로 참가자에게 갑니다</span></div>
       <div class="iv-busy"><div class="spinner" style="width:14px;height:14px;border-width:2px;"></div>${ivEsc(status)}</div>
       <div class="iv-actions"><button class="iv-btn ghost lg" data-act="end">인터뷰 끝내기</button><button class="iv-btn dark lg" data-act="flow" data-v="attended">연구자가 이어받기</button></div>`;
@@ -4667,6 +4710,7 @@ function ivInitEvents() {
     }
     else if (act === 'copy-link') ivCopyLink();
     else if (act === 'flow') ivSetFlow(el.dataset.v);
+    else if (act === 'solo-kick') ivSoloKick(IV.current.real);
     else if (act === 'real-start') ivStartRealGuard();
     else if (act === 'latest-edit') { IV.editLatest = true; IV.drafts.prop = ''; IV.drafts.reason = ''; ivRenderComposer(); }
     else if (act === 'latest-cancel') { IV.editLatest = false; ivRenderComposer(); }
@@ -5231,14 +5275,14 @@ function paInit(id) {
     });
     const open = openTurn(s);
     if (open && S.pending && S.pending.turn === open.n) html += `<div class="pa-me">${ivEsc(S.pending.text)}</div><div class="pa-sent">보냄</div>`;
-    else if (!open && !s.endedAt) html += `<div class="pa-ai pa-typing">${S.error ? '다음 질문을 불러오지 못했어요. <button class="iv-link" id="pa-retry" style="margin:0">다시 시도</button>' : '다음 질문을 준비하고 있어요…'}</div>`;
+    else if (!open && !s.endedAt) html += `<div class="pa-ai pa-typing">${S.error ? '다음 질문을 불러오지 못했어요. 잠시 후 자동으로 다시 시도해요. <button class="iv-link" id="pa-retry" style="margin:0">지금 다시 시도</button>' : '다음 질문을 준비하고 있어요…'}</div>`;
     if (!ivAsked(s).length && !s.endedAt) html = '<div class="iv-muted">곧 첫 질문이 나타납니다.</div>';
     const key = html;
     if (key !== S.lastKey) {
       S.lastKey = key;
       $('pa-msgs').innerHTML = html;
       window.scrollTo(0, document.body.scrollHeight);
-      const rb = $('pa-retry'); if (rb) rb.addEventListener('click', () => { S.error = ''; render(); soloNext(); });
+      const rb = $('pa-retry'); if (rb) rb.addEventListener('click', retryNext);
     }
     const canAnswer = !!open && !(S.pending && S.pending.turn === open.n && s.flow === 'solo') && !S.busy;
     $('pa-compose').classList.toggle('done', !!s.endedAt);
@@ -5261,6 +5305,7 @@ function paInit(id) {
       S.consentAt = S.consentAt || (pa && pa.consentAt) || (S.s.consent && S.s.consent.participantAt) || null;
       if (!S.consentAt && !S.s.endedAt) showIntro();   // 처음 들어오면 시작 모달
       const open = openTurn(S.s);
+      if (open || S.s.endedAt) clearRetry();   // 연구자 화면이 대신 다음 질문을 만들었으면 다시 시도할 필요 없음
       S.pending = pa && open && pa.turn === open.n ? pa : null;
       render();
       // 자동 진행: 다음 질문이 없으면(첫 질문을 못 만든 채 연구자 탭이 닫힘·새로고침) 참가자 화면이 이어서 진행한다
@@ -5284,10 +5329,25 @@ function paInit(id) {
       if (t.type === 'close') { s.elapsedSec = ivWallElapsed(s); s.status = 'done'; s.endReason = '인터뷰 종료'; s.endedAt = Date.now(); s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: true }; }
       else s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: false };
       await ivStoreUpsert(s);
-      S.error = '';
-    } catch (e) { S.error = e.message || '오류'; }
+      clearRetry();
+    } catch (e) { S.error = e.message || '오류'; scheduleRetry(); }
     S.busy = ''; render();
   }
+  // 다음 질문을 못 만들었을 때: 참가자가 누르지 않아도 5초 → 15초 → 30초 → 이후 1분마다 다시 시도한다
+  // (휴대폰에서 다른 앱으로 넘어가면 요청이 끊기는 경우가 많다 — 화면으로 돌아오면 바로 다시 시도)
+  function clearRetry() { clearTimeout(S.retryTimer); S.retryTimer = null; S.retries = 0; S.error = ''; }
+  function scheduleRetry() {
+    clearTimeout(S.retryTimer);
+    const wait = [5, 15, 30][S.retries || 0] || 60;
+    S.retries = (S.retries || 0) + 1;
+    S.retryTimer = setTimeout(retryNext, wait * 1000);
+  }
+  function retryNext() {
+    clearTimeout(S.retryTimer); S.retryTimer = null;
+    if (!S.s || S.s.endedAt || S.busy || openTurn(S.s)) return;
+    S.error = ''; render(); soloNext();
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.error) retryNext(); });
   // ── 말하기 ──
   const WAVE = '<div class="pa-wave" aria-label="듣는 중">' + Array.from({ length: 28 }, (_, i) => `<i style="animation-delay:${(i % 7) * 0.12}s"></i>`).join('') + '</div>';
   function renderMic() {

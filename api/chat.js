@@ -35,7 +35,7 @@ export default async function handler(req) {
       : system;
   }
 
-  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+  const callUpstream = () => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -45,16 +45,16 @@ export default async function handler(req) {
     body: JSON.stringify(body),
   });
 
-  if (!upstream.ok) {
-    const err = await upstream.json().catch(() => ({}));
-    return new Response(
-      JSON.stringify({ error: err?.error?.message || `Anthropic 오류 ${upstream.status}` }),
-      { status: upstream.status }
-    );
-  }
-
   // 스트리밍 응답 그대로 전달
   if (stream) {
+    const upstream = await callUpstream();
+    if (!upstream.ok) {
+      const err = await upstream.json().catch(() => ({}));
+      return new Response(
+        JSON.stringify({ error: err?.error?.message || `Anthropic 오류 ${upstream.status}` }),
+        { status: upstream.status }
+      );
+    }
     return new Response(upstream.body, {
       headers: {
         'Content-Type': 'text/event-stream',
@@ -64,11 +64,30 @@ export default async function handler(req) {
     });
   }
 
-  // 비스트리밍
-  const data = await upstream.json();
-  return new Response(JSON.stringify(data), {
+  // 비스트리밍 — 응답을 바로 열어 두고 몇 초마다 공백을 보낸다.
+  // Vercel Edge는 25초 안에 응답을 시작하지 않으면 끊는데, 대화가 길어져 AI 답이 늦으면 여기에 걸려 '다음 질문을 불러오지 못했어요'가 났다.
+  // 공백은 JSON 앞에 붙어도 JSON.parse가 무시한다. 상태 코드는 먼저 200으로 나가므로 오류는 { error, status } 본문으로 알린다.
+  const enc = new TextEncoder();
+  const out = new ReadableStream({
+    async start(ctrl) {
+      const ping = setInterval(() => { try { ctrl.enqueue(enc.encode(' ')); } catch (e) { /* 이미 닫힘 */ } }, 5000);
+      try {
+        const upstream = await callUpstream();
+        const data = await upstream.json().catch(() => ({}));
+        if (!upstream.ok) ctrl.enqueue(enc.encode(JSON.stringify({ error: data?.error?.message || `Anthropic 오류 ${upstream.status}`, status: upstream.status })));
+        else ctrl.enqueue(enc.encode(JSON.stringify(data)));
+      } catch (e) {
+        ctrl.enqueue(enc.encode(JSON.stringify({ error: 'AI 서버에 연결하지 못했습니다. (' + (e && e.message || e) + ')', status: 502 })));
+      } finally {
+        clearInterval(ping);
+        ctrl.close();
+      }
+    },
+  });
+  return new Response(out, {
     headers: {
       'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
       'Access-Control-Allow-Origin': '*',
     },
   });
