@@ -1239,6 +1239,9 @@
   .iv-a-bubble.pending { color: var(--cal-muted); background: none; padding: 6px 0; }
   .iv-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; line-height: 18px; padding: 0 7px; border-radius: 5px; background: var(--cal-surface-card); color: var(--cal-body); white-space: nowrap; border: 1px solid transparent; }
   .iv-chip.blue { background: var(--cal-accent-tint); color: #1d4ed8; }
+  .ai-credit-banner { position: sticky; top: 0; z-index: 140; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 24px; font-size: 13px; line-height: 1.5; color: #92400e; background: var(--cal-warning-tint); border-bottom: 1px solid #fcd34d; }
+  .ai-credit-banner b { font-weight: 600; }
+  .ai-credit-banner span { flex: 1; min-width: 200px; }
   .iv-chip.warn { background: var(--cal-warning-tint); color: #92400e; border-color: #fcd34d; }
   .iv-chip.line { background: var(--cal-canvas); border-color: var(--cal-hairline); }
   .iv-empty { margin: auto; text-align: center; font-size: 13px; color: var(--cal-muted); line-height: 1.7; padding: 40px 10px; }
@@ -2166,14 +2169,56 @@ async function callAI(messages, opts) {
   });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
-    throw new Error((err.error) || ('서버 오류 ' + resp.status));
+    throw aiError((err.error) || ('서버 오류 ' + resp.status));
   }
   const data = await resp.json();
-  if (data.error) throw new Error(data.error);   // 서버가 응답을 먼저 열어 두므로 오류는 본문으로 온다
+  if (data.error) throw aiError(data.error);   // 서버가 응답을 먼저 열어 두므로 오류는 본문으로 온다
+  aiCreditState(false);
   const text = (data.content && data.content[0] && data.content[0].text) || '';
   // onText가 있으면 완성된 텍스트를 한 번에 전달
   if (onText) onText({ text: text, delta: text });
   return { text, usage: data.usage || null };
+}
+
+// ── AI 크레딧 부족 알림 ──
+// Anthropic 계정의 크레딧이 떨어지면 모든 AI 기능이 멈춘다 — 연구자 화면 맨 위에 알리고, 충전되면 저절로 사라진다
+const AI_CREDIT_MSG = 'AI 크레딧이 다 떨어졌어요. Anthropic 콘솔(console.anthropic.com) › Settings › Billing에서 충전하면 바로 다시 동작해요.';
+function aiIsCreditError(msg) { return /credit balance is too low|credit balance|purchase credits/i.test(String(msg || '')); }
+function aiError(msg) {
+  if (!aiIsCreditError(msg)) return new Error(msg);
+  aiCreditState(true);
+  const e = new Error(AI_CREDIT_MSG); e.credit = true; return e;
+}
+const AI_CREDIT = { low: false, timer: null };
+function aiCreditState(low) {
+  if (AI_CREDIT.low === low) return;
+  AI_CREDIT.low = low;
+  if (document.documentElement.classList.contains('participant-mode')) return;   // 참가자에게는 띄우지 않는다
+  let el = document.getElementById('ai-credit-banner');
+  if (low && !el) {
+    el = document.createElement('div');
+    el.id = 'ai-credit-banner'; el.className = 'ai-credit-banner'; el.setAttribute('role', 'alert');
+    el.innerHTML = `<b>AI 크레딧 부족</b><span>${AI_CREDIT_MSG.replace('AI 크레딧이 다 떨어졌어요. ', '지금은 AI 모더레이터·AI 제안·자동 진행·리뷰 요약이 모두 멈춰 있어요. ')}</span><button class="iv-btn ghost sc-mini" type="button" id="ai-credit-check">충전했어요, 다시 확인</button>`;
+    document.body.prepend(el);
+    el.querySelector('#ai-credit-check').addEventListener('click', aiCreditProbe);
+  } else if (!low && el) el.remove();
+  clearInterval(AI_CREDIT.timer);
+  if (low) AI_CREDIT.timer = setInterval(aiCreditProbe, 120000);   // 충전되면 2분 안에 알림이 사라진다
+}
+// 짧은 호출 하나로 크레딧이 있는지 확인한다 (페이지를 열 때 10분에 한 번 · 알림이 떠 있을 때 2분마다)
+async function aiCreditProbe() {
+  const btn = document.getElementById('ai-credit-check'); if (btn) { btn.disabled = true; btn.textContent = '확인 중…'; }
+  try { await callAI('ok', { maxTokens: 256 }); } catch (e) { /* 크레딧 부족이면 aiError가 알림을 띄운다 */ }
+  const b2 = document.getElementById('ai-credit-check'); if (b2) { b2.disabled = false; b2.textContent = '충전했어요, 다시 확인'; }
+}
+function aiCreditCheckOnLoad() {
+  if (document.documentElement.classList.contains('participant-mode')) return;
+  try {
+    const last = +localStorage.getItem('ai_credit_probe_at') || 0;
+    if (Date.now() - last < 600000) return;
+    localStorage.setItem('ai_credit_probe_at', String(Date.now()));
+  } catch (e) { /* 저장 못 해도 확인은 한다 */ }
+  aiCreditProbe();
 }
 
 const supabase = {
@@ -5285,7 +5330,7 @@ function paInit(id) {
     });
     const open = openTurn(s);
     if (open && S.pending && S.pending.turn === open.n) html += `<div class="pa-me">${ivEsc(S.pending.text)}</div><div class="pa-sent">보냄</div>`;
-    else if (!open && !s.endedAt) html += `<div class="pa-ai pa-typing">${S.error ? '다음 질문을 불러오지 못했어요. 잠시 후 자동으로 다시 시도해요. <button class="iv-link" id="pa-retry" style="margin:0">지금 다시 시도</button>' : '다음 질문을 준비하고 있어요…'}</div>`;
+    else if (!open && !s.endedAt) html += `<div class="pa-ai pa-typing">${S.error ? (S.credit ? '지금은 질문을 준비할 수 없어요. 연구팀이 확인하고 있어요. 이 화면을 열어 두면 해결되는 대로 자동으로 이어져요.' : '다음 질문을 불러오지 못했어요. 잠시 후 자동으로 다시 시도해요.') + ' <button class="iv-link" id="pa-retry" style="margin:0">지금 다시 시도</button>' : '다음 질문을 준비하고 있어요…'}</div>`;
     if (!ivAsked(s).length && !s.endedAt && !S.error) html = '<div class="iv-muted">곧 첫 질문이 나타납니다.</div>';
     const key = html;
     if (key !== S.lastKey) {
@@ -5340,7 +5385,7 @@ function paInit(id) {
       else s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: false };
       await ivStoreUpsert(s);
       clearRetry();
-    } catch (e) { S.error = e.message || '오류'; scheduleRetry(); }
+    } catch (e) { S.error = e.message || '오류'; S.credit = !!e.credit; scheduleRetry(); }
     S.busy = ''; render();
   }
   // 다음 질문을 못 만들었을 때: 참가자가 누르지 않아도 5초 → 15초 → 30초 → 이후 1분마다 다시 시도한다
@@ -5708,6 +5753,7 @@ function ivInit() {
   ivInitReviewEvents();
   ivInitGuideEvents();
   ivRenderAll();
+  aiCreditCheckOnLoad();
   ivStoreLoad().then(async () => {
     ivRestoreCurrent();
     IV._restored = true;
