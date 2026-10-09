@@ -1219,6 +1219,7 @@
   .iv-toast-x { background: none; border: none; color: #d1d5db; font-size: 16px; cursor: pointer; padding: 0 2px; }
   .iv-save { font-size: 12px; color: var(--cal-success); }
   .iv-save.warn { color: #b45309; }
+  .iv-past-q { width: 100%; box-sizing: border-box; padding: 7px 10px; font-size: 13px; border: 1px solid var(--cal-hairline); border-radius: 8px; background: var(--cal-canvas); color: var(--cal-ink); }
   .iv-more { font-size: 12px; color: var(--cal-muted); padding: 2px 12px 12px; }
 
   .iv-center { display: flex; flex-direction: column; min-height: 640px; overflow: hidden; }
@@ -3516,6 +3517,7 @@ function ivTakeStored(id, data) {
   const cur = IV.sessions[id];
   if (!cur) { IV.sessions[id] = data; return; }
   if (cur === data || cur._busy || (cur === IV.current.real && cur.flow !== 'solo')) return;   // 이 화면에서 진행 중인 인터뷰는 건드리지 않는다
+  if (cur.kind === 'synthetic' && (cur === IV.current.direct || cur === IV.current.suggest || (IV.batch && IV.batch.running && IV.batch.items.some(it => it.sessionId === id)))) return;
   const n = x => (x.turns || []).length;
   if (n(cur) > n(data) || (ivReviewed(cur) && !ivReviewed(data))) return;
   Object.keys(data).forEach(k => { cur[k] = data[k]; });   // 같은 객체를 고쳐서 열려 있는 화면이 그대로 이어지게
@@ -4394,6 +4396,33 @@ function ivPersonaItem(p, active, sub) {
     ${sub || `<div class="iv-tags"><span class="iv-tag">${ivAiShort(p.aiUse)}</span><span class="iv-tag">${ivEsc(p.channel)}</span></div>`}</div>
   </div>`;
 }
+// ── 지난 합성 인터뷰 — 팀원이 진행한 합성 인터뷰도 저장소에서 읽어 와 보기 전용으로 연다 ──
+// 페르소나를 누르면 새 인터뷰가 시작되므로, 지난 기록은 이 목록에서만 연다
+function ivPastSynthHtml() {
+  const all = Object.values(IV.sessions).filter(x => x && x.kind === 'synthetic' && (x.turns || []).length)
+    .sort((a, b) => (b.startedAtMs || Date.parse(b.createdAt) || 0) - (a.startedAtMs || Date.parse(a.createdAt) || 0));
+  const q = (IV.pastSynthQuery || '').trim().toUpperCase();
+  const list = q ? all.filter(x => String(x.profile && x.profile.code || '').toUpperCase().includes(q)) : all;
+  const shown = IV.pastSynthAll ? list : list.slice(0, 8);
+  const item = x => {
+    const state = x.endedAt ? (ivReviewed(x) ? '끝남 · 리뷰 완료' : '끝남') : '진행 중';
+    return `<div class="iv-pitem" data-act="past-synth" data-sid="${ivEsc(x.id)}" title="보기 전용으로 열기">
+      <div class="iv-code">${ivEsc(x.profile && x.profile.code || '—')}</div>
+      <div><div class="iv-pmain">${ivEsc(ivModeLabel(x.mode))} · ${ivFmtClock(x.startedAtMs || x.createdAt)}</div><div class="iv-psub${x.endedAt ? '' : ' run'}">질문 ${ivAsked(x).length}개 · ${state}</div></div></div>`;
+  };
+  return `<div class="iv-panel">
+    <div class="iv-panel-head plain">지난 합성 인터뷰 <span class="aside">${all.length}건 · <button class="iv-link" style="margin:0" data-act="past-synth-refresh">새로고침</button></span></div>
+    ${all.length > 8 ? `<div style="padding:0 16px 4px;"><input class="iv-past-q" data-act-input="past-synth-q" value="${ivEsc(IV.pastSynthQuery || '')}" placeholder="코드로 찾기 (예: S12)"></div>` : ''}
+    <div class="iv-plist">${shown.length ? shown.map(item).join('') : `<div class="iv-muted" style="padding:8px 12px 12px;">${all.length ? '찾는 코드가 없어요' : '아직 없어요'}</div>`}</div>
+    ${list.length > shown.length ? `<div class="iv-more"><button class="iv-link" style="margin:0" data-act="past-synth-all">${list.length - shown.length}건 더 보기</button></div>` : ''}
+  </div>`;
+}
+async function ivPastSynthRefresh() {
+  IV.pastSynthLoading = true;
+  await ivStoreLoad();
+  IV.pastSynthLoading = false;
+  ivRenderLeft();
+}
 function ivRenderLeft() {
   const el = document.getElementById('iv-left');
   if (IV.mode === 'direct' || IV.mode === 'suggest') {
@@ -4403,7 +4432,7 @@ function ivRenderLeft() {
     el.innerHTML = `<div class="iv-panel">
       <div class="iv-panel-head">페르소나 선택</div>
       <div class="iv-plist">${list.length ? list.map(p => ivPersonaItem(p, cur && cur.personaId === p.id)).join('') : '<div class="iv-muted" style="padding:16px;">페르소나 뱅크에서 먼저 생성해주세요</div>'}</div>
-    </div>`;
+    </div>${ivPastSynthHtml()}`;
     return;
   }
   if (IV.mode === 'auto') {
@@ -4431,7 +4460,7 @@ function ivRenderLeft() {
             <input type="checkbox" data-pick-id="${p.id}" ${picked.has(p.id) ? 'checked' : ''}>
             <div class="iv-code">${ivEsc(pCode(p))}</div>
             <div><div class="iv-pmain">${ivEsc(p.age)} · ${ivEsc(p.level)} · ${ivAiShort(p.aiUse)}</div><div class="iv-psub">${picked.has(p.id) ? '대기' : '선택 안 함'}</div></div></label>`).join('')
-          : `<div class="iv-muted" style="padding:16px;">${personas.length ? '필터에 맞는 페르소나가 없습니다.' : '페르소나 뱅크에서 먼저 생성해주세요'}</div>`}</div></div>`;
+          : `<div class="iv-muted" style="padding:16px;">${personas.length ? '필터에 맞는 페르소나가 없습니다.' : '페르소나 뱅크에서 먼저 생성해주세요'}</div>`}</div></div>${ivPastSynthHtml()}`;
       return;
     }
     const shown = [];
@@ -4456,7 +4485,7 @@ function ivRenderLeft() {
           <div class="iv-code">${ivEsc(pCode(p))}</div>
           <div><div class="iv-pmain">${ivEsc(p.age)} · ${ivEsc(p.level)} · ${ivAiShort(p.aiUse)}</div><div class="iv-psub ${cls}">${sub}</div></div></div>`;
       }).join('')}</div>
-      ${hiddenWaiting ? `<div class="iv-more">외 ${hiddenWaiting}명 대기</div>` : ''}</div>`;
+      ${hiddenWaiting ? `<div class="iv-more">외 ${hiddenWaiting}명 대기</div>` : ''}</div>${b.running ? '' : ivPastSynthHtml()}`;
     return;
   }
   // AI 모더레이터
@@ -4813,12 +4842,21 @@ function ivInitEvents() {
     else if (act === 'stall-wait') { IV.pending.stalled = IV.pending.stalled.filter(x => x.id !== (s && s.id)); const ack = ivAckRead(); if (s) ack.add(s.id); ivAckWrite(ack); ivRenderPendingBadge(); ivRenderAll(); }
     else if (act === 'stall-end') { if (s) { (async () => { try { await ivRefreshFromStore(s); } catch (e) { /* 무시 */ } ivFinish(s, 'stopped', `응답 멈춤 (참가자 활동 ${IV_STALL_HOURS}시간 넘게 없음)`); IV.pending.stalled = IV.pending.stalled.filter(x => x.id !== s.id); ivRenderPendingBadge(); ivOpenReview(s.id); })(); } }
     else if (act === 'pending-only') { IV.pending.onlyPending = true; ivRenderLeft(); }
+    else if (act === 'past-synth') ivReadOpen(el.dataset.sid);
+    else if (act === 'past-synth-all') { IV.pastSynthAll = true; ivRenderLeft(); }
+    else if (act === 'past-synth-refresh') ivPastSynthRefresh();
     else if (act === 'pending-all') { IV.pending.onlyPending = false; ivRenderLeft(); }
     else if (act === 'real-close') ivCloseRealSession();
     else if (act === 'real-save') ivSaveRealAnswer();
     else if (act === 'rate') { IV.answerRating = IV.answerRating === el.dataset.v ? null : el.dataset.v; ivRenderComposer(); }
   });
   root.addEventListener('input', e => {
+    if (e.target.dataset && e.target.dataset.actInput === 'past-synth-q') {
+      IV.pastSynthQuery = e.target.value; ivRenderLeft();
+      const inp = root.querySelector('[data-act-input="past-synth-q"]');
+      if (inp) { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+      return;
+    }
     const k = e.target.dataset && e.target.dataset.draft;
     if (k) {
       IV.drafts[k] = e.target.value;
