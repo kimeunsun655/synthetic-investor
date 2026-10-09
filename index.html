@@ -3285,6 +3285,7 @@ mode=real이면 너는 참가자에게 직접 질문한다. 답변은 연구자�
 
 # 출력 형식
 매 턴 아래 JSON 하나만 출력한다. 코드펜스나 다른 텍스트를 붙이지 않는다.
+문자열 값 안에서는 큰따옴표(")를 쓰지 않는다. 참가자의 말을 인용할 때는 ‘ ’나 「 」를 쓴다.
 {
   "stage": "①|②|③|④|⑤|⑥|⑦",
   "question_id": "3-4",
@@ -3596,11 +3597,36 @@ function ivStateLine(s) {
   return line;
 }
 function ivStartMessage(s) { return '인터뷰를 시작하세요. 첫 턴(① 소개)을 JSON으로 출력하세요.\n\n' + ivStateLine(s); }
+// 문자열 안에 이스케이프 없이 들어간 큰따옴표를 고친다 — 따옴표 뒤에 , } ] : 가 오지 않으면 문자열이 끝난 게 아니라 본문의 인용부호로 본다
+function ivRepairJsonQuotes(src) {
+  let out = '', inStr = false;
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (!inStr) { out += c; if (c === '"') inStr = true; continue; }
+    if (c === '\\') { out += c + (src[i + 1] || ''); i++; continue; }
+    if (c === '\n') { out += '\\n'; continue; }
+    if (c === '"') {
+      let j = i + 1; while (j < src.length && /\s/.test(src[j])) j++;
+      let end = j >= src.length || '}]:'.includes(src[j]);
+      if (!end && src[j] === ',') {   // 쉼표 뒤가 다음 키·값의 시작일 때만 문자열의 끝 ("참고", 즉 … 같은 본문은 아님)
+        let k = j + 1; while (k < src.length && /\s/.test(src[k])) k++;
+        end = k >= src.length || /["{\[\d\-tfn]/.test(src[k]);
+      }
+      if (end) { out += c; inStr = false; }
+      else out += '\\"';
+      continue;
+    }
+    out += c;
+  }
+  return out;
+}
 function ivParseModerator(text) {
   let t = String(text || '').trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
   const a = t.indexOf('{'), b = t.lastIndexOf('}');
   if (a < 0 || b <= a) throw new Error('모더레이터 응답이 JSON 형식이 아닙니다');
-  const obj = JSON.parse(t.slice(a, b + 1));
+  let obj;
+  try { obj = JSON.parse(t.slice(a, b + 1)); }
+  catch (e) { obj = JSON.parse(ivRepairJsonQuotes(t.slice(a, b + 1))); }   // 질문 안에 참가자 말을 "…"로 인용해 JSON이 깨진 경우
   if (!obj || typeof obj.utterance !== 'string' || !obj.utterance.trim()) throw new Error('모더레이터 응답에 질문(utterance)이 없습니다');
   const note = obj.note && typeof obj.note === 'object' ? obj.note : {};
   ['prev_answer_tags', 'claims', 'flags', 'covered', 'skipped'].forEach(k => {
