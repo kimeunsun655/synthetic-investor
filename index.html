@@ -2162,10 +2162,19 @@ async function callAI(messages, opts) {
   if (opts && opts.maxTokens) payload.max_tokens = opts.maxTokens;
   if (opts && opts.cache) payload.cache = true;
   const body = JSON.stringify(payload);
+  // 응답이 끝내 오지 않으면(휴대폰 네트워크가 끊긴 채 멈춤 등) 2분 뒤 실패로 처리해 다시 시도하게 한다
+  const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), 120000) : null;
+  try { return await callAIOnce(body, onText, ctrl); }
+  catch (e) { if (e && e.name === 'AbortError') throw new Error('AI 응답이 2분 넘게 오지 않았어요'); throw e; }
+  finally { clearTimeout(timer); }
+}
+async function callAIOnce(body, onText, ctrl) {
   const resp = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body,
+    signal: ctrl ? ctrl.signal : undefined,
   });
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
@@ -3489,6 +3498,7 @@ async function ivStoreUpsert(s) {
     s._savedAt = Date.now(); s._saveFail = false;
   } catch (e) { s._saveFail = true; ivStoreFailed(e.message); }
   if (document.getElementById('iv-control-right')) ivRenderControl();
+  return !s._saveFail;   // 참가자 화면은 저장에 실패하면 되돌리고 다시 시도한다
 }
 async function ivStoreLoad() {
   try {
@@ -4085,8 +4095,10 @@ async function ivSoloKick(s) {
       if (!s.modHistory.length) s.modHistory.push({ role: 'user', content: ivStartMessage(s) });
       const obj = await ivModeratorNext(s);
       const latest = await ivFetchSessionData(s.id);   // 그사이 참가자 화면이 먼저 만들었으면 버린다
-      if (latest && latest.data && (latest.data.turns.length !== n || latest.data.flow !== 'solo' || latest.data.endedAt)) await ivRefreshFromStore(s);
+      const base = latest && latest.data;
+      if (base && (base.turns.length !== n || base.flow !== 'solo' || base.endedAt || (base.modHistory.length && base.modHistory.length !== s.modHistory.length))) await ivRefreshFromStore(s);
       else {
+        if (base) { const mh = s.modHistory; Object.keys(base).forEach(k => { s[k] = base[k]; }); s.modHistory = mh; }   // 최신 기록 위에 붙인다
         const t = ivRecordTurn(s, obj, {});
         t.auto = true; t.autoFlow = 'solo';
         if (t.type === 'close') ivFinish(s, 'done', '인터뷰 종료');
@@ -5372,20 +5384,29 @@ function paInit(id) {
     const s = S.s;
     if (!s || S.busy || s.endedAt) return;
     S.busy = 'next'; render();
+    const snap = JSON.stringify(s);   // 저장에 실패하면 이 상태로 되돌린다 (이 화면에만 있는 질문이 생기지 않게)
     try {
       const n = s.turns.length;
       s.elapsedSec = ivWallElapsed(s);
       if (!s.modHistory.length) s.modHistory.push({ role: 'user', content: ivStartMessage(s) });
       const obj = await ivModeratorNext(s);
-      const latest = await ivFetchSessionData(id);   // 그사이 연구자가 이어받았으면 버린다
-      if (!latest || !latest.data || latest.data.flow !== 'solo' || latest.data.turns.length !== n) { S.busy = ''; return load(); }
-      const t = ivRecordTurn(s, obj, {});
+      // 그사이 연구자가 이어받았거나 끝냈거나 다른 화면이 먼저 질문을 만들었으면 버린다
+      const latest = await ivFetchSessionData(id);
+      const base = latest && latest.data;
+      if (!base || base.flow !== 'solo' || base.endedAt || base.turns.length !== n) { S.busy = ''; return load(); }
+      if (!base.modHistory.length) base.modHistory.push(s.modHistory[0]);
+      if (base.modHistory.length !== s.modHistory.length) { S.busy = ''; return load(); }
+      // 이 화면이 들고 있던 사본이 아니라 방금 읽은 최신 기록에 질문을 붙여 저장한다
+      // (예전 사본을 통째로 저장하면 연구자가 바꾼 진행 방식 등이 되돌아간다)
+      base.elapsedSec = ivWallElapsed(base);
+      const t = ivRecordTurn(base, obj, {});
       t.auto = true;
-      if (t.type === 'close') { s.elapsedSec = ivWallElapsed(s); s.status = 'done'; s.endReason = '인터뷰 종료'; s.endedAt = Date.now(); s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: true }; }
-      else s.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: false };
-      await ivStoreUpsert(s);
+      if (t.type === 'close') { base.status = 'done'; base.endReason = '인터뷰 종료'; base.endedAt = Date.now(); base.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: true }; }
+      else base.live = { turn: t.n, qid: t.qid, question: t.utterance, ended: false };
+      S.s = base;
+      if (!(await ivStoreUpsert(base))) throw new Error('저장하지 못했어요');
       clearRetry();
-    } catch (e) { S.error = e.message || '오류'; S.credit = !!e.credit; scheduleRetry(); }
+    } catch (e) { S.s = JSON.parse(snap); S.lastKey = ''; S.error = e.message || '오류'; S.credit = !!e.credit; scheduleRetry(); }
     S.busy = ''; render();
   }
   // 다음 질문을 못 만들었을 때: 참가자가 누르지 않아도 5초 → 15초 → 30초 → 이후 1분마다 다시 시도한다
@@ -5551,13 +5572,14 @@ function paInit(id) {
       if (latest && latest.data) { S.s = latest.data; }
       const cur = S.s; const t = openTurn(cur);
       if (!t || t.n !== open.n) { S.busy = ''; return load(); }
+      const snap = JSON.stringify(cur);
       if (cur.flow === 'solo') {
         cur.elapsedSec = ivWallElapsed(cur);
         cur.consent = Object.assign({}, cur.consent, { participantAt: (cur.consent && cur.consent.participantAt) || S.consentAt });
         t.answerVia = via;
         ivPushAnswer(cur, t, text, 'participant');
         if (ivCapped(cur)) { cur.status = 'capped'; cur.endReason = `질문 ${IV_MAX_TURNS}개를 다 써서 중단`; cur.endedAt = Date.now(); cur.live = Object.assign({}, cur.live, { ended: true }); }
-        await ivStoreUpsert(cur);
+        if (!(await ivStoreUpsert(cur))) { S.s = JSON.parse(snap); S.lastKey = ''; throw new Error('저장하지 못했어요'); }   // 쓴 답은 입력칸에 그대로 남긴다
         $('pa-text').value = ''; V.used = false;
         S.busy = ''; render();
         if (!cur.endedAt) soloNext();
