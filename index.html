@@ -3450,9 +3450,19 @@ async function ivStoreLoad() {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?select=id,data&order=updated_at.desc&limit=300`, { headers: supabase._headers() });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
-    rows.forEach(row => { if (row && row.data && !IV.sessions[row.id]) IV.sessions[row.id] = row.data; });
+    rows.forEach(row => { if (row && row.data) ivTakeStored(row.id, row.data); });
     IV.storeOk = true;
   } catch (e) { ivStoreFailed(e.message); }
+}
+// 저장소의 기록을 이 브라우저의 사본에 반영한다 — 참가자가 링크로 이어간 답은 저장소에만 있으므로 저장소가 우선.
+// 이 브라우저 사본이 더 앞서 있으면(저장 실패로 질문이 더 많음 · 여기서만 리뷰함) 그대로 둔다
+function ivTakeStored(id, data) {
+  const cur = IV.sessions[id];
+  if (!cur) { IV.sessions[id] = data; return; }
+  if (cur === data || cur._busy || (cur === IV.current.real && cur.flow !== 'solo')) return;   // 이 화면에서 진행 중인 인터뷰는 건드리지 않는다
+  const n = x => (x.turns || []).length;
+  if (n(cur) > n(data) || (ivReviewed(cur) && !ivReviewed(data))) return;
+  Object.keys(data).forEach(k => { cur[k] = data[k]; });   // 같은 객체를 고쳐서 열려 있는 화면이 그대로 이어지게
 }
 async function ivFetchParticipantAnswer(id) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=eq.${encodeURIComponent(id)}&select=participant_answer`, { headers: supabase._headers() });
@@ -5276,7 +5286,7 @@ function paInit(id) {
     const open = openTurn(s);
     if (open && S.pending && S.pending.turn === open.n) html += `<div class="pa-me">${ivEsc(S.pending.text)}</div><div class="pa-sent">보냄</div>`;
     else if (!open && !s.endedAt) html += `<div class="pa-ai pa-typing">${S.error ? '다음 질문을 불러오지 못했어요. 잠시 후 자동으로 다시 시도해요. <button class="iv-link" id="pa-retry" style="margin:0">지금 다시 시도</button>' : '다음 질문을 준비하고 있어요…'}</div>`;
-    if (!ivAsked(s).length && !s.endedAt) html = '<div class="iv-muted">곧 첫 질문이 나타납니다.</div>';
+    if (!ivAsked(s).length && !s.endedAt && !S.error) html = '<div class="iv-muted">곧 첫 질문이 나타납니다.</div>';
     const key = html;
     if (key !== S.lastKey) {
       S.lastKey = key;
@@ -5884,6 +5894,18 @@ async function scLoad() {
     SC.error = ''; SC.loaded = true;
   } catch (e) { SC.error = e.message; SC.loaded = true; }
   scRender();
+  scRefreshInterviews();
+}
+// AI 링크 인터뷰의 진행 상태(시작 전·진행 중·끝남)는 참가자 쪽에서 바뀌므로 탭을 열 때마다 저장소에서 다시 읽는다
+async function scRefreshInterviews() {
+  const ids = SC.rows.map(r => r.review && r.review.interviewId).filter(id => id && !(IV.sessions[id] && IV.sessions[id].endedAt && ivReviewed(IV.sessions[id])));
+  if (!ids.length) return;
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${IV_STORE_TABLE}?id=in.(${ids.map(encodeURIComponent).join(',')})&select=id,data`, { headers: supabase._headers() });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    (await r.json()).forEach(row => { if (row && row.data) ivTakeStored(row.id, row.data); });
+    scRender();
+  } catch (e) { /* 못 읽으면 이 브라우저의 기록으로 보여 준다 */ }
 }
 function scFmt(iso) { const d = new Date(iso); return isNaN(d) ? '' : `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
 function scTags(res) {
