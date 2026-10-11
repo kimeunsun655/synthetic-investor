@@ -1219,6 +1219,8 @@
   .iv-toast-x { background: none; border: none; color: #d1d5db; font-size: 16px; cursor: pointer; padding: 0 2px; }
   .iv-save { font-size: 12px; color: var(--cal-success); }
   .iv-save.warn { color: #b45309; }
+  .iv-next-q { font-size: 12px; color: var(--cal-muted); margin: 6px 0 -2px; display: flex; gap: 8px; align-items: center; }
+  .iv-next-q .iv-link { margin: 0; }
   .iv-past-q { width: 100%; box-sizing: border-box; padding: 7px 10px; font-size: 13px; border: 1px solid var(--cal-hairline); border-radius: 8px; background: var(--cal-canvas); color: var(--cal-ink); }
   .iv-more { font-size: 12px; color: var(--cal-muted); padding: 2px 12px 12px; }
 
@@ -3928,6 +3930,17 @@ async function ivRetryAnswer() {
   if (s.mode === 'suggest' && !s.endedAt && !t.answerError) ivSuggestNext(s);
 }
 
+// 직접 질문: 질문지 순서 (소개 대본·대체 진행 제외). '도입'은 질문 번호 없이 보낸다
+function ivDirectSeq() {
+  return IV_QUESTIONNAIRE.flatMap(sec => sec.rows.filter(r => !['소개', '대체'].includes(r.id))
+    .map(r => Object.assign({}, r, { label: r.id === '도입' ? `${sec.sec.split(' ')[0]} 도입` : r.id })));
+}
+function ivDirectPrefill(s, idx) {
+  const seq = ivDirectSeq();
+  const i = idx != null ? idx : (s.directNext || 0);
+  if (i >= seq.length) { IV.drafts.directIdx = -1; return; }
+  IV.drafts.direct = seq[i].q; IV.drafts.directQid = seq[i].id === '도입' ? '' : seq[i].id; IV.drafts.directIdx = i;
+}
 async function ivSendDirect() {
   const s = IV.current.direct;
   if (!s) { showDialog('페르소나를 먼저 선택해주세요', '왼쪽 목록에서 인터뷰할 페르소나를 선택한 뒤\n질문을 전송해주세요.'); return; }
@@ -3935,6 +3948,7 @@ async function ivSendDirect() {
   const text = (IV.drafts.direct || '').trim();
   if (!text) return;
   const qid = IV.drafts.directQid || '';
+  if (IV.drafts.directIdx >= 0) s.directNext = IV.drafts.directIdx + 1;   // 질문지에서 온 질문을 보내면 다음 차례로 넘어간다 (직접 쓴 질문은 그대로)
   const obj = { stage: ivNormStage('', qid), question_id: qid || '직접', type: qid ? 'main' : 'direct', utterance: text, note: {} };
   const t = ivRecordTurn(s, obj, { noMod: true });
   ivResetDrafts();
@@ -4617,8 +4631,18 @@ function ivRenderComposer() {
   }
   if (IV.mode === 'direct') {
     if (s && s.endedAt) { el.innerHTML = ivDoneHtml(s); return; }
-    const opts = IV_QUESTIONNAIRE.flatMap(sec => sec.rows.filter(r => !['소개', '대체'].includes(r.id)).map(r => `<option value="${ivEsc(r.id)}|${ivEsc(r.q)}">${ivEsc(r.id)} · ${ivEsc(r.q.length > 48 ? r.q.slice(0, 48) + '…' : r.q)}</option>`));
-    el.innerHTML = `<select class="iv-qbank" data-act-change="qbank"><option value="">질문지에서 불러오기…</option>${opts.join('')}</select>
+    const seq = ivDirectSeq();
+    if (s && !IV.drafts.direct && IV.drafts.directIdx === undefined) ivDirectPrefill(s);   // 답을 받으면 질문지의 다음 질문을 미리 채워 둔다
+    const askedQ = new Set(s ? s.turns.map(t => t.qid) : []), askedU = new Set(s ? s.turns.map(t => t.utterance) : []);
+    const wasAsked = r => r.id === '도입' ? askedU.has(r.q) : askedQ.has(r.id);   // 고쳐서 보낸 질문도 번호로 표시
+    const opts = seq.map((r, i) => `<option value="${i}">${wasAsked(r) ? '✓ ' : ''}${ivEsc(r.label)} · ${ivEsc(r.q.length > 48 ? r.q.slice(0, 48) + '…' : r.q)}</option>`);
+    const cur = IV.drafts.directIdx >= 0 ? seq[IV.drafts.directIdx] : null;
+    const nextIdx = s ? (s.directNext || 0) : 0;
+    const hint = !s ? ''
+      : cur ? `<div class="iv-next-q">질문지 ${ivEsc(cur.label)} 차례 <button class="iv-link" data-act="direct-skip">건너뛰기</button></div>`
+      : nextIdx < seq.length ? `<div class="iv-next-q"><button class="iv-link" data-act="direct-fill">질문지 다음 질문 넣기 (${ivEsc(seq[nextIdx].label)})</button></div>`
+      : '<div class="iv-next-q">질문지 끝까지 물었어요</div>';
+    el.innerHTML = `<select class="iv-qbank" data-act-change="qbank"><option value="">질문지에서 불러오기…</option>${opts.join('')}</select>${hint}
       <textarea class="iv-textarea" id="iv-direct-text" data-draft="direct" placeholder="질문을 입력하세요… (Shift+Enter로 줄바꿈, Enter로 전송)" rows="2">${ivEsc(IV.drafts.direct)}</textarea>
       <div class="iv-actions">${s ? '<button class="iv-link" style="margin:0 auto 0 0;" data-act="end">끝내고 리뷰하기</button>' : ''}${s && s._busy ? `<span class="iv-busy">${ivEsc(s._busy)}</span>` : ''}<button class="iv-btn dark lg" data-act="direct-send" ${s && s._busy ? 'disabled' : ''}>전송</button></div>`;
     return;
@@ -4810,6 +4834,12 @@ function ivInitEvents() {
     else if (act === 'reason') { IV.drafts.reason = el.dataset.v; const i = document.getElementById('iv-reason-input'); if (i) i.value = el.dataset.v; }
     else if (act === 'retry-answer') ivRetryAnswer();
     else if (act === 'direct-send') ivSendDirect();
+    else if (act === 'direct-skip' || act === 'direct-fill') {
+      const s = IV.current.direct; if (!s) return;
+      if (act === 'direct-skip') { s.directNext = IV.drafts.directIdx + 1; ivSave(s); }
+      ivDirectPrefill(s); ivRenderComposer();
+      const ta = document.getElementById('iv-direct-text'); if (ta) ta.focus();
+    }
     else if (act === 'end') { ivEndEarly(); if (IV.mode === 'direct' && s && s.turns.length) ivOpenReview(s.id); }
     else if (act === 'new-interview') ivNewInterview();
     else if (act === 'open-review') { if (s) ivOpenReview(s.id); }
@@ -4861,6 +4891,10 @@ function ivInitEvents() {
     if (k) {
       IV.drafts[k] = e.target.value;
       if (k === 'direct' && IV.drafts.directQid) { /* 질문지 문구를 고치면 질문 ID는 유지 */ }
+      if (k === 'direct' && !e.target.value.trim() && IV.drafts.directIdx >= 0) {   // 다 지우면 질문지 질문이 아니라 직접 쓰는 질문
+        IV.drafts.directQid = ''; IV.drafts.directIdx = -1;
+        const h = root.querySelector('.iv-next-q'); if (h) { ivRenderComposer(); const ta = document.getElementById('iv-direct-text'); if (ta) ta.focus(); }
+      }
       if (k === 'prop' && IV.proposal) {
         const btn = root.querySelector('[data-act="prop-send"]');
         const edited = e.target.value.trim() !== IV.proposal.utterance.trim();
@@ -4885,9 +4919,7 @@ function ivInitEvents() {
     const rk = e.target.dataset && e.target.dataset.real;
     if (rk) IV.realSetup[rk] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     if (e.target.dataset && e.target.dataset.actChange === 'qbank' && e.target.value) {
-      const [qid, ...rest] = e.target.value.split('|');
-      IV.drafts.direct = rest.join('|');
-      IV.drafts.directQid = qid === '도입' ? '' : qid;
+      ivDirectPrefill(IV.current.direct || {}, parseInt(e.target.value, 10));   // 고른 질문부터 이어서 순서대로
       ivRenderComposer();
       const ta = document.getElementById('iv-direct-text'); if (ta) ta.focus();
       if (!IV.current.direct) showDialog('페르소나를 먼저 선택해주세요', '왼쪽 목록에서 인터뷰할 페르소나를 선택하면\n입력창의 질문을 바로 전송할 수 있습니다.');
