@@ -2,352 +2,467 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Gowun+Batang:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: simulated desktop Chrome — fictional brokerage WTS on the left, extension side panel on the right.
-   Three visual layers inside the panel: ✎ 내가 쓴 기록 (serif, ink border) · ▦ 계좌/시장 데이터 (mono, source line) · ◇ AI 정리 (dashed slate, "추론" tag). */
+/* Layout: simulated desktop Chrome. Fictional brokerage on the left, conversational side panel on the right.
+   Panel = AI thread (orb avatar) + user reply pills + embedded interactive widgets. Data widgets use a dark "deep" card with lime marks. */
 :root{
-  --page:#E3E6EB; --chrome:#D6DBE2; --chrome-hi:#F1F3F6; --chrome-ink:#363E4B; --chrome-sub:#677081; --omni:#E5E9EF;
-  --site-bg:#F3F4F6; --site-card:#FFFFFF; --site-ink:#181D26; --site-sub:#667081; --site-line:#E2E5EA; --site-brand:#22336A; --site-hover:#F2F5F9; --site-sel:#EAF0FA;
+  --page:#E5E8E0; --chrome:#D7DBD2; --chrome-hi:#F2F4EF; --chrome-ink:#353B33; --chrome-sub:#6C7368; --omni:#E6E9E2;
+  --site-bg:#F5F6F3; --site-card:#FFFFFF; --site-ink:#15181A; --site-sub:#6B7280; --site-line:#E8EAE5; --site-brand:#2B3A67; --site-hover:#F3F5F1; --site-sel:#EEF3E4;
   --up:#D6343C; --down:#2A62D2;
-  --pn-bg:#F4F6F5; --pn-card:#FFFFFF; --pn-ink:#1B2725; --pn-sub:#5A6865; --pn-line:#D9E1DF; --pn-accent:#2D6960; --pn-accent-ink:#FFFFFF; --pn-accent-soft:#E2EEEB;
-  --mine-bg:#FFFFFF; --mine-line:#2A2620; --mine-ink:#25221D; --mine-tag:#5B4E3A;
-  --ai-bg:#ECF1F7; --ai-line:#93A9C2; --ai-ink:#2A3C55;
-  --st-in:#2D6960; --st-in-bg:#E2EEEB; --st-diff:#83560F; --st-diff-bg:#F4EAD6; --st-check:#3A5476; --st-check-bg:#E4EBF4;
-  --focus:#2D6960;
-  --shadow:0 1px 2px rgba(20,30,40,.06),0 10px 30px rgba(20,30,40,.10);
-  --f-ui:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
-  --f-site:"Apple SD Gothic Neo","Malgun Gothic","IBM Plex Sans KR",system-ui,sans-serif;
-  --f-mine:"Gowun Batang","Nanum Myeongjo","AppleMyungjo",serif;
-  --f-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
-  --panel-w:400px;
+  --pn-bg:#F2F4EE; --pn-glow:rgba(176,220,96,.30); --pn-card:#FFFFFF; --pn-card-2:#F7F8F4; --pn-ink:#161A15; --pn-sub:#697066; --pn-line:#E3E7DC;
+  --lime:#B8E65F; --lime-ink:#1C2709; --acc:#4A6C10; --acc-soft:#EAF4D6;
+  --deep:#1E221E; --deep-2:#2B302A; --deep-line:#3A4038; --deep-ink:#F1F4EC; --deep-sub:#A0A99A;
+  --warn:#E9A84C; --warn-text:#8A5A12; --warn-soft:#FBF0DE; --info:#8C9CC4; --info-text:#3F4F78; --info-soft:#EBEFF8;
+  --me-bub:#1E221E; --me-ink:#F1F4EC;
+  --shadow-sm:0 1px 2px rgba(25,32,20,.05),0 2px 8px rgba(25,32,20,.05);
+  --shadow:0 2px 6px rgba(25,32,20,.06),0 14px 36px rgba(25,32,20,.10);
+  --f:"Manrope","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-site:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --panel-w:420px; --r:18px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --page:#0F1215; --chrome:#1D2228; --chrome-hi:#2A3038; --chrome-ink:#D5DAE1; --chrome-sub:#8E97A4; --omni:#171B20;
-  --site-bg:#14171C; --site-card:#1C2027; --site-ink:#E7EAEF; --site-sub:#929BA8; --site-line:#2C323B; --site-brand:#9DB2EE; --site-hover:#222832; --site-sel:#23304A;
+  --page:#0D0F0D; --chrome:#1C201C; --chrome-hi:#262B25; --chrome-ink:#D8DDD3; --chrome-sub:#8E978A; --omni:#151815;
+  --site-bg:#121412; --site-card:#1A1D1A; --site-ink:#E8EBE5; --site-sub:#929A8F; --site-line:#2A2F29; --site-brand:#A9BAEB; --site-hover:#20241F; --site-sel:#253021;
   --up:#F0656B; --down:#6E9BF5;
-  --pn-bg:#141A19; --pn-card:#1C2423; --pn-ink:#E3ECEA; --pn-sub:#97A7A3; --pn-line:#2E3A38; --pn-accent:#7DBDB1; --pn-accent-ink:#0E1715; --pn-accent-soft:#213431;
-  --mine-bg:#201F1C; --mine-line:#CFC6B4; --mine-ink:#EEE7DA; --mine-tag:#C9B794;
-  --ai-bg:#1B2431; --ai-line:#4F6684; --ai-ink:#C3D3E8;
-  --st-in:#8CCABE; --st-in-bg:#1F3330; --st-diff:#E5BC75; --st-diff-bg:#352A17; --st-check:#A9C0E0; --st-check-bg:#1F2A3A;
-  --focus:#7DBDB1; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45); color-scheme:dark}}
+  --pn-bg:#141714; --pn-glow:rgba(150,200,70,.16); --pn-card:#1D211D; --pn-card-2:#232823; --pn-ink:#ECEFE8; --pn-sub:#9AA294; --pn-line:#2E342D;
+  --lime:#C2EE74; --lime-ink:#18210A; --acc:#C2EE74; --acc-soft:#28331B;
+  --deep:#252A24; --deep-2:#30362F; --deep-line:#3F463D; --deep-ink:#F1F4EC; --deep-sub:#A0A99A;
+  --warn:#E9B062; --warn-text:#F0C27F; --warn-soft:#352A18; --info:#9AAAD2; --info-text:#B9C6E6; --info-soft:#222A3A;
+  --me-bub:#353C33; --me-ink:#ECEFE8;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow:0 2px 6px rgba(0,0,0,.3),0 14px 36px rgba(0,0,0,.45); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --page:#0F1215; --chrome:#1D2228; --chrome-hi:#2A3038; --chrome-ink:#D5DAE1; --chrome-sub:#8E97A4; --omni:#171B20;
-  --site-bg:#14171C; --site-card:#1C2027; --site-ink:#E7EAEF; --site-sub:#929BA8; --site-line:#2C323B; --site-brand:#9DB2EE; --site-hover:#222832; --site-sel:#23304A;
+  --page:#0D0F0D; --chrome:#1C201C; --chrome-hi:#262B25; --chrome-ink:#D8DDD3; --chrome-sub:#8E978A; --omni:#151815;
+  --site-bg:#121412; --site-card:#1A1D1A; --site-ink:#E8EBE5; --site-sub:#929A8F; --site-line:#2A2F29; --site-brand:#A9BAEB; --site-hover:#20241F; --site-sel:#253021;
   --up:#F0656B; --down:#6E9BF5;
-  --pn-bg:#141A19; --pn-card:#1C2423; --pn-ink:#E3ECEA; --pn-sub:#97A7A3; --pn-line:#2E3A38; --pn-accent:#7DBDB1; --pn-accent-ink:#0E1715; --pn-accent-soft:#213431;
-  --mine-bg:#201F1C; --mine-line:#CFC6B4; --mine-ink:#EEE7DA; --mine-tag:#C9B794;
-  --ai-bg:#1B2431; --ai-line:#4F6684; --ai-ink:#C3D3E8;
-  --st-in:#8CCABE; --st-in-bg:#1F3330; --st-diff:#E5BC75; --st-diff-bg:#352A17; --st-check:#A9C0E0; --st-check-bg:#1F2A3A;
-  --focus:#7DBDB1; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45); color-scheme:dark}
+  --pn-bg:#141714; --pn-glow:rgba(150,200,70,.16); --pn-card:#1D211D; --pn-card-2:#232823; --pn-ink:#ECEFE8; --pn-sub:#9AA294; --pn-line:#2E342D;
+  --lime:#C2EE74; --lime-ink:#18210A; --acc:#C2EE74; --acc-soft:#28331B;
+  --deep:#252A24; --deep-2:#30362F; --deep-line:#3F463D; --deep-ink:#F1F4EC; --deep-sub:#A0A99A;
+  --warn:#E9B062; --warn-text:#F0C27F; --warn-soft:#352A18; --info:#9AAAD2; --info-text:#B9C6E6; --info-soft:#222A3A;
+  --me-bub:#353C33; --me-ink:#ECEFE8;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow:0 2px 6px rgba(0,0,0,.3),0 14px 36px rgba(0,0,0,.45); color-scheme:dark}
 
 html,body{height:100%}
-body{background:var(--page);color:var(--site-ink);font-family:var(--f-ui);-webkit-font-smoothing:antialiased}
+body{background:var(--page);color:var(--site-ink);font-family:var(--f);-webkit-font-smoothing:antialiased}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
-button,input,textarea,select{font:inherit;color:inherit}
+button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0}
-:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
-.num{font-family:var(--f-num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
 
 .stage{min-height:100%;display:flex;flex-direction:column;gap:10px;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.simnote{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;font-size:12px;color:var(--chrome-sub)}
-.simnote b{color:var(--chrome-ink);font-weight:600}
-.simnote .pill{border:1px solid var(--chrome);border-radius:999px;padding:2px 8px;background:var(--chrome-hi)}
+.simnote{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:12px;color:var(--chrome-sub)}
+.simnote b{color:var(--chrome-ink)}
+.simnote .pill{border:1px solid var(--chrome);border-radius:999px;padding:2px 9px;background:var(--chrome-hi)}
 
 /* ── Browser chrome ── */
-.browser{flex:1;min-height:640px;height:calc(100dvh - 70px);max-height:980px;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;background:var(--chrome);box-shadow:var(--shadow);border:1px solid var(--chrome)}
+.browser{flex:none;min-height:620px;height:calc(100dvh - 70px);max-height:1000px;display:flex;flex-direction:column;border-radius:14px;overflow:hidden;background:var(--chrome);box-shadow:var(--shadow);border:1px solid var(--chrome)}
 .tabstrip{display:flex;align-items:flex-end;gap:6px;padding:8px 10px 0;min-width:0}
 .dots{display:flex;gap:7px;padding:0 8px 10px 4px;flex:none}
-.dots i{width:11px;height:11px;border-radius:50%;background:var(--chrome-sub);opacity:.45;display:block}
-.tab{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--chrome-sub);padding:8px 14px;border-radius:9px 9px 0 0;min-width:0;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dots i{width:11px;height:11px;border-radius:50%;background:var(--chrome-sub);opacity:.4;display:block}
+.tab{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--chrome-sub);padding:8px 14px;border-radius:10px 10px 0 0;min-width:0;max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--f-site)}
 .tab.on{background:var(--chrome-hi);color:var(--chrome-ink)}
-.tab .fav{width:14px;height:14px;border-radius:3px;background:var(--site-brand);flex:none;display:grid;place-items:center;color:var(--site-card);font-size:9px;font-weight:700}
+.tab .fav{width:14px;height:14px;border-radius:4px;background:var(--site-brand);flex:none}
 .toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--chrome-hi);border-bottom:1px solid var(--chrome)}
-.tbtn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--chrome-sub);flex:none;position:relative}
+.tbtn{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--chrome-sub);flex:none;position:relative;transition:background .15s}
 .tbtn:hover{background:var(--chrome)}
 .tbtn svg{width:16px;height:16px}
-.omni{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:32px;border-radius:999px;background:var(--omni);padding:0 14px;font-size:13px;color:var(--chrome-ink)}
+.tbtn.static{cursor:default}.tbtn.static:hover{background:none}
+.omni{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:32px;border-radius:999px;background:var(--omni);padding:0 14px;font-size:13px;color:var(--chrome-ink);font-family:var(--f-site)}
 .omni span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .omni .host{color:var(--chrome-sub)}
 .omni svg{width:13px;height:13px;flex:none;color:var(--chrome-sub)}
-.extbtn{color:var(--pn-accent)}
-.extbtn.on{background:var(--pn-accent-soft)}
-.extbtn .badge{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--pn-accent);border:1.5px solid var(--chrome-hi)}
-.avatar{width:26px;height:26px;border-radius:50%;background:var(--chrome);display:grid;place-items:center;font-size:11px;color:var(--chrome-ink);flex:none}
+.extbtn.on{background:var(--acc-soft)}
+.extbtn .orb{width:18px;height:18px}
+.extbtn .badge{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:var(--lime);border:1.5px solid var(--chrome-hi)}
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--chrome);display:grid;place-items:center;font-size:11px;color:var(--chrome-ink);flex:none;font-family:var(--f-site)}
 
-.viewport{flex:1;min-height:0;display:flex;position:relative;background:var(--site-bg)}
+.viewport{flex:1;min-height:0;display:flex;position:relative;background:var(--site-bg);overflow:hidden}
 
-/* ── Fictional brokerage site ── */
+/* ── AI orb ── */
+.orb{display:block;border-radius:50%;flex:none;position:relative;
+  background:radial-gradient(circle at 34% 30%,#F4FFD9 0 12%,transparent 42%),conic-gradient(from 210deg,#9ED65A,#E3F7A8,#6FA83A,#CDEB8E,#9ED65A);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 2px 8px rgba(110,160,40,.35)}
+.orb::after{content:"";position:absolute;inset:26%;border-radius:50%;background:var(--pn-card);opacity:.9}
+.orb.think{animation:orbspin 1.6s linear infinite}
+@keyframes orbspin{to{transform:rotate(360deg)}}
+
+/* ── Fictional brokerage ── */
 .site{flex:1;min-width:0;overflow:auto;font-family:var(--f-site);container-type:inline-size;color:var(--site-ink)}
-.s-head{display:flex;align-items:center;gap:22px;padding:0 22px;height:52px;background:var(--site-card);border-bottom:1px solid var(--site-line);position:sticky;top:0;z-index:2}
+.s-head{display:flex;align-items:center;gap:24px;padding:0 24px;height:54px;background:var(--site-card);border-bottom:1px solid var(--site-line);position:sticky;top:0;z-index:2}
 .s-logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--site-brand);white-space:nowrap}
-.s-logo i{width:22px;height:22px;border-radius:6px;background:var(--site-brand);display:block}
+.s-logo i{width:22px;height:22px;border-radius:7px;background:var(--site-brand);display:block}
 .s-logo small{font-weight:500;color:var(--site-sub);font-size:11px}
 .s-nav{display:flex;gap:18px;font-size:14px;color:var(--site-sub);overflow:hidden;white-space:nowrap}
 .s-nav .on{color:var(--site-ink);font-weight:700}
-.s-body{padding:18px 22px 28px;display:grid;gap:16px}
-.s-card{background:var(--site-card);border:1px solid var(--site-line);border-radius:10px}
-.acct{display:flex;flex-wrap:wrap;gap:12px 32px;padding:16px 20px;align-items:flex-end}
+.s-body{padding:20px 24px 32px;display:grid;gap:16px}
+.s-card{background:var(--site-card);border:1px solid var(--site-line);border-radius:16px}
+.acct{display:flex;flex-wrap:wrap;gap:12px 34px;padding:18px 22px;align-items:flex-end}
 .acct .k{font-size:12px;color:var(--site-sub)}
-.acct .v{font-size:18px;font-weight:600;margin-top:2px}
-.acct .v.big{font-size:22px}
+.acct .v{font-size:18px;font-weight:700;margin-top:2px;font-family:var(--f)}
+.acct .v.big{font-size:23px}
+.acct .meta{font-size:12px;color:var(--site-sub);margin-left:auto}
 .s-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
-@container (max-width:1040px){.s-grid{grid-template-columns:minmax(0,1fr)}}
-.s-sec-h{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 10px}
+@container (max-width:1000px){.s-grid{grid-template-columns:minmax(0,1fr)}}
+.s-sec-h{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 10px}
 .s-sec-h h2{font-size:15px;margin:0}
 .s-sec-h span{font-size:12px;color:var(--site-sub)}
 .tblwrap{overflow-x:auto}
-table.hold{width:100%;border-collapse:collapse;font-size:13px;min-width:540px}
-.hold th{font-weight:500;color:var(--site-sub);text-align:right;padding:8px 14px;border-top:1px solid var(--site-line);border-bottom:1px solid var(--site-line);font-size:12px;white-space:nowrap}
+table.hold{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+.hold th{font-weight:500;color:var(--site-sub);text-align:right;padding:8px 16px;border-top:1px solid var(--site-line);border-bottom:1px solid var(--site-line);font-size:12px;white-space:nowrap}
 .hold th:first-child,.hold td:first-child{text-align:left}
-.hold td{padding:12px 14px;text-align:right;border-bottom:1px solid var(--site-line);white-space:nowrap}
-.hold tbody tr{cursor:pointer}
+.hold td{padding:13px 16px;text-align:right;border-bottom:1px solid var(--site-line);white-space:nowrap;font-family:var(--f)}
+.hold td:first-child{font-family:var(--f-site)}
+.hold tbody tr{cursor:pointer;transition:background .15s}
 .hold tbody tr:hover{background:var(--site-hover)}
 .hold tbody tr.sel{background:var(--site-sel)}
-.hold .nm{font-weight:600}
+.hold tbody tr:last-child td{border-bottom:0}
+.hold .nm{font-weight:600;display:flex;align-items:center;gap:6px}
 .hold .cd{font-size:11px;color:var(--site-sub);margin-top:2px}
-.hold .mark{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--pn-accent);margin-left:6px;font-weight:500}
-.hold .mark svg{width:11px;height:11px}
+.hold .mark{font-size:10.5px;color:var(--acc);background:var(--acc-soft);border-radius:999px;padding:1px 7px;font-weight:600}
 .up{color:var(--up)} .down{color:var(--down)}
-.det{padding:16px 18px;display:grid;gap:14px}
+.det{padding:18px 20px;display:grid;gap:14px}
 .det-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
 .det-top h3{margin:0;font-size:17px}
 .det-top .sub{font-size:12px;color:var(--site-sub);margin-top:2px}
-.price{text-align:right}
-.price .p{font-size:22px;font-weight:600}
+.price{text-align:right;font-family:var(--f)}
+.price .p{font-size:23px;font-weight:700}
 .price .c{font-size:12px}
-.chart{width:100%;max-width:520px;height:auto;display:block}
-.pos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;font-size:13px}
+.schart{width:100%;max-width:520px;height:auto;display:block}
+.pos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;font-size:13px}
 .pos div{display:flex;justify-content:space-between;gap:8px}
 .pos .k{color:var(--site-sub)}
+.pos .v{font-family:var(--f);font-weight:600}
 .order{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.order button{height:40px;border-radius:8px;font-weight:600;font-size:14px;color:#fff}
+.order button{height:42px;border-radius:10px;font-weight:600;font-size:14px;color:#fff}
 .order .b{background:var(--up)} .order .s{background:var(--down)}
 .ordermsg{font-size:12px;color:var(--site-sub);min-height:16px}
-.news{list-style:none;margin:0;padding:0 18px 14px;display:grid}
+.news{list-style:none;margin:0;padding:0 20px 16px;display:grid}
 .news li{padding:10px 0;border-top:1px solid var(--site-line);font-size:13px;display:grid;gap:3px}
 .news .meta{font-size:11px;color:var(--site-sub)}
 
-/* ── Nudge (light, non-alarming) ── */
-.nudge{position:absolute;top:10px;right:14px;z-index:6;width:min(320px,calc(100% - 28px));background:var(--pn-card);color:var(--pn-ink);border:1px solid var(--pn-line);border-radius:12px;box-shadow:var(--shadow);padding:14px 14px 12px;font-family:var(--f-ui);display:grid;gap:10px}
-.nudge::before{content:"";position:absolute;top:-6px;right:62px;width:10px;height:10px;background:var(--pn-card);border-left:1px solid var(--pn-line);border-top:1px solid var(--pn-line);transform:rotate(45deg)}
-.nudge .who{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--pn-sub)}
-.nudge .who svg{width:14px;height:14px;color:var(--pn-accent)}
-.nudge p{margin:0;font-size:14px;line-height:1.5}
+/* ── Launcher + nudge ── */
+.launcher{position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:5;display:flex;align-items:center;gap:8px;padding:10px 12px 10px 10px;border-radius:14px 0 0 14px;background:var(--pn-card);border:1px solid var(--pn-line);border-right:0;box-shadow:var(--shadow);font-size:12.5px;font-weight:600;color:var(--pn-ink);transition:transform .25s ease}
+.launcher .orb{width:22px;height:22px}
+.launcher:hover{transform:translateY(-50%) translateX(-3px)}
+.nudge{position:absolute;top:10px;right:14px;z-index:6;width:min(330px,calc(100% - 28px));background:var(--pn-card);color:var(--pn-ink);border:1px solid var(--pn-line);border-radius:16px;box-shadow:var(--shadow);padding:14px;display:grid;gap:10px;animation:pop .28s ease-out}
+.nudge .who{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--pn-sub)}
+.nudge .who .orb{width:18px;height:18px}
+.nudge p{margin:0;font-size:14px;line-height:1.5;font-weight:500}
 .nudge .row{display:flex;gap:8px;justify-content:flex-end}
+@keyframes pop{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
 
 /* ── Side panel ── */
-.panel{flex:none;width:var(--panel-w);max-width:100%;border-left:1px solid var(--chrome);background:var(--pn-bg);color:var(--pn-ink);display:flex;flex-direction:column;min-height:0;position:relative;font-family:var(--f-ui)}
+.panel{flex:none;width:var(--panel-w);max-width:100%;margin-right:calc(-1 * var(--panel-w));opacity:0;visibility:hidden;
+  transition:margin-right .32s cubic-bezier(.2,.8,.2,1),opacity .25s,visibility 0s .32s;
+  background:radial-gradient(120% 50% at 70% -5%,var(--pn-glow),transparent 60%),var(--pn-bg);color:var(--pn-ink);display:flex;flex-direction:column;min-height:0;position:relative;border-left:1px solid var(--pn-line);font-family:var(--f)}
+.viewport.open .panel{margin-right:0;opacity:1;visibility:visible;transition:margin-right .32s cubic-bezier(.2,.8,.2,1),opacity .25s}
 .resize{position:absolute;left:-4px;top:0;bottom:0;width:8px;cursor:col-resize;z-index:3}
-.resize:hover,.resize.drag{background:linear-gradient(90deg,transparent 3px,var(--pn-accent) 3px,var(--pn-accent) 5px,transparent 5px)}
-.p-head{padding:10px 14px 0;background:var(--pn-card);border-bottom:1px solid var(--pn-line)}
-.p-brand{display:flex;align-items:center;gap:8px;justify-content:space-between}
-.p-brand .nm{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px}
-.p-brand .nm svg{width:20px;height:20px;color:var(--pn-accent)}
-.p-brand .nm small{font-weight:400;font-size:11px;color:var(--pn-sub)}
-.icon-btn{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;color:var(--pn-sub)}
-.icon-btn:hover{background:var(--pn-accent-soft);color:var(--pn-ink)}
+.resize:hover,.resize.drag{background:linear-gradient(90deg,transparent 3px,var(--lime) 3px,var(--lime) 5px,transparent 5px)}
+.p-head{padding:12px 14px 0;display:grid;gap:10px}
+.p-top{display:flex;align-items:center;gap:10px}
+.p-top .orb{width:30px;height:30px}
+.p-top .t{flex:1;min-width:0}
+.p-top .t b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.p-top .t small{font-size:11.5px;color:var(--pn-sub)}
+.icon-btn{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:var(--pn-sub);background:var(--pn-card);border:1px solid var(--pn-line);transition:background .15s,color .15s}
+.icon-btn:hover{color:var(--pn-ink);background:var(--pn-card-2)}
 .icon-btn svg{width:16px;height:16px}
-.p-tabs{display:flex;gap:18px;margin-top:8px}
-.p-tabs button{padding:8px 0 9px;font-size:13px;color:var(--pn-sub);border-bottom:2px solid transparent}
-.p-tabs button.on{color:var(--pn-ink);font-weight:600;border-bottom-color:var(--pn-accent)}
-.p-ctx{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;font-size:12px;color:var(--pn-sub);border-bottom:1px solid var(--pn-line)}
-.p-ctx b{color:var(--pn-ink);font-weight:600;font-size:13px}
-.steps{display:flex;gap:4px;padding:10px 14px 0}
-.steps div{flex:1;display:grid;gap:5px;font-size:11px;color:var(--pn-sub)}
-.steps i{height:3px;border-radius:2px;background:var(--pn-line);display:block}
-.steps .done i,.steps .on i{background:var(--pn-accent)}
-.steps .on{color:var(--pn-ink);font-weight:600}
-.p-body{flex:1;overflow:auto;padding:14px;display:grid;grid-auto-rows:max-content;gap:14px;align-content:start}
-.p-foot{padding:10px 14px;border-top:1px solid var(--pn-line);background:var(--pn-card);display:grid;gap:8px}
-.p-foot .nav{display:flex;gap:8px}
-.p-foot .nav .grow{flex:1}
-.disc{font-size:11px;line-height:1.5;color:var(--pn-sub)}
+.p-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--pn-card);border:1px solid var(--pn-line);border-radius:12px;padding:3px;position:relative}
+.p-tabs button{height:32px;border-radius:9px;font-size:13px;color:var(--pn-sub);font-weight:600;position:relative;z-index:1;transition:color .2s}
+.p-tabs button.on{color:var(--pn-ink)}
+.p-tabs .ind{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:9px;background:var(--acc-soft);transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.p-tabs.log .ind{transform:translateX(100%)}
+.ctx{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--pn-card);border:1px solid var(--pn-line);border-radius:14px;text-align:left;width:100%;transition:border-color .15s}
+.ctx:hover{border-color:var(--acc)}
+.ctx .nm{flex:1;min-width:0}
+.ctx .nm b{display:block;font-size:13.5px}
+.ctx .nm small{font-size:11px;color:var(--pn-sub)}
+.ctx .pills{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;border-radius:999px;padding:3px 8px;white-space:nowrap;background:var(--pn-card-2);color:var(--pn-sub);border:1px solid var(--pn-line)}
+.pill.warn{background:var(--warn-soft);color:var(--warn-text);border-color:transparent}
+.pill.ok{background:var(--acc-soft);color:var(--acc);border-color:transparent}
+.pill.info{background:var(--info-soft);color:var(--info-text);border-color:transparent}
+.p-body{flex:1;overflow:auto;padding:14px 14px 18px;scroll-behavior:smooth}
+.p-foot{padding:10px 14px 12px;display:grid;gap:7px;border-top:1px solid var(--pn-line);background:color-mix(in srgb,var(--pn-bg) 85%,transparent);backdrop-filter:blur(8px)}
+.composer{display:flex;align-items:center;gap:8px;background:var(--pn-card);border:1px solid var(--pn-line);border-radius:14px;padding:5px 5px 5px 14px;box-shadow:var(--shadow-sm)}
+.composer input{flex:1;min-width:0;border:0;background:none;outline:none;font-size:13.5px;height:34px}
+.composer input::placeholder{color:var(--pn-sub)}
+.send{width:34px;height:34px;border-radius:10px;background:var(--me-bub);color:var(--me-ink);display:grid;place-items:center;transition:transform .15s,opacity .15s}
+.send:disabled{opacity:.35;cursor:not-allowed}
+.send svg{width:16px;height:16px}
+.disc{font-size:10.5px;color:var(--pn-sub);line-height:1.5;text-align:center}
 
-h3.pt{margin:0;font-size:17px;line-height:1.4;text-wrap:balance;font-weight:600}
-.lead{margin:0;font-size:13px;line-height:1.6;color:var(--pn-sub)}
-.btn{height:40px;border-radius:9px;padding:0 16px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-.btn.pri{background:var(--pn-accent);color:var(--pn-accent-ink)}
-.btn.pri:disabled{opacity:.4;cursor:not-allowed}
-.btn.sec{border:1px solid var(--pn-line);background:var(--pn-card);color:var(--pn-ink)}
-.btn.ghost{color:var(--pn-sub);font-weight:500}
-.btn.sm{height:32px;font-size:13px;padding:0 12px}
-.link{color:var(--pn-accent);font-size:12px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+/* thread */
+.thread{display:grid;gap:16px;align-content:start}
+.msg{display:grid;gap:8px}
+.msg.ai{grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:start}
+.msg.ai .orb{width:26px;height:26px;margin-top:1px}
+.mb{display:grid;gap:10px;min-width:0}
+.mb>.txt{font-size:14px;line-height:1.6;margin:0;text-wrap:pretty}
+.mb>.txt b{font-weight:700}
+.mb>.txt .sub{display:block;font-size:12px;color:var(--pn-sub);margin-top:2px}
+.msg.me{justify-items:end}
+.bub{max-width:85%;background:var(--me-bub);color:var(--me-ink);padding:9px 14px;border-radius:16px 16px 4px 16px;font-size:13.5px;line-height:1.5}
+.typing{display:flex;gap:4px;padding:8px 0}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--pn-sub);opacity:.4;animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{50%{opacity:1}}
+.enter{animation:rise .34s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.wslot,.cslot{display:grid;gap:10px;min-width:0}
+.cslot:empty{display:none}
 
-/* Source tags */
-.src{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.02em}
-.src svg{width:12px;height:12px}
-.src.s-mine{color:var(--mine-tag)} .src.s-data{color:var(--pn-sub)} .src.s-ai{color:var(--ai-ink)}
-.tag-inf{font-size:10px;font-weight:600;color:var(--ai-ink);border:1px dashed var(--ai-line);border-radius:4px;padding:0 5px;margin-left:4px;letter-spacing:.02em}
+.choices{display:flex;flex-wrap:wrap;gap:7px}
+.choices.col{display:grid}
+.chip{border:1px solid var(--pn-line);background:var(--pn-card);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--pn-ink);text-align:left;box-shadow:var(--shadow-sm);transition:border-color .15s,background .15s,transform .12s}
+.chip:hover{border-color:var(--acc)}
+.chip:active{transform:scale(.97)}
+.chip[aria-pressed="true"]{background:var(--acc-soft);border-color:var(--acc);font-weight:600}
+.chip.pri{background:var(--me-bub);color:var(--me-ink);border-color:var(--me-bub)}
+.chip.ghost{box-shadow:none;background:transparent;color:var(--pn-sub)}
+.choices.col .chip{border-radius:14px;padding:11px 14px}
+.done-btn{justify-self:start}
 
-.mine{background:var(--mine-bg);border:1.5px solid var(--mine-line);border-radius:4px;padding:14px;display:grid;gap:10px;color:var(--mine-ink)}
-.mine .when{font-size:11px;color:var(--pn-sub)}
-.mine .quote{font-family:var(--f-mine);font-size:15px;line-height:1.75}
-.mine dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px;font-size:13px;border-top:1px dotted var(--mine-line);padding-top:10px}
-.mine dt{color:var(--pn-sub);font-size:12px;padding-top:2px}
-.mine dd{margin:0;font-family:var(--f-mine);font-size:14px;line-height:1.55}
-.mine .memo{font-family:var(--f-mine);font-size:14px;border-top:1px dotted var(--mine-line);padding-top:10px}
+.btn{height:42px;border-radius:12px;padding:0 18px;font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .12s,opacity .15s}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--me-bub);color:var(--me-ink)}
+.btn.lime{background:var(--lime);color:var(--lime-ink)}
+.btn.sec{background:var(--pn-card);border:1px solid var(--pn-line);color:var(--pn-ink)}
+.btn.sm{height:34px;font-size:12.5px;padding:0 13px;border-radius:10px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.link{color:var(--pn-sub);font-size:12px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
 
-.ai{background:var(--ai-bg);border:1px dashed var(--ai-line);border-radius:10px;padding:12px 14px;color:var(--ai-ink);display:grid;gap:6px;font-size:13px;line-height:1.6}
-.ai p{margin:0}
-.data{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:10px;padding:12px 14px;display:grid;gap:8px}
-.srcline{font-size:11px;color:var(--pn-sub);font-family:var(--f-num)}
+/* source tags */
+.tg{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;letter-spacing:.01em;border-radius:6px;padding:2px 6px;white-space:nowrap;vertical-align:1px}
+.tg svg{width:11px;height:11px}
+.tg.mine{background:var(--pn-card-2);color:var(--pn-ink);border:1px solid var(--pn-line)}
+.tg.ai{background:var(--info-soft);color:var(--info-text)}
+.tg.data{background:var(--pn-card-2);color:var(--pn-sub)}
+.deep .tg.data{background:var(--deep-2);color:var(--deep-sub)}
+.deep .tg.mine{background:var(--deep-2);color:var(--deep-ink);border-color:var(--deep-line)}
 
-.legend{display:grid;gap:8px}
-.legend .r{display:grid;grid-template-columns:72px 1fr;gap:10px;align-items:start;padding:10px 12px;border-radius:8px;background:var(--pn-card);border:1px solid var(--pn-line)}
-.legend .r b{font-size:12px}
-.legend .r p{margin:0;font-size:12px;color:var(--pn-sub);line-height:1.5}
+/* widget shells */
+.w{border-radius:var(--r);padding:14px;display:grid;gap:12px;min-width:0}
+.card{background:var(--pn-card);border:1px solid var(--pn-line);box-shadow:var(--shadow-sm)}
+.deep{background:var(--deep);color:var(--deep-ink);box-shadow:var(--shadow)}
+.deep .lab{color:var(--deep-sub)}
+.lab{font-size:11.5px;color:var(--pn-sub);font-weight:500}
+.srcline{font-size:10.5px;color:var(--pn-sub)}
+.deep .srcline{color:var(--deep-sub)}
+.w-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.w-h b{font-size:13px}
 
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--pn-line);background:var(--pn-card);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--pn-ink)}
-.chip[aria-pressed="true"]{border-color:var(--pn-accent);background:var(--pn-accent-soft);color:var(--pn-ink);font-weight:600}
-.qlabel{font-size:13px;font-weight:600;margin:0}
-.qhint{font-size:12px;color:var(--pn-sub);margin:0}
+/* gauge */
+.g-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.g-big{font-size:34px;font-weight:800;letter-spacing:-.03em;line-height:1.1}
+.g-ref{text-align:right}
+.g-ref .v{font-size:18px;font-weight:700}
+.g-bar{position:relative;height:14px;border-radius:7px;background:var(--deep-2);margin:24px 2px 0}
+.g-bar .zone{position:absolute;left:0;top:0;bottom:0;width:var(--lim);border-radius:7px 0 0 7px;background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--warn) 45%,transparent) 0 4px,color-mix(in srgb,var(--warn) 22%,transparent) 4px 8px)}
+.g-bar .limln{position:absolute;left:var(--lim);top:-6px;bottom:-6px;width:2px;background:var(--deep-ink);border-radius:1px}
+.g-bar .limln span{position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);font-size:10px;white-space:nowrap;color:var(--deep-ink);font-weight:700}
+.g-bar .zero{position:absolute;left:var(--z);top:2px;bottom:2px;width:1px;background:var(--deep-sub);opacity:.6}
+.g-bar .fill{position:absolute;top:3px;bottom:3px;border-radius:5px;background:var(--lime);left:var(--z);width:0;transition:left .9s cubic-bezier(.2,.8,.2,1),width .9s cubic-bezier(.2,.8,.2,1)}
+.g-bar .mk{position:absolute;top:50%;left:var(--z);width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:var(--deep-ink);border:4px solid var(--lime);transition:left .9s cubic-bezier(.2,.8,.2,1)}
+.g-bar.beyond .mk{border-color:var(--warn)} .g-bar.beyond .fill{background:var(--warn)}
+.in .g-bar .mk{left:var(--x)}
+.in .g-bar .fill{left:var(--fl);width:var(--fw)}
+.g-scale{display:flex;justify-content:space-between;font-size:10px;color:var(--deep-sub);margin-top:-4px}
+.g-diff{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;line-height:1.5}
+.g-diff .pill{border:0}
+.deep .pill.warn{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn)}
+.deep .pill.ok{background:color-mix(in srgb,var(--lime) 18%,transparent);color:var(--lime)}
+.hchart{position:relative;background:var(--deep-2);border-radius:14px;padding:8px 6px 4px}
+.hchart svg{width:100%;height:auto;display:block;touch-action:none;cursor:crosshair}
+.readout{font-size:12px;line-height:1.5;min-height:36px;color:var(--deep-ink);background:var(--deep-2);border-radius:12px;padding:8px 10px}
+.readout .lab{display:block}
+.ev{cursor:pointer}
 
-.recall{position:relative}
-.cover{position:absolute;inset:0;border-radius:4px;background:color-mix(in srgb,var(--pn-bg) 86%,transparent);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:grid;place-content:center;gap:10px;padding:16px;text-align:center}
-.cover p{margin:0;font-size:14px;font-weight:600}
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:16px;padding:12px 10px;display:grid;gap:6px;justify-items:start;text-align:left;box-shadow:var(--shadow-sm);transition:border-color .15s,transform .15s}
+.tile:hover{border-color:var(--acc);transform:translateY(-1px)}
+.tile .v{font-size:19px;font-weight:800;letter-spacing:-.02em}
+.tile .l{font-size:11px;color:var(--pn-sub);line-height:1.4}
+.ring{width:42px;height:42px}
 
-.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--pn-card);border:1px solid var(--pn-line);border-radius:9px;padding:3px}
-.seg button{height:30px;border-radius:7px;font-size:12px;color:var(--pn-sub)}
-.seg button.on{background:var(--pn-accent-soft);color:var(--pn-ink);font-weight:600}
+/* weight sim */
+.wbar{position:relative;height:40px;border-radius:12px;background:var(--deep-2);overflow:hidden}
+.wbar .cur{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--lime) 55%,transparent);transition:width .25s}
+.wbar .add{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,var(--lime) 0 5px,color-mix(in srgb,var(--lime) 70%,transparent) 5px 10px);transition:left .25s,width .25s}
+.wbar .cap{position:absolute;top:0;bottom:0;width:2px;background:var(--deep-ink)}
+.wbar .cap span{position:absolute;top:4px;left:6px;font-size:10px;font-weight:700;white-space:nowrap}
+.wbar.over .add,.wbar.over .cur{background:color-mix(in srgb,var(--warn) 65%,transparent)}
+.wrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.wrow .v{font-size:26px;font-weight:800;letter-spacing:-.02em}
+input[type=range]{width:100%;accent-color:var(--lime);height:28px}
 
-.cmp{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:10px;overflow:hidden}
-.cmp-h{display:grid;grid-template-columns:1fr 1fr;font-size:11px;color:var(--pn-sub);border-bottom:1px solid var(--pn-line)}
-.cmp-h div{padding:8px 12px;display:flex;align-items:center;gap:5px}
-.cmp-h div+div{border-left:1px solid var(--pn-line)}
-.cmp-h svg{width:12px;height:12px}
-.cmp-row{border-bottom:1px solid var(--pn-line)}
-.cmp-row:last-child{border-bottom:0}
-.cmp-lbl{display:flex;justify-content:space-between;align-items:center;padding:10px 12px 0;font-size:12px;color:var(--pn-sub);gap:8px}
-.cmp-vals{display:grid;grid-template-columns:1fr 1fr}
-.cmp-vals div{padding:6px 12px 8px;min-width:0}
-.cmp-vals div+div{border-left:1px solid var(--pn-line)}
-.cmp-vals .past{font-family:var(--f-mine);font-size:15px;color:var(--mine-ink)}
-.cmp-vals .now{font-family:var(--f-num);font-size:15px;font-weight:500}
-.cmp-vals .now.txt{font-family:var(--f-ui);font-size:13px;font-weight:500}
-.cmp-note{padding:0 12px 10px;font-size:12px;line-height:1.55;color:var(--pn-sub)}
-.st{font-size:11px;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap}
-.st.in{color:var(--st-in);background:var(--st-in-bg)}
-.st.diff{color:var(--st-diff);background:var(--st-diff-bg)}
-.st.check{color:var(--st-check);background:var(--st-check-bg)}
-.gap-bar{height:6px;border-radius:3px;background:var(--pn-line);position:relative;margin:6px 12px 10px}
-.gap-bar .lim{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--mine-line)}
-.gap-bar .cur{position:absolute;top:0;bottom:0;border-radius:3px;background:var(--st-diff)}
-.gap-bar .cur.ok{background:var(--st-in)}
-.gap-scale{display:flex;justify-content:space-between;font-family:var(--f-num);font-size:10px;color:var(--pn-sub);padding:0 12px 10px;margin-top:-6px}
+/* record accordion */
+.acc{display:grid;gap:8px}
+.ai-sum{font-size:12px;color:var(--pn-sub);line-height:1.8}
+.item{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden;transition:border-color .2s}
+.item.open{border-color:color-mix(in srgb,var(--acc) 45%,var(--pn-line))}
+.item-h{display:grid;grid-template-columns:30px minmax(0,1fr) auto 16px;gap:10px;align-items:center;padding:11px 12px;width:100%;text-align:left}
+.item-h .ic{width:30px;height:30px;border-radius:10px;background:var(--acc-soft);color:var(--acc);display:grid;place-items:center}
+.item-h .ic svg{width:15px;height:15px}
+.item-h .k{font-size:11.5px;color:var(--pn-sub)}
+.item-h .s{font-size:13.5px;font-weight:600;margin-top:1px;line-height:1.4}
+.chev{width:16px;height:16px;color:var(--pn-sub);transition:transform .25s}
+.item.open .chev{transform:rotate(180deg)}
+.item-b{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.8,.2,1)}
+.item.open .item-b{grid-template-rows:1fr}
+.item-b>div{overflow:hidden;min-height:0}
+.item-in{padding:0 12px 12px;display:grid;gap:10px}
+.quote{background:var(--pn-card-2);border-radius:12px;padding:11px 12px;font-size:13.5px;line-height:1.65;display:grid;gap:6px}
+.quote .meta{display:flex;justify-content:space-between;gap:6px;align-items:center;font-size:10.5px;color:var(--pn-sub)}
+.quote.old p{text-decoration:line-through;text-decoration-color:var(--pn-sub);opacity:.6}
+.quote p{margin:0}
+.vrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.vbtn{font-size:12px;font-weight:600;border-radius:999px;padding:6px 11px;border:1px solid var(--pn-line);background:var(--pn-card);transition:all .15s}
+.vbtn[aria-pressed="true"].ok{background:var(--acc-soft);color:var(--acc);border-color:var(--acc)}
+.vbtn[aria-pressed="true"].rv{background:var(--warn-soft);color:var(--warn-text);border-color:var(--warn)}
+textarea,input[type=text]{width:100%;border:1px solid var(--pn-line);background:var(--pn-card);border-radius:12px;padding:10px 12px;font-size:13.5px;line-height:1.55;resize:vertical;color:var(--pn-ink);outline:none;transition:border-color .15s}
+textarea:focus,input[type=text]:focus{border-color:var(--acc)}
+textarea::placeholder,input::placeholder{color:var(--pn-sub)}
 
-.only{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:10px;padding:18px 14px;display:grid;gap:4px;text-align:center}
-.only .big{font-family:var(--f-num);font-size:32px;font-weight:500}
+/* board */
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cat{border-radius:14px;padding:11px 12px;text-align:left;display:grid;gap:4px;background:var(--pn-card-2);border:1.5px solid transparent;transition:all .18s}
+.cat .n{font-size:22px;font-weight:800;letter-spacing:-.02em;display:flex;align-items:center;gap:7px}
+.cat .n i{width:9px;height:9px;border-radius:3px;display:block}
+.cat .l{font-size:11.5px;color:var(--pn-sub);line-height:1.35}
+.cat[aria-pressed="true"]{background:var(--pn-card);border-color:var(--pn-ink);box-shadow:var(--shadow-sm)}
+.c-dev i{background:var(--warn)} .c-new i{background:var(--lime)} .c-rel i{background:var(--info)} .c-unk i{background:transparent;border:1.5px dashed var(--pn-sub)}
+.blist{display:grid;gap:6px;animation:rise .25s ease-out}
+.bi{border-radius:12px;background:var(--pn-card-2);overflow:hidden}
+.bi-h{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px 12px;text-align:left;font-size:13px;line-height:1.45}
+.bi-h small{display:block;font-size:10.5px;color:var(--pn-sub);margin-top:2px}
+.bi .item-in{padding:0 12px 12px;font-size:12.5px;line-height:1.6}
+.bi.open .item-b{grid-template-rows:1fr}
+.bi .chev{width:14px;height:14px}
+.bi.open .chev{transform:rotate(180deg)}
+.muted{font-size:12px;color:var(--pn-sub);line-height:1.55}
+.why{background:var(--info-soft);color:var(--info-text);border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.55}
 
-.tl{display:grid;gap:0}
-.tl-h{font-size:12px;font-weight:600;color:var(--pn-sub);padding:8px 0 6px;display:flex;align-items:center;gap:8px}
-.tl-h::after{content:"";flex:1;height:1px;background:var(--pn-line)}
-.tl-i{display:grid;grid-template-columns:14px 1fr;gap:10px;padding:8px 0}
-.tl-i .dot{width:9px;height:9px;border-radius:50%;margin-top:5px;border:2px solid var(--pn-sub)}
-.tl-i.now .dot{background:var(--pn-accent);border-color:var(--pn-accent)}
-.tl-i .t{font-size:13px;line-height:1.5}
-.tl-i .m{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:4px}
-.rel{font-size:11px;color:var(--ai-ink);background:var(--ai-bg);border:1px dashed var(--ai-line);border-radius:4px;padding:1px 6px}
-.dir{font-size:11px;color:var(--pn-sub)}
+/* sorter */
+.si{background:var(--pn-card-2);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
+.si .t{font-size:13px;line-height:1.5}
+.si .res{font-size:11.5px;color:var(--info-text)}
 
-.qcard{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:10px;padding:14px;display:grid;gap:10px}
-.qcard .qn{font-family:var(--f-num);font-size:11px;color:var(--pn-sub)}
-.qcard .qt{font-size:15px;line-height:1.55;font-weight:600;margin:0;text-wrap:pretty}
-.qcard details{font-size:12px;color:var(--ai-ink)}
-.qcard summary{cursor:pointer;color:var(--ai-ink);font-weight:500}
-.qcard details p{margin:6px 0 0;background:var(--ai-bg);border:1px dashed var(--ai-line);border-radius:8px;padding:8px 10px;line-height:1.55}
-textarea,input[type=text],input[type=number]{width:100%;border:1px solid var(--pn-line);background:var(--pn-bg);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.55;resize:vertical;color:var(--pn-ink)}
-textarea.mine-input{font-family:var(--f-mine);font-size:15px;background:var(--mine-bg);border:1.5px solid var(--mine-line);border-radius:4px;min-height:120px}
-textarea::placeholder,input::placeholder{color:var(--pn-sub);opacity:.75}
+/* summary */
+.sum-l{display:grid;gap:0}
+.sum-r{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--pn-line)}
+.sum-l .sum-r:first-child{border-top:0}
+.sum-r .d{width:22px;height:22px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:800}
+.sum-r .k{font-size:11.5px;color:var(--pn-sub)}
+.sum-r .v{font-size:13.5px;font-weight:600;line-height:1.5}
+.dec{display:grid;gap:7px}
+.dec button{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:center;text-align:left;padding:12px;border-radius:14px;background:var(--pn-card-2);border:1.5px solid transparent;font-size:13.5px;font-weight:600;transition:all .18s}
+.dec button .rd{width:18px;height:18px;border-radius:50%;border:2px solid var(--pn-sub);transition:all .18s}
+.dec button[aria-pressed="true"]{background:var(--pn-card);border-color:var(--pn-ink);box-shadow:var(--shadow-sm)}
+.dec button[aria-pressed="true"] .rd{border-color:var(--pn-ink);background:radial-gradient(circle,var(--pn-ink) 0 4px,transparent 5px)}
+.dec small{display:block;font-weight:400;font-size:11.5px;color:var(--pn-sub);margin-top:1px}
 
-.opts{display:grid;gap:8px}
-.opt{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;text-align:left;padding:12px;border:1px solid var(--pn-line);border-radius:10px;background:var(--pn-card)}
-.opt .box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--pn-sub);display:grid;place-items:center;margin-top:1px}
-.opt .box svg{width:12px;height:12px;opacity:0}
-.opt[aria-pressed="true"]{border-color:var(--pn-accent);background:var(--pn-accent-soft)}
-.opt[aria-pressed="true"] .box{background:var(--pn-accent);border-color:var(--pn-accent);color:var(--pn-accent-ink)}
-.opt[aria-pressed="true"] .box svg{opacity:1}
-.opt b{font-size:14px;font-weight:600;display:block}
-.opt span{font-size:12px;color:var(--pn-sub);line-height:1.5}
-.field{display:grid;gap:6px}
-.field label{font-size:12px;font-weight:600}
-.field .help{font-size:11px;color:var(--pn-sub)}
-.inline-num{display:flex;align-items:center;gap:6px}
-.inline-num input{width:110px}
-
-.rec{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:10px;padding:12px 14px;display:grid;gap:8px}
-.rec-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--pn-sub)}
-.rec-h b{color:var(--pn-ink);font-size:13px}
-.rec .txt{font-family:var(--f-mine);font-size:14px;line-height:1.65;color:var(--mine-ink);border-left:2px solid var(--mine-line);padding-left:10px}
-.rec .snap{display:flex;flex-wrap:wrap;gap:6px}
-.kv{font-size:11px;color:var(--pn-sub);background:var(--pn-bg);border:1px solid var(--pn-line);border-radius:6px;padding:2px 7px}
-.rec .more{font-size:12px;display:grid;gap:6px;border-top:1px solid var(--pn-line);padding-top:8px}
-.rec .more div{display:grid;grid-template-columns:96px 1fr;gap:8px}
-.rec .more .k{color:var(--pn-sub)}
-.due{font-size:11px;font-weight:600;color:var(--st-check);background:var(--st-check-bg);border-radius:999px;padding:2px 8px}
-.empty{font-size:13px;color:var(--pn-sub);text-align:center;padding:24px 8px}
+/* saved */
+.saved{display:grid;justify-items:center;text-align:center;gap:8px;padding:18px 14px}
+.saved svg{width:52px;height:52px}
+.saved circle{fill:var(--lime)}
+.saved path{stroke:var(--lime-ink);stroke-width:3.2;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:30;animation:draw .5s .15s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.saved b{font-size:15px}
 .likert{display:grid;gap:10px}
-.likert .li{display:grid;gap:6px}
-.likert .li p{margin:0;font-size:12px}
+.lk p{margin:0 0 5px;font-size:12px}
 .scale{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
-.scale button{height:30px;border:1px solid var(--pn-line);border-radius:6px;background:var(--pn-card);font-family:var(--f-num);font-size:12px}
-.scale button[aria-pressed="true"]{background:var(--pn-accent);color:var(--pn-accent-ink);border-color:var(--pn-accent)}
-.scale-l{display:flex;justify-content:space-between;font-size:10px;color:var(--pn-sub)}
-.ok-banner{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:10px;background:var(--pn-accent-soft);font-size:14px;font-weight:600}
-.ok-banner svg{width:18px;height:18px;color:var(--pn-accent);flex:none}
-.prior{display:grid;gap:6px;font-size:12px}
-.sep{height:1px;background:var(--pn-line)}
+.scale button{height:30px;border-radius:9px;background:var(--pn-card-2);font-size:12px;font-weight:700;transition:all .15s}
+.scale button[aria-pressed="true"]{background:var(--me-bub);color:var(--me-ink)}
+.scale-l{display:flex;justify-content:space-between;font-size:10px;color:var(--pn-sub);margin-top:3px}
 
-/* Panel open/close */
-.viewport:not(.open) .panel{display:none}
+/* log */
+.log{display:grid;gap:10px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--pn-card);border:1px solid var(--pn-line);border-radius:12px;padding:3px}
+.seg button{height:30px;border-radius:9px;font-size:12px;color:var(--pn-sub);font-weight:600}
+.seg button.on{background:var(--acc-soft);color:var(--pn-ink)}
+.rec{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden}
+.rec-h{width:100%;text-align:left;padding:12px 14px;display:grid;gap:7px}
+.rec-h .top{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--pn-sub)}
+.rec-h .top b{color:var(--pn-ink);font-size:13px}
+.rec-h .memo{font-size:13.5px;line-height:1.55}
+.rec-h .pls{display:flex;flex-wrap:wrap;gap:5px}
+.rec .item-in{padding:0 14px 14px;font-size:12.5px;display:grid;gap:6px}
+.rec.open .item-b{grid-template-rows:1fr}
+.kv{display:grid;grid-template-columns:92px minmax(0,1fr);gap:8px;line-height:1.5}
+.kv .k{color:var(--pn-sub)}
+.empty{display:grid;justify-items:center;gap:10px;text-align:center;padding:28px 12px;color:var(--pn-sub);font-size:13px;line-height:1.6}
+.empty .orb{width:40px;height:40px;opacity:.7}
+
+.toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);background:var(--me-bub);color:var(--me-ink);font-size:13px;font-weight:600;padding:9px 16px;border-radius:999px;box-shadow:var(--shadow);z-index:9;animation:pop .25s ease-out;white-space:nowrap}
+
 @media (max-width:820px){
   .tab:not(.on){display:none}
-  .browser{height:calc(100dvh - 90px);min-height:560px}
-  .panel{position:absolute;inset:0 0 0 auto;width:100%;z-index:8;border-left:0;box-shadow:var(--shadow)}
+  .browser{height:calc(100dvh - 92px);min-height:580px}
+  .panel{position:absolute;top:0;bottom:0;right:0;width:100%;margin-right:0;transform:translateX(100%);z-index:8;transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s,visibility 0s .32s}
+  .viewport.open .panel{transform:none;transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s}
   .resize{display:none}
   .s-nav{display:none}
   .s-head,.s-body{padding-left:14px;padding-right:14px}
   .toolbar .hide-m{display:none}
+  .acct .meta{margin-left:0}
 }
-@media (prefers-reduced-motion:no-preference){
-  .panel{animation:slide .22s ease-out}
-  @keyframes slide{from{transform:translateX(14px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 </style>
 
 <div class="stage">
   <div class="simnote">
-    <b>E03 프로토타입</b>
-    <span>Chrome 사이드 패널을 화면 안에서 흉내 낸 시뮬레이션입니다. 실제 확장 프로그램·Chrome API·증권 계좌와 연결되어 있지 않으며, 모든 종목·수치·뉴스는 가상입니다.</span>
-    <span class="pill">기준 시점 2026.11.17 15:30 (가상)</span>
+    <b>E03 프로토타입 v2</b>
+    <span>화면 안에서 Chrome 사이드 패널을 흉내 낸 시뮬레이션이에요. 실제 확장 프로그램, Chrome API, 증권 계좌, 실시간 시세와 연결되어 있지 않아요. 종목, 수치, 뉴스는 모두 예시용 가상 데이터예요.</span>
+    <span class="pill">가상 기준 시점 2026.11.17 15:30</span>
   </div>
 
-  <div class="browser" role="application" aria-label="브라우저 시뮬레이션">
+  <div class="browser" aria-label="브라우저 시뮬레이션">
     <div class="tabstrip">
       <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
-      <div class="tab on"><span class="fav">가</span>잔고 · 가상증권 WTS</div>
-      <div class="tab">시장 뉴스 – 가상 경제</div>
+      <div class="tab on"><span class="fav"></span>잔고 · 가상증권 WTS</div>
+      <div class="tab">시장 뉴스 · 가상 경제</div>
     </div>
     <div class="toolbar">
-      <button class="tbtn hide-m" aria-label="뒤로"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg></button>
-      <button class="tbtn hide-m" aria-label="앞으로"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></button>
-      <button class="tbtn hide-m" aria-label="새로고침"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.5V5h-2.5"/></svg></button>
+      <span class="tbtn static hide-m" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 3 5 8l5 5"/></svg></span>
+      <span class="tbtn static hide-m" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m6 3 5 5-5 5"/></svg></span>
+      <span class="tbtn static hide-m" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M13 8a5 5 0 1 1-1.5-3.6M13 2.5V5h-2.5"/></svg></span>
       <div class="omni"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="7" width="9" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg><span><span class="host">wts.gasang-securities.example</span>/account/holdings</span></div>
-      <button class="tbtn hide-m" aria-label="확장 프로그램"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2.5h2.5v2a1.2 1.2 0 1 0 2.4 0v-2H13v4h-1.5a1.2 1.2 0 1 0 0 2.4H13v4.6H8.5v-1.6a1.2 1.2 0 1 0-2.4 0v1.6H3V8.9h1.6a1.2 1.2 0 1 0 0-2.4H3v-4z"/></svg></button>
-      <button class="tbtn extbtn" id="extBtn" aria-label="My Decision Companion 패널 열기" aria-pressed="false" title="My Decision Companion">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5" cy="10" r="3"/><circle cx="15" cy="10" r="3" fill="currentColor"/><path d="M8 10h4" stroke-dasharray="1.5 1.5"/></svg>
-        <span class="badge" id="extBadge"></span>
+      <button class="tbtn extbtn" id="extBtn" aria-label="My Decision Companion 열기" aria-pressed="false" title="My Decision Companion (확장 프로그램 시뮬레이션)">
+        <span class="orb" aria-hidden="true"></span><span class="badge" id="extBadge"></span>
       </button>
       <span class="avatar" aria-hidden="true">민</span>
     </div>
     <div class="viewport" id="viewport">
       <main class="site" id="site"></main>
-      <aside class="panel" id="panel" aria-label="My Decision Companion 사이드 패널">
+      <aside class="panel" id="panel" aria-label="My Decision Companion 사이드 패널" inert>
         <div class="resize" id="resize" title="드래그해서 패널 폭 조절" aria-hidden="true"></div>
-        <div id="panelInner" style="display:contents"></div>
+        <div class="p-head">
+          <div class="p-top">
+            <span class="orb" id="headOrb" aria-hidden="true"></span>
+            <div class="t"><b>My Decision Companion</b><small>결론 대신, 내 기준을 함께 꺼내 봐요</small></div>
+            <button class="icon-btn" data-act="restart" title="이 종목 대화 처음부터" aria-label="대화 처음부터"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.5V5h2.5"/></svg></button>
+            <button class="icon-btn" data-act="close" aria-label="패널 닫기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m4 4 8 8M12 4l-8 8"/></svg></button>
+          </div>
+          <div class="p-tabs" id="pTabs" role="tablist"><span class="ind"></span><button role="tab" data-tab="chat">함께 정리하기</button><button role="tab" data-tab="log">판단 기록 <span id="logCount" class="num"></span></button></div>
+          <button class="ctx" id="ctx" data-jump="gauge" title="지금 위치 보기"></button>
+        </div>
+        <div class="p-body" id="pBody"><div class="thread" id="thread"></div><div id="logView" hidden></div></div>
+        <div class="p-foot" id="pFoot">
+          <form class="composer" id="composer" autocomplete="off">
+            <input id="ask" type="text" placeholder="궁금한 걸 직접 물어봐도 돼요" aria-label="직접 질문하기">
+            <button class="send" id="sendBtn" type="submit" aria-label="보내기" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg></button>
+          </form>
+          <div class="disc">AI는 매수·매도를 권하거나 가격을 전망하지 않아요. 최종 판단은 언제나 내가 해요.</div>
+        </div>
+        <div class="toast" id="toast" hidden></div>
       </aside>
+      <button class="launcher" id="launcher" data-act="open"><span class="orb" aria-hidden="true"></span>내 기준 보기</button>
       <div class="nudge" id="nudge" hidden></div>
     </div>
   </div>
@@ -356,551 +471,636 @@ textarea::placeholder,input::placeholder{color:var(--pn-sub);opacity:.75}
 <script>
 (function(){
 "use strict";
-const NOW = new Date(2026,10,17,15,30);
-const ASOF = "2026.11.17 15:30 기준";
-const CASH = 2150000;
-
-/* ───────── Fictional scenario data ───────── */
-const H = {
-  A:{ id:"A", name:"에이원로보틱스", code:"100410", sector:"산업용 로봇 · 성장주", avg:52000, price:39000, qty:120, day:-2.3,
-      buyDate:new Date(2026,7,14), seed:7, scenario:"보유 중 손실 확대",
-      record:{ written:"2026.08.14 21:40 · 매수 직후 작성", origin:"buy",
-        reason:"물류·제조 현장에 로봇 도입이 늘고 있고, 이 회사는 2분기 매출이 전년보다 38% 늘었다. 단기 등락보다 사업이 계속 커지는지를 보고 1~2년 들고 갈 생각.",
-        period:"1~2년", periodM:[12,24], lossLimit:-20, weightCap:30,
-        review:"사업 성장 근거가 훼손되거나 투자 전제가 달라질 때 (예: 매출 성장이 멈추거나 주요 고객이 이탈할 때)",
-        extra:null, memo:"떨어질 때 영상 보고 흔들리지 말고, 실적부터 확인하기." },
-      info:[
-        {ph:"then", d:"2026.07.28", t:"2분기 매출 전년 대비 +38%", src:"실적 공시", rel:"direct", dir:"+"},
-        {ph:"then", d:"2026.08.05", t:"대형 물류센터 로봇 공급 계약 체결", src:"공시", rel:"direct", dir:"+"},
-        {ph:"now", d:"2026.11.06", t:"3분기 매출 전년 대비 +29% (성장은 이어졌고, 증가율은 2분기보다 낮아짐)", src:"실적 공시", rel:"direct", dir:"±"},
-        {ph:"now", d:"2026.10.21", t:"주요 고객사 2곳과 공급 계약 갱신", src:"공시", rel:"direct", dir:"+"},
-        {ph:"now", d:"2026.08~11", t:"성장주 지수 3개월 -14%, 시장 전반 변동성 확대", src:"시장 데이터", rel:"indirect", dir:"−"},
-        {ph:"now", d:"2026.11.12", t:"구독 중인 투자 채널 의견이 ‘장기 보유 관점’에서 ‘관망’으로 바뀜", src:"외부 의견 (사업 정보 아님)", rel:"opinion", dir:"−"}
-      ],
-      q:[
-        {t:"지금의 하락은 내가 처음 투자한 이유(사업 성장)와 직접 관련이 있는 변화인가요?", why:"손실 허용 범위를 벗어났지만, 같은 기간에 3분기 실적처럼 투자 근거와 직접 관련된 정보도 나왔어요. 두 가지를 나눠서 볼 수 있도록 이 질문을 골랐어요."},
-        {t:"손실 허용 범위 -20%는 지금도 유지하고 싶은 기준인가요? 그 이유는 무엇인가요?", why:"현재 수익률이 직접 정한 기준을 넘었어요. 기준을 지킬지 바꿀지는 정해 드리지 않고, 이유를 스스로 적어 보도록 했어요."},
-        {t:"매수 당시 예상한 투자 기간(1~2년)은 여전히 일치하나요?", why:"보유 3개월째로, 계획한 기간의 초반이에요."},
-        {t:"의견이 바뀐 투자 채널은 어떤 근거를 들었나요? 그 근거는 내 투자 이유와 관련이 있나요?", why:"외부 의견 변화가 최근 정보에 포함되어 있어요."},
-        {t:"지금 새롭게 확인해야 할 정보는 무엇인가요?", why:"재검토 조건이 ‘사업 성장 근거의 훼손’이라 추가 확인 항목을 스스로 정해 보도록 했어요."}
-      ]},
-  B:{ id:"B", name:"비전에너지", code:"204870", sector:"에너지 설비 · 실적 회복", avg:21500, price:25370, qty:300, day:9.8,
-      buyDate:new Date(2026,8,15), seed:3, scenario:"급등 · 추가 매수 충동",
-      record:{ written:"2026.09.15 20:05 · 매수 직후 작성", origin:"buy",
-        reason:"2분기에 적자 폭이 크게 줄었고 3분기 흑자 전환이 예상된다는 발표가 있었다. 배당 재개 가능성도 보고 6~12개월 보유.",
-        period:"6~12개월", periodM:[6,12], lossLimit:-15, weightCap:40,
-        review:"흑자 전환이 늦어지거나 배당 계획이 철회될 때",
-        extra:{k:"추가 매수 조건", v:"실적을 확인한 뒤 나눠서만"}, memo:"많이 오른 날 들떠서 더 사지 않기." },
-      info:[
-        {ph:"then", d:"2026.08.12", t:"2분기 영업손실 전년 대비 크게 축소", src:"실적 공시", rel:"direct", dir:"+"},
-        {ph:"now", d:"2026.10.30", t:"3분기 영업이익 흑자 전환", src:"실적 공시", rel:"direct", dir:"+"},
-        {ph:"now", d:"2026.11.17", t:"배당 재개 여부는 아직 발표되지 않음", src:"공시 없음", rel:"direct", dir:"?"},
-        {ph:"now", d:"2026.11.17", t:"오늘 주가 +9.8%, 거래량 평소의 약 3배", src:"시장 데이터", rel:"indirect", dir:"+"},
-        {ph:"now", d:"2026.11.16~17", t:"커뮤니티에서 수익 인증 게시글 증가", src:"외부 의견 (사업 정보 아님)", rel:"opinion", dir:"+"}
-      ],
-      q:[
-        {t:"지금 더 사고 싶은 마음이 든다면, 그 이유는 처음 투자한 이유와 같은가요?", why:"오늘 큰 폭의 상승과 커뮤니티 반응이 함께 나타났어요. 매수 당시 남긴 ‘많이 오른 날 들떠서 더 사지 않기’ 메모와 연결되는 질문이에요."},
-        {t:"직접 정한 종목 비중 상한 40%는 지금도 유지하고 싶은 기준인가요?", why:"주가 상승으로 평가금액 기준 비중이 기준을 넘었어요."},
-        {t:"‘실적을 확인한 뒤 나눠서만’이라는 추가 매수 조건을 지금 어떻게 보고 있나요?", why:"매수 당시 직접 적은 조건이에요."},
-        {t:"지금 새롭게 확인해야 할 정보는 무엇인가요?", why:"배당 재개 여부처럼 아직 확인되지 않은 정보가 있어요."}
-      ]},
-  C:{ id:"C", name:"씨엔푸드", code:"317220", sector:"가공식품", avg:64000, price:66560, qty:50, day:0.4,
-      buyDate:new Date(2026,9,11), seed:11, scenario:"기록된 기준 없음",
-      record:null,
-      info:[
-        {ph:"now", d:"2026.11.10", t:"3분기 매출 전년 대비 +6%", src:"실적 공시", rel:"unknown", dir:"+"},
-        {ph:"now", d:"2026.11.03", t:"원재료 가격 상승 보도", src:"뉴스", rel:"unknown", dir:"−"}
-      ],
-      q:[
-        {t:"방금 정리한 기준은 매수 당시의 생각과 같나요, 아니면 지금 상황을 보고 새로 정한 건가요?", why:"이 기준은 매수 이후에 작성되었어요. 두 경우를 구분해 두면 나중에 다시 볼 때 도움이 돼요."},
-        {t:"지금 새롭게 확인해야 할 정보는 무엇인가요?", why:"매수 이후 실적 발표와 원재료 관련 뉴스가 있었어요."}
-      ]}
-};
-const NEWS = {
-  A:[["[가상] 에이원로보틱스, 3분기 매출 29% 증가… 증가율은 둔화","가상경제 · 11.06"],["[가상] 성장주 변동성 확대, 기술주 일제히 약세","가상마켓 · 11.14"],["[가상] 물류 자동화 투자, 내년에도 이어질까","가상산업 · 11.10"]],
-  B:[["[가상] 비전에너지, 3분기 흑자 전환","가상경제 · 10.30"],["[가상] 비전에너지 거래량 급증… 장중 10% 가까이 올라","가상마켓 · 11.17"],["[가상] 배당 재개 여부는 미정","가상산업 · 11.17"]],
-  C:[["[가상] 씨엔푸드 3분기 매출 6% 증가","가상경제 · 11.10"],["[가상] 원재료 가격 상승, 식품주 수익성 영향은","가상산업 · 11.03"]]
-};
-
-/* ───────── helpers ───────── */
-const $ = s=>document.querySelector(s);
-const esc = s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const won = n=>Math.round(n).toLocaleString("ko-KR");
-const sgn = (n,d=1)=>(n>0?"+":n<0?"−":"")+Math.abs(n).toFixed(d);
-const cls = n=>n>0?"up":n<0?"down":"";
-const evalOf=h=>h.price*h.qty, costOf=h=>h.avg*h.qty, pctOf=h=>(h.price/h.avg-1)*100;
-const TOTAL = Object.values(H).reduce((s,h)=>s+evalOf(h),0)+CASH;
-const weightOf=h=>evalOf(h)/TOTAL*100;
-function monthsBetween(a,b){let m=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth();if(b.getDate()<a.getDate())m--;return m}
-const daysBetween=(a,b)=>Math.round((new Date(b.getFullYear(),b.getMonth(),b.getDate())-new Date(a.getFullYear(),a.getMonth(),a.getDate()))/864e5);
+const NOW=new Date(2026,10,17,15,30), ASOF="2026.11.17 15:30 기준 · 가상", CASH=2150000, USER="민수";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const won=n=>Math.round(n).toLocaleString("ko-KR");
+const sgn=(n,d=1)=>(n>0?"+":n<0?"−":"")+Math.abs(n).toFixed(d);
+const sgnWon=n=>(n>0?"+":n<0?"−":"")+won(Math.abs(n));
+const cls=n=>n>0?"up":n<0?"down":"";
+const pd=s=>{const m=/^(\d{4})\.(\d{2})\.(\d{2})$/.exec(s);return m?new Date(+m[1],+m[2]-1,+m[3]):null};
 const fmtD=d=>`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
-const fmtDT=d=>`${fmtD(d)} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+const md=d=>`${d.getMonth()+1}.${String(d.getDate()).padStart(2,"0")}`;
+const daysBetween=(a,b)=>Math.round((new Date(b.getFullYear(),b.getMonth(),b.getDate())-new Date(a.getFullYear(),a.getMonth(),a.getDate()))/864e5);
+function monthsBetween(a,b){let m=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth();if(b.getDate()<a.getDate())m--;return m}
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait=ms=>new Promise(r=>setTimeout(r,RM?0:ms));
 
-const IC = {
-  mine:'<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 10l.6-2.4L8.4 1.8l1.8 1.8L4.4 9.4z"/></svg>',
-  data:'<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="1.5" width="9" height="9" rx="1"/><path d="M4 8V6M6 8V4M8 8V5"/></svg>',
-  ai:'<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M6 1.2 10.8 6 6 10.8 1.2 6z"/></svg>',
-  logo:'<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="5" cy="10" r="3"/><circle cx="15" cy="10" r="3" fill="currentColor"/><path d="M8 10h4" stroke-dasharray="1.5 1.5"/></svg>',
-  x:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m4 4 8 8M12 4l-8 8"/></svg>',
-  check:'<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="m2.5 6.2 2.3 2.3 4.7-5"/></svg>',
-  ok:'<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="7.5"/><path d="m5.5 9.2 2.3 2.3 4.7-5"/></svg>'
+/* ───────── fictional data ───────── */
+const H={
+ A:{id:"A",name:"에이원로보틱스",code:"100410",sector:"산업용 로봇 · 성장주",avg:52000,price:39000,qty:120,day:-2.3,buyDate:new Date(2026,7,14),seed:7,
+  record:{written:"2026.08.14 21:40",origin:"buy",reasonKey:"사업 성장 가능성",
+   reason:"물류·제조 현장에 로봇 도입이 늘고 있고, 이 회사는 2분기 매출이 전년보다 38% 늘었다. 단기 등락보다 사업이 계속 커지는지를 보고 1~2년 들고 갈 생각.",
+   reasonSum:"로봇 수요 증가 · 매출 성장",period:"1~2년",periodM:[12,24],lossLimit:-20,weightCap:30,
+   review:"사업 성장 근거가 훼손되거나 투자 전제가 달라질 때 (예: 매출 성장이 멈추거나 주요 고객이 이탈할 때)",reviewSum:"성장 근거가 훼손되면",
+   extra:null,memo:"떨어질 때 영상 보고 흔들리지 말고, 실적부터 확인하기."},
+  info:[
+   {id:"a1",ph:"then",d:"2026.07.28",t:"2분기 매출 전년 대비 +38%",src:"실적 공시",kind:"fact",rel:"direct",area:"earnings",tone:"+"},
+   {id:"a2",ph:"then",d:"2026.08.05",t:"대형 물류센터 로봇 공급 계약",src:"공시",kind:"fact",rel:"direct",area:"business",tone:"+"},
+   {id:"a3",ph:"now",d:"2026.11.06",t:"3분기 매출 +29%, 성장은 이어졌고 증가율은 낮아짐",src:"실적 공시",kind:"fact",rel:"direct",area:"earnings",tone:"±",link:"매수 이유의 ‘매출 성장’과 직접 연결돼요. 성장은 이어졌고 속도는 2분기(+38%)보다 낮아졌어요."},
+   {id:"a4",ph:"now",d:"2026.10.21",t:"주요 고객사 2곳과 공급 계약 갱신",src:"공시",kind:"fact",rel:"direct",area:"business",tone:"+",link:"재검토 조건으로 적은 ‘주요 고객 이탈’과 반대 방향의 정보예요."},
+   {id:"a5",ph:"now",d:"2026.08~11",t:"성장주 지수 3개월 −14%, 시장 전반 변동성 확대",src:"시장 데이터",kind:"market",rel:"indirect",area:"market",tone:"−",link:"회사 하나의 변화가 아니라 시장 전반의 움직임이에요."},
+   {id:"a6",ph:"now",d:"2026.11.12",t:"구독 중인 투자 채널 의견이 ‘장기 보유 관점’에서 ‘관망’으로 바뀜",src:"외부 의견",kind:"opinion",rel:"none",area:"opinion",tone:"−",link:"사업 정보가 아니라 의견이에요. 근거가 무엇인지는 원문에서 확인해야 해요."}],
+  unknowns:[{t:"매출 증가율 둔화가 일시적인지",why:"회사 설명이나 다음 분기 자료가 아직 없어요.",area:"earnings"},
+   {t:"투자 채널이 의견을 바꾼 근거",why:"원문을 확인하지 않았어요. 의견이 바뀐 것과 사업이 바뀐 것은 별개예요.",area:"opinion"},
+   {t:"산업 전체의 수요 전망",why:"이 프로토타입에는 관련 자료가 기록되어 있지 않아요.",area:"industry"}]},
+ B:{id:"B",name:"비전에너지",code:"204870",sector:"에너지 설비 · 실적 회복",avg:21500,price:25370,qty:300,day:9.8,buyDate:new Date(2026,8,15),seed:3,
+  record:{written:"2026.09.15 20:05",origin:"buy",reasonKey:"실적 회복과 배당 재개 가능성",
+   reason:"2분기에 적자 폭이 크게 줄었고 3분기 흑자 전환이 예상된다는 발표가 있었다. 배당 재개 가능성도 보고 6~12개월 보유.",
+   reasonSum:"흑자 전환 기대 · 배당 재개",period:"6~12개월",periodM:[6,12],lossLimit:-15,weightCap:40,
+   review:"흑자 전환이 늦어지거나 배당 계획이 철회될 때",reviewSum:"흑자 지연·배당 철회 시",
+   extra:{k:"추가 매수 조건",v:"실적을 확인한 뒤 나눠서만"},memo:"많이 오른 날 들떠서 더 사지 않기."},
+  info:[
+   {id:"b1",ph:"then",d:"2026.08.12",t:"2분기 영업손실 크게 축소",src:"실적 공시",kind:"fact",rel:"direct",area:"earnings",tone:"+"},
+   {id:"b2",ph:"now",d:"2026.10.30",t:"3분기 영업이익 흑자 전환",src:"실적 공시",kind:"fact",rel:"direct",area:"earnings",tone:"+",link:"매수 이유 중 ‘흑자 전환 기대’가 실제로 나타난 정보예요."},
+   {id:"b3",ph:"now",d:"2026.11.17",t:"오늘 주가 +9.8%, 거래량 평소의 약 3배",src:"시장 데이터",kind:"market",rel:"indirect",area:"market",tone:"+",link:"가격과 거래량 변화예요. 이유를 설명하는 공시는 없어요."},
+   {id:"b4",ph:"now",d:"2026.11.16",t:"커뮤니티 수익 인증 게시글 증가",src:"외부 의견",kind:"opinion",rel:"none",area:"opinion",tone:"+",link:"다른 사람의 수익 소식이에요. 사업 정보는 아니에요."}],
+  unknowns:[{t:"배당 재개 여부",why:"아직 공시가 없어요. 매수 이유 중 하나와 직접 연결돼요.",area:"business"},
+   {t:"오늘 급등의 이유",why:"관련 공시가 없어요. 거래량 증가만 확인돼요.",area:"market"}]},
+ C:{id:"C",name:"씨엔푸드",code:"317220",sector:"가공식품",avg:64000,price:66560,qty:50,day:0.4,buyDate:new Date(2026,9,11),seed:11,record:null,
+  info:[
+   {id:"c1",ph:"now",d:"2026.11.10",t:"3분기 매출 전년 대비 +6%",src:"실적 공시",kind:"fact",rel:"unknown",area:"earnings",tone:"+",link:"내가 적은 매수 이유와 연결되는지는 직접 판단해 주세요."},
+   {id:"c2",ph:"now",d:"2026.11.03",t:"원재료 가격 상승 보도",src:"뉴스",kind:"fact",rel:"unknown",area:"industry",tone:"−",link:"내가 적은 매수 이유와 연결되는지는 직접 판단해 주세요."}],
+  unknowns:[{t:"원재료 가격 상승이 이익에 주는 영향",why:"다음 실적 발표 전까지 확인하기 어려워요.",area:"industry"}]}
 };
-const srcTag = (k,label)=>`<span class="src s-${k}">${IC[k]}${esc(label)}</span>`;
+const NEWS={A:[["[가상] 에이원로보틱스, 3분기 매출 29% 증가… 증가율은 둔화","가상경제 · 11.06"],["[가상] 성장주 변동성 확대, 기술주 약세","가상마켓 · 11.14"],["[가상] 물류 자동화 투자, 내년에도 이어질까","가상산업 · 11.10"]],
+ B:[["[가상] 비전에너지, 3분기 흑자 전환","가상경제 · 10.30"],["[가상] 비전에너지 거래량 급증… 장중 10% 가까이 올라","가상마켓 · 11.17"],["[가상] 배당 재개 여부는 미정","가상산업 · 11.17"]],
+ C:[["[가상] 씨엔푸드 3분기 매출 6% 증가","가상경제 · 11.10"],["[가상] 원재료 가격 상승, 식품주 수익성 영향은","가상산업 · 11.03"]]};
 
-/* ───────── storage (per-viewer convenience) ───────── */
-const KEY="mdc-e03-v1";
+const evalOf=h=>h.price*h.qty, costOf=h=>h.avg*h.qty, pctOf=h=>(h.price/h.avg-1)*100;
+const TOTAL=Object.values(H).reduce((s,h)=>s+evalOf(h),0)+CASH;
+const weightOf=h=>evalOf(h)/TOTAL*100;
+
+/* ───────── storage (per-viewer only) ───────── */
+const KEY="mdc-e03-v2";
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}}
-function persist(){try{localStorage.setItem(KEY,JSON.stringify({records:state.records,custom:state.custom,panelW:state.panelW}))}catch(e){}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({records:S.records,edits:S.edits,valid:S.valid,custom:S.custom,panelW:S.panelW}))}catch(e){}}
+const SEED=[{id:"seed-a1",stock:"A",at:"2026-10-02T21:12",pct:-9.2,concern:"loss",decision:"keep",memo:"아직 기준 안이라 그대로 둔다. 11월 초 실적 발표가 나오면 매출 성장률이 유지되는지 다시 확인하겠다.",revisit:"다음 실적 발표 후",lines:[["손실 기준","범위 안 (여유 10.8%p)"]],seed:true,fb:{}}];
+const saved=load()||{};
+const S={sel:"A",open:false,tab:"chat",panelW:saved.panelW||420,records:Array.isArray(saved.records)?saved.records:SEED.slice(),
+  edits:saved.edits||{},valid:saved.valid||{},custom:saved.custom||{},nudged:{},orderMsg:"",conv:{},filter:"cur",openRec:null};
+Object.keys(S.custom).forEach(k=>{if(H[k])H[k].record=S.custom[k]});
 
-const SEED_RECORDS=[{id:"seed-a1",stock:"A",at:"2026-10-02T21:12",pct:-9.2,weight:31.1,
-  diffs:["손실 허용 범위 안 (여유 10.8%p)"],choices:["record"],
-  text:"아직 기준 안이라 그대로 둔다. 11월 초 실적 발표가 나오면 매출 성장률이 유지되는지 다시 확인하겠다.",
-  revisit:"다음 실적 발표 후",criteriaEdit:"",important:["reason"],notes:{},seed:true}];
-
-const saved = load();
-const state = {
-  sel:"A", open:false, tab:"check", step:"entry",
-  records: (saved&&Array.isArray(saved.records))?saved.records:SEED_RECORDS.slice(),
-  custom: (saved&&saved.custom)||{},
-  panelW: (saved&&saved.panelW)||400,
-  nudged:{}, orderMsg:"", filter:"cur", openRec:null, lastSaved:null,
-  s:null
-};
-Object.keys(state.custom).forEach(k=>{ if(H[k]) H[k].record=state.custom[k]; });
-
-function newSession(){return {important:[],recall:null,revealed:false,view:"compare",qShown:2,notes:{},choices:[],criteriaEdit:"",text:"",revisit:"",trace:{},t0:Date.now(),cur:"entry",fb:{}}}
-state.s=newSession();
-
-/* ───────── comparison builder (only from user-set criteria) ───────── */
-function compare(h){
-  const r=h.record, pct=pctOf(h), w=weightOf(h), m=monthsBetween(h.buyDate,NOW), d=daysBetween(h.buyDate,NOW);
-  const rows=[];
-  if(r.lossLimit!=null&&r.lossLimit!==""){
-    const lim=Number(r.lossLimit);
-    if(pct<lim){const g=(lim-pct);rows.push({k:"loss",lbl:"손실 허용 범위",past:`${lim}%`,now:`${sgn(pct)}%`,st:"diff",stl:`${g.toFixed(1)}%p 벗어남`,
-      note:`현재 수익률은 직접 설정한 손실 허용 범위를 ${g.toFixed(1)}%p 벗어났습니다. 다만 수익률 변화만으로 매수 당시의 투자 근거가 달라졌는지는 알 수 없습니다.`,bar:{lim,pct}})}
-    else rows.push({k:"loss",lbl:"손실 허용 범위",past:`${lim}%`,now:`${sgn(pct)}%`,st:"in",stl:"기준 안",
-      note:pct>=0?`현재 수익 구간이라 손실 허용 범위와는 ${(pct-lim).toFixed(1)}%p 떨어져 있어요.`:`손실 허용 범위까지 ${(pct-lim).toFixed(1)}%p 남아 있어요.`,bar:{lim,pct}});
-  } else rows.push({k:"loss",lbl:"손실 허용 범위",past:"기록 없음",now:`${sgn(pct)}%`,st:"check",stl:"기준 없음",note:"직접 정한 손실 허용 범위가 없어 비교하지 않았어요. AI가 대신 정하지 않습니다."});
-  if(r.periodM){
-    const [a,b]=r.periodM; let st="in",stl="계획 기간 안",note;
-    if(m<a) note=`보유 ${m}개월(${d}일)째로, 계획한 기간(${r.period})의 초반이에요.`;
-    else if(m<=b) note=`보유 ${m}개월째로, 계획한 기간(${r.period}) 안에 있어요.`;
-    else {st="diff";stl="계획 기간 지남";note=`계획한 기간(${r.period})을 ${m-b}개월 지났어요.`}
-    rows.push({k:"period",lbl:"투자 기간",past:r.period,now:`${m}개월 경과`,st,stl,note});
-  } else rows.push({k:"period",lbl:"투자 기간",past:"정하지 않음",now:`${m}개월 경과`,st:"check",stl:"기준 없음",note:"투자 기간을 정하지 않아 비교하지 않았어요."});
-  if(r.weightCap!=null&&r.weightCap!==""){
-    const cap=Number(r.weightCap);
-    if(w>cap) rows.push({k:"weight",lbl:"종목 비중 상한",past:`${cap}% 이하`,now:`${w.toFixed(1)}%`,st:"diff",stl:`${(w-cap).toFixed(1)}%p 넘음`,note:`평가금액 기준으로 계좌에서 이 종목이 차지하는 비중이 직접 정한 상한을 ${(w-cap).toFixed(1)}%p 넘었어요.`});
-    else rows.push({k:"weight",lbl:"종목 비중 상한",past:`${cap}% 이하`,now:`${w.toFixed(1)}%`,st:"in",stl:"기준 안",note:`비중 상한까지 ${(cap-w).toFixed(1)}%p 여유가 있어요.`});
-  }
-  if(r.extra) rows.push({k:"extra",lbl:r.extra.k,past:r.extra.v,now:"계좌 데이터로 판단 불가",nowTxt:true,st:"check",stl:"직접 확인",note:"직접 적은 조건이에요. 충족 여부는 계좌 수치로 알 수 없어 표시만 해 두었어요."});
-  rows.push({k:"reason",lbl:"투자 근거",past:r.reasonShort||shortReason(h),now:"변화 여부 확인 필요",nowTxt:true,st:"check",stl:"확인 필요",note:"수익률만으로는 매수 이유가 지금도 유효한지 알 수 없어요. 아래 ‘기록 이후 달라진 정보’를 함께 보세요."});
-  return rows;
+/* ───────── comparison against user-set criteria only ───────── */
+function deviations(h){
+  const r=h.record;if(!r)return [];const out=[],p=pctOf(h),w=weightOf(h),m=monthsBetween(h.buyDate,NOW);
+  if(r.lossLimit!=null){const g=r.lossLimit-p;out.push({k:"loss",lbl:"손실 허용 범위",past:`${r.lossLimit}%`,now:`${sgn(p)}%`,dev:p<r.lossLimit,
+    txt:p<r.lossLimit?`직접 정한 범위를 ${g.toFixed(1)}%p 벗어났어요`:`범위 안이에요 (여유 ${(p-r.lossLimit).toFixed(1)}%p)`})}
+  if(r.periodM){const[a,b]=r.periodM;out.push({k:"period",lbl:"투자 기간",past:r.period,now:`${m}개월째`,dev:m>b,txt:m>b?`계획한 기간을 ${m-b}개월 지났어요`:m<a?`계획한 기간의 초반이에요`:`계획한 기간 안이에요`})}
+  if(r.weightCap!=null){out.push({k:"weight",lbl:"종목 비중 상한",past:`${r.weightCap}% 이하`,now:`${w.toFixed(1)}%`,dev:w>r.weightCap,
+    txt:w>r.weightCap?`상한을 ${(w-r.weightCap).toFixed(1)}%p 넘었어요`:`상한까지 ${(r.weightCap-w).toFixed(1)}%p 여유`})}
+  return out;
 }
-function shortReason(h){return h.id==="A"?"사업 성장 가능성":h.id==="B"?"실적 회복 · 배당 재개":(h.record.reason||"").slice(0,24)+((h.record.reason||"").length>24?"…":"")}
+
+/* ───────── icons ───────── */
+const I={
+ chev:'<svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 4 4 4-4"/></svg>',
+ pen:'<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 10l.6-2.4L8.4 1.8l1.8 1.8L4.4 9.4z"/></svg>',
+ dia:'<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 1.2 10.8 6 6 10.8 1.2 6z"/></svg>',
+ bars:'<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 9.5V6M6 9.5V3M9 9.5V5"/></svg>',
+ reason:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 2.5a4 4 0 0 0-2.3 7.3V11h4.6V9.8A4 4 0 0 0 8 2.5zM6 13.5h4"/></svg>',
+ period:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg>',
+ loss:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2.5 4.5 6.5 9l2.5-2.5 4.5 5M13.5 8.5v3h-3"/></svg>',
+ weight:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5V8l4 3.5"/></svg>',
+ extra:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 3v10M3 8h10"/></svg>',
+ review:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.5V5h2.5"/></svg>',
+ memo:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3.5 2.5h9v11h-9zM6 6h4M6 9h4"/></svg>'
+};
+const tg=(k,l)=>`<span class="tg ${k}">${k==="mine"?I.pen:k==="ai"?I.dia:I.bars}${esc(l)}</span>`;
 
 /* ───────── brokerage site ───────── */
 function series(h){
-  const n=h.id==="C"?26:h.id==="B"?45:66; let x=h.seed; const rnd=()=>{x=(x*9301+49297)%233280;return x/233280};
-  const w=[0]; for(let i=1;i<n;i++) w.push(w[i-1]+(rnd()-.5)*2);
-  if(h.id==="B") w[n-1]=w[n-2]+3.2;
-  const start=h.avg, end=h.price, out=[];
-  for(let i=0;i<n;i++){const t=i/(n-1);const bridge=w[i]-t*w[n-1];out.push(start+(end-start)*t+bridge*start*0.022)}
-  return out;
+  const n=Math.max(12,daysBetween(h.buyDate,NOW)+1);let x=h.seed;const rnd=()=>{x=(x*9301+49297)%233280;return x/233280};
+  const w=[0];for(let i=1;i<n;i++)w.push(w[i-1]+(rnd()-.5)*2);
+  if(h.id==="B")w[n-1]=w[n-2]+3.4;
+  const out=[];for(let i=0;i<n;i++){const t=i/(n-1);out.push(h.avg+(h.price-h.avg)*t+(w[i]-t*w[n-1])*h.avg*.016)}
+  out[n-1]=h.price;return out;
 }
-function chartSVG(h){
-  const s=series(h), W=420,Hh=160,pl=6,pr=58,pt=12,pb=22;
-  const lo=Math.min(...s,h.avg)*0.985, hi=Math.max(...s,h.avg)*1.015;
-  const X=i=>pl+i*(W-pl-pr)/(s.length-1), Y=v=>pt+(hi-v)/(hi-lo)*(Hh-pt-pb);
-  const pts=s.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
-  const ya=Y(h.avg), yl=Y(s[s.length-1]);
-  const grid=[0,1,2,3].map(k=>{const v=lo+(hi-lo)*k/3;return `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--site-line)" stroke-width="1"/><text x="${W-pr+6}" y="${Y(v)+4}" font-size="11.5" fill="var(--site-sub)" font-family="IBM Plex Mono,monospace">${won(v)}</text>`}).join("");
-  return `<svg class="chart" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${esc(h.name)} 보유 기간 주가 추이 (가상)">
-    ${grid}
-    <line x1="${pl}" x2="${W-pr}" y1="${ya}" y2="${ya}" stroke="var(--site-sub)" stroke-dasharray="4 4" stroke-width="1"/>
-    <text x="${pl+4}" y="${ya-5}" font-size="11.5" fill="var(--site-sub)">내 평단 ${won(h.avg)}</text>
-    <polyline points="${pts}" fill="none" stroke="var(--site-ink)" stroke-width="1.6" stroke-linejoin="round"/>
-    <circle cx="${X(s.length-1)}" cy="${yl}" r="3.5" fill="var(--site-ink)"/>
-    <text x="${pl}" y="${Hh-6}" font-size="11.5" fill="var(--site-sub)">${fmtD(h.buyDate).slice(5)} 매수</text>
-    <text x="${W-pr}" y="${Hh-6}" font-size="11.5" fill="var(--site-sub)" text-anchor="end">11.17</text>
-  </svg>`;
+const SER={};Object.values(H).forEach(h=>SER[h.id]=series(h));
+function siteChart(h){
+  const s=SER[h.id],W=420,Hh=150,pl=6,pr=58,pt=12,pb=22,lo=Math.min(...s,h.avg)*.985,hi=Math.max(...s,h.avg)*1.015;
+  const X=i=>pl+i*(W-pl-pr)/(s.length-1),Y=v=>pt+(hi-v)/(hi-lo)*(Hh-pt-pb);
+  const grid=[0,1,2].map(k=>{const v=lo+(hi-lo)*k/2;return `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--site-line)"/><text x="${W-pr+6}" y="${Y(v)+4}" font-size="11" fill="var(--site-sub)">${won(v)}</text>`}).join("");
+  return `<svg class="schart" viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${esc(h.name)} 보유 기간 주가 추이 (가상)">${grid}
+   <line x1="${pl}" x2="${W-pr}" y1="${Y(h.avg)}" y2="${Y(h.avg)}" stroke="var(--site-sub)" stroke-dasharray="4 4"/>
+   <text x="${pl+3}" y="${Y(h.avg)-5}" font-size="11" fill="var(--site-sub)">내 평단 ${won(h.avg)}</text>
+   <polyline points="${s.map((v,i)=>X(i).toFixed(1)+","+Y(v).toFixed(1)).join(" ")}" fill="none" stroke="var(--site-ink)" stroke-width="1.6" stroke-linejoin="round"/>
+   <circle cx="${X(s.length-1)}" cy="${Y(s[s.length-1])}" r="3.5" fill="var(--site-ink)"/>
+   <text x="${pl}" y="${Hh-5}" font-size="11" fill="var(--site-sub)">${md(h.buyDate)} 매수</text><text x="${W-pr}" y="${Hh-5}" font-size="11" fill="var(--site-sub)" text-anchor="end">11.17</text></svg>`;
 }
 function renderSite(){
-  const cost=Object.values(H).reduce((s,h)=>s+costOf(h),0), ev=TOTAL-CASH, pl=ev-cost;
-  const h=H[state.sel];
-  const rows=Object.values(H).map(x=>{const p=pctOf(x);return `<tr class="${x.id===state.sel?"sel":""}" data-sel="${x.id}" tabindex="0" aria-selected="${x.id===state.sel}">
-    <td><div class="nm">${esc(x.name)}${x.record?`<span class="mark" title="Decision Companion에 기준 기록 있음">${IC.logo}기준 기록</span>`:""}</div><div class="cd">${x.code} · ${esc(x.sector)}</div></td>
-    <td class="num">${x.qty}</td><td class="num">${won(x.avg)}</td>
-    <td class="num">${won(x.price)}<div class="cd ${cls(x.day)}">${sgn(x.day)}%</div></td>
-    <td class="num">${won(evalOf(x))}</td>
-    <td class="num ${cls(p)}">${sgn(evalOf(x)-costOf(x),0).replace(/(\d)(?=(\d{3})+(?!\d))/g,"$1,")}</td>
-    <td class="num ${cls(p)}">${sgn(p)}%</td>
-    <td class="num">${weightOf(x).toFixed(1)}%</td></tr>`}).join("");
-  const p=pctOf(h);
-  $("#site").innerHTML=`
-  <header class="s-head"><div class="s-logo"><i></i>가상증권 <small>WTS · 데모</small></div>
-    <nav class="s-nav"><span>홈</span><span>국내주식</span><span class="on">잔고</span><span>주문</span><span>시황</span><span>리서치</span></nav></header>
+  const cost=Object.values(H).reduce((s,h)=>s+costOf(h),0),ev=TOTAL-CASH,pl=ev-cost,h=H[S.sel],p=pctOf(h);
+  const rows=Object.values(H).map(x=>{const q=pctOf(x);return `<tr class="${x.id===S.sel?"sel":""}" data-sel="${x.id}" tabindex="0" aria-selected="${x.id===S.sel}">
+   <td><div class="nm">${esc(x.name)}${x.record?`<span class="mark">기준 기록</span>`:""}</div><div class="cd">${x.code} · ${esc(x.sector)}</div></td>
+   <td class="num">${x.qty}</td><td class="num">${won(x.avg)}</td><td class="num">${won(x.price)}<div class="cd ${cls(x.day)}">${sgn(x.day)}%</div></td>
+   <td class="num">${won(evalOf(x))}</td><td class="num ${cls(q)}">${sgnWon(evalOf(x)-costOf(x))}</td><td class="num ${cls(q)}">${sgn(q)}%</td><td class="num">${weightOf(x).toFixed(1)}%</td></tr>`}).join("");
+  $("#site").innerHTML=`<header class="s-head"><div class="s-logo"><i></i>가상증권 <small>WTS · 데모</small></div><nav class="s-nav" aria-hidden="true"><span>홈</span><span>국내주식</span><span class="on">잔고</span><span>주문</span><span>시황</span></nav></header>
   <div class="s-body">
-    <section class="s-card acct" aria-label="계좌 요약">
-      <div><div class="k">총 자산</div><div class="v big num">${won(TOTAL)}원</div></div>
-      <div><div class="k">주식 평가금액</div><div class="v num">${won(ev)}원</div></div>
-      <div><div class="k">평가손익</div><div class="v num ${cls(pl)}">${sgn(pl,0).replace(/(\d)(?=(\d{3})+(?!\d))/g,"$1,")}원 (${sgn(pl/cost*100)}%)</div></div>
-      <div><div class="k">예수금</div><div class="v num">${won(CASH)}원</div></div>
-      <div class="k" style="margin-left:auto">김민수 님 · 위탁 ****-**21 · ${ASOF}</div>
-    </section>
-    <div class="s-grid">
-      <section class="s-card" aria-label="보유 종목">
-        <div class="s-sec-h"><h2>보유 종목 ${Object.keys(H).length}</h2><span>행을 눌러 종목 선택</span></div>
-        <div class="tblwrap"><table class="hold"><thead><tr><th>종목</th><th>수량</th><th>평단가</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th>비중</th></tr></thead><tbody>${rows}</tbody></table></div>
-      </section>
-      <section class="s-card" aria-label="선택 종목">
-        <div class="det">
-          <div class="det-top"><div><h3>${esc(h.name)}</h3><div class="sub">${h.code} · ${esc(h.sector)}</div></div>
-            <div class="price"><div class="p num">${won(h.price)}</div><div class="c num ${cls(h.day)}">오늘 ${sgn(h.day)}%</div></div></div>
-          ${chartSVG(h)}
-          <div class="pos">
-            <div><span class="k">평단가</span><span class="num">${won(h.avg)}</span></div>
-            <div><span class="k">보유수량</span><span class="num">${h.qty}주</span></div>
-            <div><span class="k">평가손익</span><span class="num ${cls(p)}">${won(evalOf(h)-costOf(h))}</span></div>
-            <div><span class="k">수익률</span><span class="num ${cls(p)}">${sgn(p)}%</span></div>
-          </div>
-          <div class="order"><button class="b" data-order="매수">매수</button><button class="s" data-order="매도">매도</button></div>
-          <div class="ordermsg" aria-live="polite">${esc(state.orderMsg)}</div>
-        </div>
-        <div class="s-sec-h" style="padding-top:0"><h2>관련 뉴스</h2><span>가상 기사</span></div>
-        <ul class="news">${(NEWS[h.id]||[]).map(n=>`<li><span>${esc(n[0])}</span><span class="meta">${esc(n[1])}</span></li>`).join("")}</ul>
-      </section>
-    </div>
-  </div>`;
+   <section class="s-card acct" aria-label="계좌 요약">
+    <div><div class="k">총 자산</div><div class="v big num">${won(TOTAL)}원</div></div>
+    <div><div class="k">주식 평가금액</div><div class="v num">${won(ev)}원</div></div>
+    <div><div class="k">평가손익</div><div class="v num ${cls(pl)}">${sgnWon(pl)}원 (${sgn(pl/cost*100)}%)</div></div>
+    <div><div class="k">예수금</div><div class="v num">${won(CASH)}원</div></div>
+    <div class="meta">김민수 님 (가상 인물) · 위탁 ****-**21 · ${ASOF}</div></section>
+   <div class="s-grid">
+    <section class="s-card" aria-label="보유 종목"><div class="s-sec-h"><h2>보유 종목 ${Object.keys(H).length}</h2><span>행을 눌러 종목 선택</span></div>
+     <div class="tblwrap"><table class="hold"><thead><tr><th>종목</th><th>수량</th><th>평단가</th><th>현재가</th><th>평가금액</th><th>평가손익</th><th>수익률</th><th>비중</th></tr></thead><tbody>${rows}</tbody></table></div></section>
+    <section class="s-card" aria-label="선택 종목"><div class="det">
+     <div class="det-top"><div><h3>${esc(h.name)}</h3><div class="sub">${h.code} · ${esc(h.sector)}</div></div><div class="price"><div class="p num">${won(h.price)}</div><div class="c num ${cls(h.day)}">오늘 ${sgn(h.day)}%</div></div></div>
+     ${siteChart(h)}
+     <div class="pos"><div><span class="k">평단가</span><span class="v num">${won(h.avg)}</span></div><div><span class="k">보유수량</span><span class="v num">${h.qty}주</span></div>
+      <div><span class="k">평가손익</span><span class="v num ${cls(p)}">${sgnWon(evalOf(h)-costOf(h))}</span></div><div><span class="k">수익률</span><span class="v num ${cls(p)}">${sgn(p)}%</span></div></div>
+     <div class="order"><button class="b" data-order="매수">매수</button><button class="s" data-order="매도">매도</button></div>
+     <div class="ordermsg" aria-live="polite">${esc(S.orderMsg)}</div></div>
+     <div class="s-sec-h" style="padding-top:0"><h2>관련 뉴스</h2><span>가상 기사</span></div>
+     <ul class="news">${NEWS[h.id].map(n=>`<li><span>${esc(n[0])}</span><span class="meta">${esc(n[1])}</span></li>`).join("")}</ul></section>
+   </div></div>`;
 }
 
-/* ───────── nudge ───────── */
-function renderNudge(){
-  const h=H[state.sel], el=$("#nudge");
-  const show=!state.open && !state.nudged[h.id];
-  $("#extBadge").hidden = !!state.open;
-  if(!show){el.hidden=true;return}
-  el.hidden=false;
-  el.innerHTML = h.record ? `
-    <div class="who">${IC.logo}My Decision Companion · ${esc(h.name)}</div>
-    <p>매수 당시 작성한 투자 기준이 있어요. 현재 상황과 함께 확인해 볼까요?</p>
-    <div class="row"><button class="btn ghost sm" data-act="dismissNudge">나중에</button><button class="btn pri sm" data-act="openPanel">함께 확인하기</button></div>`
-  : `<div class="who">${IC.logo}My Decision Companion · ${esc(h.name)}</div>
-    <p>이 종목에는 매수 당시 남긴 기준이 없어요. 필요하면 지금 정리해 둘 수 있어요.</p>
-    <div class="row"><button class="btn ghost sm" data-act="dismissNudge">나중에</button><button class="btn sec sm" data-act="openPanel">패널 열기</button></div>`;
+/* ───────── nudge / launcher / header ───────── */
+function renderChrome(){
+  const h=H[S.sel];
+  $("#extBadge").hidden=S.open||!!S.nudged[h.id];
+  $("#launcher").hidden=S.open;
+  const n=$("#nudge"),show=!S.open&&!S.nudged[h.id]&&!!h.record;
+  n.hidden=!show;
+  if(show)n.innerHTML=`<div class="who"><span class="orb"></span>My Decision Companion · ${esc(h.name)}</div><p>매수 당시 작성한 투자 기준이 있어요. 현재 상황과 함께 확인해 볼까요?</p>
+   <div class="row"><button class="btn sec sm" data-act="dismiss">나중에</button><button class="btn pri sm" data-act="open">함께 확인하기</button></div>`;
+  $("#pTabs").classList.toggle("log",S.tab==="log");
+  document.querySelectorAll("#pTabs button").forEach(b=>{b.classList.toggle("on",b.dataset.tab===S.tab);b.setAttribute("aria-selected",b.dataset.tab===S.tab)});
+  $("#logCount").textContent=S.records.length;
+  const p=pctOf(h),loss=deviations(h).find(d=>d.k==="loss");
+  $("#ctx").innerHTML=`<div class="nm"><b>${esc(h.name)}</b><small>보유 ${daysBetween(h.buyDate,NOW)}일 · ${ASOF}</small></div>
+   <div class="pills"><span class="pill num">${sgn(p)}%</span>${loss?`<span class="pill ${loss.dev?"warn":"ok"}">기준 ${h.record.lossLimit}%</span>`:`<span class="pill info">기준 없음</span>`}</div>`;
+  $("#thread").hidden=S.tab!=="chat";$("#logView").hidden=S.tab!=="log";$("#composer").hidden=S.tab!=="chat";
 }
 
-/* ───────── panel ───────── */
-const STEPS=[["record","내 기록"],["compare","비교"],["questions","질문"],["decide","내 판단"]];
-function goStep(st){
-  const s=state.s, t=Date.now();
-  s.trace[s.cur]=(s.trace[s.cur]||0)+(t-s.t0); s.t0=t; s.cur=st;
-  state.step=st; renderPanel(); const b=$(".p-body"); if(b) b.scrollTop=0;
+/* ───────── conversation engine ───────── */
+let MID=0;
+function freshCtx(){return {answers:{},toCheck:[],review:[],path:[],t0:Date.now()}}
+function conv(){const id=S.sel;if(!S.conv[id])S.conv[id]={stock:id,msgs:[],ctx:freshCtx(),queue:[],chain:Promise.resolve(),gen:0,started:false};return S.conv[id]}
+const shown=c=>S.open&&S.tab==="chat"&&c.stock===S.sel&&S.conv[c.stock]===c;
+function scrollEnd(){const b=$("#pBody");requestAnimationFrame(()=>{b.scrollTop=b.scrollHeight})}
+function ai(c,m){m.id=++MID;m.who="ai";const gen=c.gen;c.chain=c.chain.then(async()=>{
+  if(gen!==c.gen)return;
+  let t=null;if(shown(c)){t=document.createElement("div");t.className="msg ai enter";t.innerHTML=`<span class="orb think"></span><div class="typing"><i></i><i></i><i></i></div>`;$("#thread").append(t);$("#headOrb").classList.add("think");scrollEnd()}
+  await wait(m.fast?280:540);if(t)t.remove();$("#headOrb").classList.remove("think");
+  if(gen!==c.gen)return;
+  m.stock=c.stock;c.msgs.push(m);if(shown(c)){const el=renderMsg(m,true);$("#thread").append(el);mount(el,m,true);scrollEnd()}});return m}
+function me(c,text){const m={id:++MID,who:"me",text,stock:c.stock};c.msgs.push(m);if(shown(c)){const el=renderMsg(m,true);$("#thread").append(el);scrollEnd()}}
+function renderMsg(m,anim){
+  const el=document.createElement("div");el.dataset.mid=m.id;
+  if(m.who==="me"){el.className="msg me"+(anim?" enter":"");el.innerHTML=`<div class="bub">${esc(m.text)}</div>`;return el}
+  el.className="msg ai"+(anim?" enter":"");
+  el.innerHTML=`<span class="orb"></span><div class="mb">${m.text?`<p class="txt">${m.text}</p>`:""}${m.w?`<div class="wslot">${W[m.w](H[m.stock],m)}</div>`:""}<div class="cslot">${choicesHTML(m)}</div></div>`;
+  return el;
 }
-function renderPanel(){
-  const root=$("#panelInner"); if(!state.open){root.innerHTML="";return}
-  const h=H[state.sel], p=pctOf(h);
-  const si=STEPS.findIndex(x=>x[0]===state.step);
-  const head=`<div class="p-head">
-    <div class="p-brand"><div class="nm">${IC.logo}<span>My Decision Companion<br><small>판단 기준 보조 · 프로토타입</small></span></div>
-      <button class="icon-btn" data-act="closePanel" aria-label="패널 닫기">${IC.x}</button></div>
-    <div class="p-tabs" role="tablist"><button role="tab" class="${state.tab==="check"?"on":""}" data-tab="check">기준 확인</button><button role="tab" class="${state.tab==="archive"?"on":""}" data-tab="archive">판단 기록 <span class="num">${state.records.length}</span></button></div></div>
-    <div class="p-ctx"><span>지금 보고 있는 종목 <b>${esc(h.name)}</b></span><span class="num">${sgn(p)}% · 비중 ${weightOf(h).toFixed(1)}%</span></div>
-    ${state.tab==="check"&&si>=0?`<div class="steps" aria-label="진행 단계">${STEPS.map((x,i)=>`<div class="${i<si?"done":i===si?"on":""}"><i></i>${x[1]}</div>`).join("")}</div>`:""}`;
-  let body="",foot="";
-  if(state.tab==="archive"){[body,foot]=vArchive()}
-  else if(!h.record){[body,foot]=state.step==="setup"?vSetup(h):vNoCriteria(h)}
-  else ({entry:vEntry,record:vRecord,compare:vCompare,questions:vQuestions,decide:vDecide,done:vDone}[state.step]||vEntry)(h).forEach((v,i)=>i?foot=v:body=v);
-  root.innerHTML=head+`<div class="p-body">${body}</div><div class="p-foot">${foot}<div class="disc">AI는 매수·매도를 권하거나 가격을 전망하지 않아요. 내가 남긴 기준과 계좌 데이터를 나란히 보여 줄 뿐, 최종 판단은 내가 합니다.</div></div>`;
+function choicesHTML(m){
+  if(!m.ch&&!m.input||m.ans)return"";
+  const sel=m.sel||[];let s="";
+  if(m.ch)s+=`<div class="choices ${m.col?"col":""}">${m.ch.map(o=>`<button class="chip ${o.pri?"pri":""} ${o.ghost?"ghost":""}" data-m="${m.id}" data-c="${o.id}" ${m.multi?`aria-pressed="${sel.includes(o.id)}"`:""}>${esc(o.l)}</button>`).join("")}</div>`;
+  if(m.multi)s+=`<button class="btn pri sm done-btn" data-m="${m.id}" data-done="1" ${sel.length?"":"disabled"}>선택 완료</button>`;
+  if(m.input)s+=`<div style="display:grid;gap:7px"><textarea rows="2" data-inp="${m.id}" placeholder="${esc(m.input.ph)}"></textarea><div class="vrow"><button class="btn pri sm" data-m="${m.id}" data-sub="1" disabled>보내기</button>${m.input.skip?`<button class="btn sec sm" data-m="${m.id}" data-c="__skip">건너뛰기</button>`:""}</div></div>`;
+  return s;
+}
+function rebuild(){
+  const c=conv(),t=$("#thread");t.innerHTML="";
+  c.msgs.forEach(m=>{const el=renderMsg(m,false);t.append(el);mount(el,m,false)});
+  if(!c.started){c.started=true;start(c)}
+  const b=$("#pBody");b.style.scrollBehavior="auto";b.scrollTop=b.scrollHeight;b.style.scrollBehavior="";
+}
+function refreshWidget(m){const el=document.querySelector(`[data-mid="${m.id}"] .wslot`);if(el){el.innerHTML=W[m.w](H[m.stock],m);mount(el.closest(".msg"),m,false)}}
+function answer(c,m,label,ids){m.ans=ids;const cs=document.querySelector(`[data-mid="${m.id}"] .cslot`);if(cs)cs.innerHTML="";if(label)me(c,label);c.ctx.path.push((m.key||"")+":"+ids.join("+"))}
+
+/* ───────── flow ───────── */
+const CONCERNS=[["loss","손실이 커지는 것이 걱정돼요"],["reason","처음 투자했던 이유가 여전히 유효한지 모르겠어요"],["opinion","다른 사람들이 팔거나 부정적인 이야기를 해서 불안해요"],["addbuy","추가 매수를 고민하고 있어요"],["vague","특별한 이유는 없지만 그냥 불안해요"]];
+const QUEUES={loss:["gauge","record","board","dialog"],reason:["record","board","gauge","dialog"],opinion:["sort","record","board","dialog"],addbuy:["weight","record","board","dialog"],vague:["snap","record","board","dialog"]};
+const NEXTL={gauge:"손실 기준과 지금 위치 보기",record:"매수 당시 내 기록 보기",board:"그때와 지금 비교하기",weight:"비중 변화 계산해 보기",sort:"사실과 의견 나눠 보기",snap:"한눈에 보기",dialog:"질문에 답하며 정리하기"};
+const REFLECT={loss:"손실이 커지는 게 걱정되는군요. 먼저 <b>내가 정해 둔 손실 기준</b>과 지금 위치를 나란히 볼게요. 그래프를 따라 움직이면 그날의 수익률이, 점을 누르면 그날 나온 정보가 보여요.",
+ reason:"투자 이유가 아직 유효한지가 핵심이군요. <b>매수할 때 내가 쓴 기록</b>부터 꺼내 볼게요. 항목을 누르면 원문이 펼쳐져요.",
+ opinion:"다른 사람들의 이야기가 마음에 걸리는군요. 바뀐 것이 <b>사실인지 의견인지</b>부터 나눠 볼게요. 먼저 직접 골라 보세요.",
+ addbuy:"추가 매수를 고민 중이군요. 결정은 대신하지 않아요. <b>비중이 어떻게 바뀌는지</b> 직접 움직여 보고, 매수할 때 정한 조건도 같이 볼게요.",
+ vague:"그럴 때도 있어요. 이유를 몰라도 괜찮아요. <b>세 칸만</b> 먼저 보여 드릴게요. 더 보고 싶은 칸을 눌러 보세요."};
+
+function concernMsg(h,lead){return {key:"concern",text:`${lead||`${USER}님,`} 지금 <b>${esc(h.name)}</b>을 보면서 어떤 부분이 가장 신경 쓰이나요?`,ch:CONCERNS.map(x=>({id:x[0],l:x[1]})),col:1,on:"concern"}}
+function start(c){
+  const h=H[c.stock];
+  if(!h.record){
+    ai(c,{key:"norec",text:`<b>${esc(h.name)}</b>에는 매수 당시 남긴 기록이 없어요.<span class="sub">내 생각을 추측해서 만들지 않을게요. 기준이 없으면 비교도 할 수 없어요.</span>`,
+      w:"emptyRec",ch:[{id:"setup",l:"지금 직접 기준을 정리할래요",pri:1},{id:"nowonly",l:"기록 없이 지금 상황만 볼래요"}],on:"norec"});return}
+  ai(c,concernMsg(h));
+}
+function cont(c){
+  const nx=c.queue[0];if(!nx)return;
+  const ch=[{id:"next",l:`다음 · ${NEXTL[nx]}`,pri:1}];
+  if(nx!=="dialog"&&c.queue.includes("dialog"))ch.push({id:"dialog",l:"바로 질문으로",ghost:1});
+  return ch;
+}
+function post(c,name,lead){
+  c.queue=c.queue.filter(x=>x!==name);
+  if(name==="dialog")return dialogStart(c);
+  const h=H[c.stock],ct=c.ctx;
+  const T={
+   gauge:h.record&&h.record.lossLimit!=null?"내가 정한 손실 기준과 지금 위치예요. 그래프를 따라 움직이면 그날의 수익률이, 점을 누르면 그날 나온 정보가 보여요.":"직접 정한 손실 기준이 없어 기준선 없이 지금 위치만 보여 드려요.",
+   record:"매수 당시의 나를 불러올게요. <b>항목을 누르면 원문이 펼쳐져요.</b> 지금도 유효한지 직접 표시할 수 있어요.",
+   board:"그때와 지금을 <b>네 가지로 나눠</b> 봤어요. 칸과 항목을 누르면 근거가 펼쳐져요.",
+   weight:"추가 금액을 움직이면 계좌에서 이 종목 비중이 어떻게 바뀌는지 계산해 드려요.<span class=\"sub\">계산일 뿐, 사라거나 사지 말라는 뜻이 아니에요.</span>",
+   sort:"최근 나온 정보예요. 먼저 <b>직접</b> 사실인지 의견인지 골라 보세요. 고르면 AI의 분류도 보여 드려요.",
+   snap:"지금 상황을 세 칸으로 줄였어요. 더 보고 싶은 칸을 눌러 보세요."
+  };
+  const m={key:name,text:lead||T[name],w:name,on:"cont"};
+  if(name==="board")m.open=ct.concern==="reason"?"rel":ct.concern==="opinion"?"new":(h.record?"dev":"new");
+  if(name==="record")m.openItem=ct.concern==="reason"?"reason":ct.concern==="loss"?"loss":ct.concern==="addbuy"?(h.record&&h.record.extra?"extra":"weight"):null;
+  m.ch=cont(c);
+  ai(c,m);
+}
+function next(c){const nx=c.queue[0];if(nx)post(c,nx)}
+
+/* dialog tree */
+function dialogStart(c){
+  const h=H[c.stock];c.queue=[];
+  if(!h.record){ai(c,{key:"unsure",text:"기준이 없을 때는 <b>무엇을 더 알고 싶은지</b> 정해 두는 것부터 시작할 수 있어요. 무엇이 궁금한가요?",ch:wantList(h),multi:1,on:"unsure"});return}
+  ai(c,{key:"q1",text:`처음 투자할 때 가장 중요하게 생각했던 <b>${esc(h.record.reasonKey)}</b>, 지금도 유효하다고 생각하나요?<span class="sub">정답이 있는 질문이 아니에요. 지금의 느낌 그대로 골라 주세요.</span>`,
+    ch:[{id:"valid",l:"여전히 유효하다고 생각해요"},{id:"partial",l:"일부 달라졌다고 생각해요"},{id:"unsure",l:"잘 모르겠어요"}],on:"q1"});
+}
+function wantList(h){
+  const L=[];h.info.filter(i=>i.ph==="now"&&i.kind!=="opinion").forEach(i=>L.push({id:"i:"+i.id,l:i.t.split(",")[0]+" 원문"}));
+  h.unknowns.forEach((u,k)=>L.push({id:"u:"+k,l:u.t}));return L.slice(0,5);
+}
+const AREAS=[["earnings","기업의 실적"],["industry","산업의 전망"],["competition","경쟁 상황"],["market","외부 시장 환경"],["other","기타"]];
+function q3(c){
+  const h=H[c.stock],dv=deviations(h),d=dv.find(x=>x.dev)||dv.find(x=>x.k==="loss");
+  if(!d){q4(c);return}
+  c.ctx.q3k=d.k;
+  ai(c,{key:"q3",text:d.dev?`직접 정한 <b>${d.lbl}(${esc(d.past)})</b>를 지금은 벗어나 있어요. 지금 ${esc(d.now)}예요. 이 기준은 지금 내게 어떻게 보이나요?`:`<b>${d.lbl}(${esc(d.past)})</b>는 지금 범위 안이에요. 지금 ${esc(d.now)}예요. 이 기준은 지금도 내게 맞나요?`,
+   ch:[{id:"keep",l:"그대로 의미 있는 기준이에요"},{id:"redo",l:"다시 정하고 싶어요"},{id:"arb",l:"처음부터 깊이 생각하지 않고 정한 숫자였어요"}],on:"q3"});
+}
+function q4(c){
+  const h=H[c.stock],r=h.record;if(!r.periodM){qmore(c);return}
+  ai(c,{key:"q4",text:`계획한 투자 기간 <b>${esc(r.period)}</b> 중 <b>${monthsBetween(h.buyDate,NOW)}개월</b>이 지났어요. 기간에 대한 생각이 달라졌나요?`,
+   ch:[{id:"same",l:"그대로예요"},{id:"shorter",l:"더 짧게 보고 있어요"},{id:"longer",l:"더 길게 봐도 괜찮아요"},{id:"never",l:"생각해 본 적 없어요"}],on:"q4"});
+}
+function qmore(c){
+  ai(c,{key:"more",text:"정리하기 전에 더 보고 싶은 게 있나요? 아래 입력창에 직접 물어봐도 돼요.",
+   ch:[{id:"sum",l:"오늘 내용 정리하기",pri:1},{id:"board",l:"달라진 정보 다시 보기"},{id:"record",l:"내 기록 다시 보기"},{id:"past",l:"지난 판단 기록 보기"}],on:"more"});
+}
+function addUnique(arr,v){if(v&&!arr.includes(v))arr.push(v)}
+const lblOf=(m,ids)=>ids.map(i=>(m.ch.find(o=>o.id===i)||{l:i}).l).join(", ");
+
+const ON={
+ concern(c,ids,m){const k=ids[0];answer(c,m,lblOf(m,ids),ids);c.ctx.concern=k;c.queue=QUEUES[k].slice();post(c,c.queue[0],REFLECT[k])},
+ cont(c,ids,m){const id=ids[0];answer(c,m,id==="next"?NEXTL[c.queue[0]]:"바로 질문으로",ids);if(id==="dialog")c.queue=["dialog"];next(c)},
+ norec(c,ids,m){
+  if(ids[0]==="setup"){answer(c,m,"지금 직접 기준을 정리할래요",ids);c.ctx.setup={};
+   ai(c,{key:"su1",text:"좋아요. 한 번에 하나씩 물어볼게요. 먼저, <b>이 종목을 왜 샀나요?</b><span class=\"sub\">그때 떠올렸던 이유를 내 말로 적어 주세요.</span>",input:{ph:"예: 꾸준히 팔리는 제품이 많고 배당이 안정적이라서"},on:"su1"})}
+  else{answer(c,m,"기록 없이 지금 상황만 볼래요",ids);c.ctx.concern="none";c.queue=["gauge","board","dialog"];post(c,"gauge","기준이 없으니 <b>지금 위치만</b> 보여 드릴게요. 손실 기준선은 표시하지 않아요.")}},
+ su1(c,ids,m,txt){answer(c,m,txt,["text"]);c.ctx.setup.reason=txt;
+  ai(c,{key:"su2",text:"얼마 동안 보유할 생각이었나요?",ch:["3개월 이내","3~12개월","1~2년","2년 이상","정하지 않음"].map(x=>({id:x,l:x})),on:"su2"})},
+ su2(c,ids,m){answer(c,m,ids[0],ids);c.ctx.setup.period=ids[0];
+  ai(c,{key:"su3",text:"어느 정도 손실까지 감수할 수 있다고 생각하나요? 막대를 움직여 직접 정해 주세요.",w:"lossPick",lp:-15})},
+ su4(c,ids,m,txt){answer(c,m,txt||"건너뛸게요",["text"]);c.ctx.setup.review=txt||"";
+  const h=H[c.stock],su=c.ctx.setup,map={"3개월 이내":[0,3],"3~12개월":[3,12],"1~2년":[12,24],"2년 이상":[24,999]};
+  const rec={written:`${fmtD(NOW)} (매수 ${daysBetween(h.buyDate,NOW)}일 후)`,origin:"later",reasonKey:"내가 적은 매수 이유",reason:su.reason,reasonSum:su.reason.length>18?su.reason.slice(0,18)+"…":su.reason,
+   period:su.period==="정하지 않음"?"":su.period,periodM:map[su.period]||null,lossLimit:su.loss,weightCap:null,review:su.review,reviewSum:su.review?(su.review.length>16?su.review.slice(0,16)+"…":su.review):"",extra:null,memo:""};
+  h.record=rec;S.custom[h.id]=rec;persist();renderSite();renderChrome();
+  ai(c,{key:"su-ok",fast:1,text:"기준을 저장했어요. 이 기록에는 <b>‘매수 이후 작성’</b>이라고 표시돼요. 나중에 다시 볼 때 매수 당시 생각과 구분할 수 있어요."});
+  ai(c,concernMsg(h,"이제 비교할 수 있어요."))},
+ q1(c,ids,m){const k=ids[0];answer(c,m,lblOf(m,ids),ids);c.ctx.answers.q1=k;const h=H[c.stock];
+  if(k==="valid")ai(c,{key:"q2v",text:"그렇게 생각하는 근거는 무엇인가요? 여러 개 골라도 돼요.",ch:[{id:"earn",l:"최근 실적"},{id:"cust",l:"고객·계약 유지"},{id:"ind",l:"산업 성장"},{id:"faith",l:"특별한 근거는 없지만 믿음이 있어요"}],multi:1,on:"q2v"});
+  else if(k==="partial")ai(c,{key:"q2p",text:"어떤 부분이 달라졌다고 느끼나요? 여러 개 골라도 돼요.",ch:AREAS.map(a=>({id:a[0],l:a[1]})),multi:1,on:"q2p"});
+  else ai(c,{key:"unsure",text:"괜찮아요. 판단하려면 <b>무엇을 더 알고 싶나요?</b> 고른 항목은 ‘확인할 목록’에 담아 둘게요.",ch:wantList(h),multi:1,on:"unsure"})},
+ q2v(c,ids,m){answer(c,m,lblOf(m,ids),ids);c.ctx.answers.q2v=ids;const h=H[c.stock];
+  if(ids.length===1&&ids[0]==="faith"){addUnique(c.ctx.toCheck,"매수 이유를 뒷받침하는 최근 자료");
+   ai(c,{key:"faith",fast:1,text:"믿음도 판단의 일부예요. 다만 근거를 하나라도 적어 두면 다음에 흔들릴 때 도움이 될 수 있어요. <b>‘매수 이유를 뒷받침하는 최근 자료’</b>를 확인할 목록에 담아 둘게요."})}
+  else{const want={earn:"earnings",cust:"business",ind:"industry"};const items=h.info.filter(i=>i.ph==="now"&&ids.some(x=>want[x]===i.area)).map(i=>i.id);
+   if(ids.includes("ind")&&!h.info.some(i=>i.ph==="now"&&i.area==="industry"))addUnique(c.ctx.toCheck,"산업 성장 관련 자료");
+   ai(c,{key:"echo",fast:1,text:items.length?"고른 근거와 연결되는 최근 정보예요. 근거가 정말 그대로인지 직접 확인해 보세요.":"고른 근거에 대한 최근 자료가 기록되어 있지 않아요. ‘확인할 목록’에 담아 둘게요.",w:items.length?"mini":null,items})}
+  q3(c)},
+ q2p(c,ids,m){answer(c,m,lblOf(m,ids),ids);c.ctx.answers.q2p=ids;const h=H[c.stock];
+  const ev=[],missing=[];ids.filter(i=>i!=="other").forEach(a=>{const it=h.info.filter(i=>i.ph==="now"&&i.area===a),un=h.unknowns.filter(u=>u.area===a);
+   it.forEach(i=>ev.push(i.id));un.forEach(u=>addUnique(c.ctx.toCheck,u.t));if(!it.length&&!un.length)missing.push(AREAS.find(x=>x[0]===a)[1])});
+  missing.forEach(x=>addUnique(c.ctx.toCheck,`${x} 관련 자료`));
+  if(ev.length)ai(c,{key:"echo",fast:1,text:`고른 영역에서 실제로 나온 정보예요.${missing.length?`<span class="sub">${missing.join(", ")}에 대한 자료는 기록된 게 없어 ‘확인할 목록’에 담았어요.</span>`:""}`,w:"mini",items:ev});
+  else if(ids.some(i=>i!=="other"))ai(c,{key:"echo",fast:1,text:`고른 영역에 대해서는 기록된 정보가 없어요. <b>‘확인할 목록’</b>에 담아 둘게요.`});
+  if(ids.includes("other"))ai(c,{key:"q2o",text:"‘기타’는 어떤 부분인가요? 짧게 적어 주세요.",input:{ph:"예: 경영진 교체 소식이 신경 쓰여요",skip:1},on:"q2o"});
+  else ai(c,{key:"q2p2",text:"그 변화는 처음 투자한 이유를 바꿀 정도라고 느끼나요?",ch:[{id:"big",l:"이유가 달라질 정도예요"},{id:"some",l:"일부만 영향이 있어요"},{id:"hard",l:"아직 판단하기 어려워요"}],on:"q2p2"})},
+ q2o(c,ids,m,txt){answer(c,m,txt||"건너뛸게요",["text"]);if(txt){c.ctx.answers.other=txt;addUnique(c.ctx.toCheck,txt)}
+  ai(c,{key:"q2p2",text:"그 변화는 처음 투자한 이유를 바꿀 정도라고 느끼나요?",ch:[{id:"big",l:"이유가 달라질 정도예요"},{id:"some",l:"일부만 영향이 있어요"},{id:"hard",l:"아직 판단하기 어려워요"}],on:"q2p2"})},
+ q2p2(c,ids,m){answer(c,m,lblOf(m,ids),ids);c.ctx.answers.q2p2=ids[0];
+  if(ids[0]==="big"){addUnique(c.ctx.review,"매수 이유 자체");ai(c,{key:"bigack",fast:1,text:"이유가 달라졌다고 느낀다면, 처음 적은 <b>재검토 조건</b>에 해당하는지 볼 수 있어요. 오늘 정리에 ‘매수 이유 재검토’를 담아 둘게요."})}
+  else if(ids[0]==="hard")ai(c,{key:"hardack",fast:1,text:"판단하기 어려운 건 자연스러워요. 확인할 목록을 채우고 나서 다시 봐도 괜찮아요."});
+  q3(c)},
+ unsure(c,ids,m){answer(c,m,lblOf(m,ids),ids);const h=H[c.stock];
+  ids.forEach(i=>addUnique(c.ctx.toCheck,(m.ch.find(o=>o.id===i)||{}).l));
+  ai(c,{key:"ack",fast:1,text:`${ids.length}개를 <b>‘확인할 목록’</b>에 담았어요. 확인하기 전에는 판단을 미뤄도 괜찮아요.`});
+  if(h.record)q3(c);else qmore(c)},
+ q3(c,ids,m){answer(c,m,lblOf(m,ids),ids);c.ctx.answers.q3=ids[0];const lbl={loss:"손실 허용 범위",weight:"종목 비중 상한",period:"투자 기간"}[c.ctx.q3k];
+  if(ids[0]==="redo"){addUnique(c.ctx.review,lbl);
+   ai(c,{key:"q3r",text:"기준을 바꾸는 건 언제나 내 권한이에요. 다만 <b>왜 바꾸려는지</b> 한 줄 남겨 두면, 나중에 손실을 따라 기준을 옮긴 건지 생각이 바뀐 건지 구분할 수 있어요.",input:{ph:"예: 처음 정할 때 변동성을 너무 작게 봤어요",skip:1},on:"q3r"})}
+  else{if(ids[0]==="arb"){addUnique(c.ctx.review,lbl);ai(c,{key:"arbAck",fast:1,text:"솔직하게 답해 줘서 고마워요. 깊이 생각하지 않고 정한 숫자라면 <b>그 숫자를 정한 이유</b>부터 다시 생각해 볼 수 있어요. 재검토 항목에 담아 둘게요."})}
+   q4(c)}},
+ q3r(c,ids,m,txt){answer(c,m,txt||"건너뛸게요",["text"]);if(txt)c.ctx.answers.q3r=txt;q4(c)},
+ q4(c,ids,m){answer(c,m,lblOf(m,ids),ids);c.ctx.answers.q4=ids[0];if(ids[0]!=="same")addUnique(c.ctx.review,"투자 기간");qmore(c)},
+ more(c,ids,m){const k=ids[0];answer(c,m,lblOf(m,ids),ids);
+  if(k==="sum")return summary(c);
+  if(k==="past")ai(c,{key:"past",text:"이 종목에 남긴 지난 판단 기록이에요.",w:"past"});
+  else post(c,k,k==="board"?"달라진 정보를 다시 펼쳐 볼게요.":"매수 당시 기록을 다시 펼쳐 볼게요.");
+  qmore(c)},
+ jump(c,ids,m){const k=ids[0];answer(c,m,NEXTL[k]||k,ids);post(c,k)},
+ after(c,ids,m){const k=ids[0];me(c,lblOf(m,ids));if(k!=="log"){m.ch=m.ch.filter(o=>o.id!==k);const cs=document.querySelector(`[data-mid="${m.id}"] .cslot`);if(cs)cs.innerHTML=choicesHTML(m)}
+  if(k==="log"){S.tab="log";renderChrome();renderLog()}
+  else if(k==="fb")ai(c,{key:"fb",text:"테스트 참가자용 짧은 피드백이에요. 원하는 것만 눌러 주세요.",w:"fb",rid:c.ctx.savedId});
+  else if(k==="restart")restart()}
+};
+
+/* ───────── summary ───────── */
+const ITEML={reason:"매수 이유",period:"투자 기간",loss:"손실 허용 범위",weight:"종목 비중 상한",extra:"추가 매수 조건",review:"재검토 조건",memo:"나에게 남긴 메모"};
+function summaryLines(c){
+  const h=H[c.stock],a=c.ctx.answers,L=[],r=h.record;
+  if(r){let q1={valid:"여전히 유효하다고 판단",partial:"일부 달라졌다고 느낌",unsure:"아직 판단하기 어려움"}[a.q1]||"이번에는 확인하지 않음";
+   if(a.q1==="partial"&&a.q2p)q1+=` (${a.q2p.map(i=>AREAS.find(x=>x[0]===i)[1]).join(", ")})`;
+   L.push(["처음 투자한 이유",q1,"mine"])}
+  else L.push(["처음 투자한 이유","기록 없음 · 직접 정리하지 않음","none"]);
+  const dv=deviations(h);
+  dv.filter(d=>d.dev).forEach(d=>L.push([d.lbl,`${d.past} 기준, 지금 ${d.now} · ${d.txt}`+(c.ctx.q3k===d.k&&a.q3?` · 내 생각: ${{keep:"그대로 의미 있음",redo:"다시 정하고 싶음",arb:"깊이 생각하지 않고 정한 숫자"}[a.q3]}`:""),"warn"]));
+  if(r&&dv.length&&!dv.some(d=>d.dev))L.push(["직접 정한 기준","모두 범위 안","ok"]);
+  const chk=c.ctx.toCheck.length?c.ctx.toCheck:h.unknowns.map(u=>u.t);
+  L.push(["새롭게 확인할 내용",chk.join(" · "),"info"]);
+  const rv=c.ctx.review.slice(),vv=S.valid[h.id]||{};Object.keys(vv).filter(k=>vv[k]==="rv").forEach(k=>addUnique(rv,ITEML[k]||k));
+  L.push(["추가로 검토할 사항",rv.length?rv.join(" · ")+" 재검토 여부":"지금은 없음","rv"]);
+  if(a.q3r)L.push(["기준을 바꾸려는 이유",a.q3r,"mine"]);
+  return L;
+}
+function summary(c){Object.assign(c.ctx,{dec:null,memo:"",revisit:""});ai(c,{key:"sum",text:"오늘 함께 확인한 내용이에요. 결론은 내리지 않았어요. <b>마지막 선택은 직접</b> 해 주세요.",w:"sum"})}
+const DECS=[["keep","현재 기준을 유지하겠다","기준과 이유를 그대로 둬요"],["review","기존 기준을 다시 검토하겠다","손실 범위·기간·비중 등을 다시 정해 봐요"],["more","추가 정보를 확인한 후 판단하겠다","확인할 목록부터 살펴봐요"],["hold","아직 판단을 유보하겠다","지금은 결정하지 않아도 괜찮아요"]];
+function saveSummary(c,m){
+  const h=H[c.stock],ct=c.ctx,id="r"+Date.now().toString(36),d=new Date();
+  const rec={id,stock:h.id,at:`2026-11-17T${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`,pct:+pctOf(h).toFixed(1),concern:ct.concern||"none",
+   decision:ct.dec,memo:(ct.memo||"").trim(),revisit:ct.revisit,lines:summaryLines(c).map(l=>[l[0],l[1]]),path:ct.path.slice(),secs:Math.round((Date.now()-ct.t0)/1000),fb:{}};
+  S.records.push(rec);persist();ct.savedId=id;m.saved=true;refreshWidget(m);renderChrome();toast("판단 기록을 저장했어요");
+  ai(c,{key:"saved",w:"saved",text:"",ch:[{id:"log",l:"판단 기록 모아 보기",pri:1},{id:"fb",l:"짧은 피드백 남기기 (테스트용)"},{id:"restart",l:"처음부터 다시"}],on:"after"});
 }
 
-function vEntry(h){
-  const prior=state.records.filter(r=>r.stock===h.id).sort((a,b)=>b.at.localeCompare(a.at))[0];
-  return [`
-    <h3 class="pt">매수 당시 작성한 투자 기준이 있어요.<br>현재 상황과 함께 확인해 볼까요?</h3>
-    <p class="lead">흔들리는 순간, 시장의 목소리보다 먼저 내가 세운 기준을 꺼내 봅니다. 기준을 지키자는 게 아니라, 지금 정보로 다시 검토해 보자는 거예요.</p>
-    <div class="legend">
-      <div class="r">${srcTag("mine","과거의 나")}<p><b>내가 왜 샀는지</b><br>매수 당시 직접 쓴 기록을 그대로 보여 줘요.</p></div>
-      <div class="r">${srcTag("data","현재의 나")}<p><b>지금 어떤 상황인지</b><br>수익률·비중·보유 기간. ${ASOF}.</p></div>
-      <div class="r">${srcTag("ai","달라진 점")}<p><b>그 사이 무엇이 바뀌었는지</b><br>AI가 정리하며, 추론한 부분은 <span class="tag-inf">추론</span>으로 표시해요.</p></div>
-    </div>
-    ${prior?`<div class="data prior">${srcTag("mine","지난 판단 기록")}<div class="srcline">${prior.at.replace("T"," ").replace(/-/g,".")}</div><div style="font-family:var(--f-mine);font-size:14px;line-height:1.6">“${esc(prior.text)}”</div>${prior.revisit?`<span><span class="due">다시 살펴볼 시점: ${esc(prior.revisit)}</span></span>`:""}</div>`:""}`,
-  `<div class="nav"><button class="btn ghost" data-act="closePanel">지금은 닫기</button><button class="btn pri grow" data-go="record">내 기록부터 보기</button></div>`];
+/* ───────── widgets ───────── */
+const pos=(v,lo,hi)=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));
+const TONE={"+":"긍정적","−":"부정적","±":"긍정·부정 섞임"};
+const W={
+ gauge(h){
+  const p=pctOf(h),r=h.record,lim=r&&r.lossLimit!=null?r.lossLimit:null;
+  const lo=Math.min(-40,Math.floor((Math.min(p,lim??0)-8)/10)*10),hi=Math.max(30,Math.ceil((p+8)/10)*10);
+  const x=pos(p,lo,hi),z=pos(0,lo,hi),L=lim!=null?pos(lim,lo,hi):0,beyond=lim!=null&&p<lim;
+  return `<div class="w deep gauge" data-g="${h.id}">
+   <div class="g-top"><div><div class="lab">현재 수익률 ${tg("data","계좌")}</div><div class="g-big num" data-count="${p.toFixed(1)}">0.0%</div></div>
+    <div class="g-ref"><div class="lab">내가 정한 손실 기준 ${tg("mine","내 기록")}</div><div class="v num">${lim!=null?lim+"%":"정하지 않음"}</div></div></div>
+   <div class="g-bar ${beyond?"beyond":""}" style="--x:${x}%;--z:${z}%;--lim:${L}%;--fl:${Math.min(x,z)}%;--fw:${Math.abs(x-z)}%">
+    ${lim!=null?`<span class="zone"></span><span class="limln"><span>내 기준 ${lim}%</span></span>`:""}<span class="zero"></span><span class="fill"></span><span class="mk"></span></div>
+   <div class="g-scale num"><span>${lo}%</span><span>0%</span><span>+${hi}%</span></div>
+   <div class="g-diff">${lim==null?`<span class="pill info">비교할 기준 없음</span>`:beyond?`<span class="pill warn num">기준보다 ${(lim-p).toFixed(1)}%p 아래</span><span>수익률만으로는 투자 근거가 달라졌는지 알 수 없어요.</span>`:`<span class="pill ok num">기준까지 ${(p-lim).toFixed(1)}%p 여유</span>`}</div>
+   <div class="hchart">${histSVG(h)}</div>
+   <div class="readout"><span class="lab">그래프 위를 움직이거나 점을 눌러 보세요</span>${crossText(h)}</div>
+   <div class="srcline">출처: 가상증권 계좌(가상) · ${ASOF}</div></div>`},
+ record(h,m){
+  const r=h.record,ed=S.edits[h.id]||{},vv=S.valid[h.id]||{};
+  const items=[["reason",r.reasonSum||ITEML.reason,r.reason],["period",r.period||"정하지 않음",r.period?`${r.period} 보유할 생각`:""],["loss",r.lossLimit!=null?`${r.lossLimit}%까지 감수`:"정하지 않음",r.lossLimit!=null?`손실 ${r.lossLimit}%를 넘으면 다시 검토`:""]];
+  if(r.weightCap!=null)items.push(["weight",`${r.weightCap}% 이하`,`한 종목 비중은 ${r.weightCap}%를 넘기지 않기`]);
+  if(r.extra)items.push(["extra",r.extra.v,r.extra.v]);
+  items.push(["review",r.reviewSum||"정하지 않음",r.review]);
+  if(r.memo)items.push(["memo","미래의 나에게",r.memo]);
+  if(!m.openNow)m.openNow=m.openItem?[m.openItem]:[];
+  return `<div class="acc"><div class="ai-sum">${tg("mine",(r.origin==="buy"?"매수 당시 작성 · ":"매수 이후 작성 · ")+r.written)} 각 제목은 원문을 줄인 ${tg("ai","AI 요약")}이에요.</div>
+  ${items.map(([k,sum,orig])=>{const e=ed[k],v=vv[k],isOpen=m.openNow.includes(k),editing=m.editing===k;
+   return `<div class="item ${isOpen?"open":""}"><button class="item-h" data-acc="${m.id}" data-k="${k}" aria-expanded="${isOpen}">
+    <span class="ic">${I[k]||I.memo}</span><span style="min-width:0"><span class="k">${k==="extra"?esc(r.extra.k):ITEML[k]}</span><div class="s">${esc(e?e.text.slice(0,22)+(e.text.length>22?"…":""):sum)}</div></span>
+    <span>${v==="ok"?`<span class="pill ok">유효</span>`:v==="rv"?`<span class="pill warn">다시 볼래요</span>`:e?`<span class="pill info">수정됨</span>`:""}</span>${I.chev}</button>
+    <div class="item-b"><div><div class="item-in">
+     ${orig?`<div class="quote ${e?"old":""}"><div class="meta">${tg("mine","내가 쓴 원문")}<span>${esc(r.written)}</span></div><p>${esc(orig)}</p></div>`:`<div class="muted">기록하지 않은 항목이에요. AI가 대신 채우지 않아요.</div>`}
+     ${e?`<div class="quote"><div class="meta">${tg("mine","수정본")}<span>${esc(e.at)} · 원문은 그대로 보존</span></div><p>${esc(e.text)}</p></div>`:""}
+     ${editing?`<textarea rows="3" data-editta="${m.id}">${esc(e?e.text:orig||"")}</textarea><div class="vrow"><button class="btn pri sm" data-editsave="${m.id}" data-k="${k}">수정본 저장</button><button class="btn sec sm" data-editcancel="${m.id}">취소</button></div>`
+      :`<div class="vrow"><span class="muted">지금 보기에</span><button class="vbtn ok" aria-pressed="${v==="ok"}" data-valid="${m.id}" data-k="${k}" data-v="ok">지금도 유효해요</button><button class="vbtn rv" aria-pressed="${v==="rv"}" data-valid="${m.id}" data-k="${k}" data-v="rv">다시 볼래요</button><button class="vbtn" data-edit="${m.id}" data-k="${k}">수정하기</button></div>`}
+    </div></div></div></div>`}).join("")}</div>`},
+ board(h,m){
+  const dv=deviations(h),dev=dv.filter(d=>d.dev),okd=dv.filter(d=>!d.dev);
+  const nw=h.info.filter(i=>i.ph==="now"),rel=nw.filter(i=>i.rel==="direct"),unk=h.unknowns,c=S.conv[m.stock];
+  const cats=[["dev","기준에서 벗어난 부분",dev.length],["new","새롭게 발생한 정보",nw.length],["rel","투자 근거와 관련된 변화",rel.length],["unk","아직 확인되지 않은 부분",unk.length]];
+  const cur=m.open||"dev",oi=m.oi||null;
+  const infoItem=i=>`<div class="bi ${oi===i.id?"open":""}"><button class="bi-h" data-bi="${m.id}" data-i="${i.id}"><span>${esc(i.t)}<small>${esc(i.d)} · ${esc(i.src)} · ${TONE[i.tone]||""}</small></span>${I.chev}</button>
+    <div class="item-b"><div><div class="item-in"><div class="why">${tg("ai","AI 분류 · 추론")} ${esc(i.link||"")}</div><span class="srcline">출처: ${esc(i.src)} (가상) · 판단 전에 원문 확인을 권해요</span></div></div></div></div>`;
+  let list="";
+  if(cur==="dev"){
+   if(!h.record)list=`<div class="muted">직접 정한 기준이 없어 벗어남을 판단할 수 없어요.</div>`;
+   else list=(dev.length?dev.map(d=>`<div class="bi ${oi===d.k?"open":""}"><button class="bi-h" data-bi="${m.id}" data-i="${d.k}"><span><b>${d.lbl}</b> · 기준 ${esc(d.past)} → 지금 ${esc(d.now)}<small>${esc(d.txt)}</small></span>${I.chev}</button>
+     <div class="item-b"><div><div class="item-in"><div>기준값은 ${tg("mine","내 기록")}, 현재값은 ${tg("data","계좌 데이터")}에서 왔어요.</div><div class="why">${tg("ai","AI")} 벗어났다는 사실만 보여 드려요. 기준을 지킬지, 바꿀지는 정하지 않아요.</div></div></div></div></div>`).join(""):`<div class="muted">벗어난 기준이 없어요.</div>`)
+     +(okd.length?`<div class="muted">범위 안 · ${okd.map(d=>`${d.lbl}: ${d.txt}`).join(" · ")}</div>`:"");
+  }else if(cur==="new")list=nw.map(infoItem).join("")+(h.info.some(i=>i.ph==="then")?`<div class="muted">매수 당시 알던 정보 · ${h.info.filter(i=>i.ph==="then").map(i=>`${esc(i.t)} (${i.d.slice(5)})`).join(" · ")}</div>`:"");
+  else if(cur==="rel")list=rel.length?rel.map(infoItem).join(""):`<div class="muted">${h.record&&h.record.origin==="later"?"직접 적은 매수 이유와 어떤 정보가 연결되는지 AI는 판단하지 않았어요. ‘새롭게 발생한 정보’를 보고 직접 연결해 보세요.":"투자 근거와 직접 연결된 새 정보가 없어요."}</div>`;
+  else list=unk.map((u,k)=>{const inL=c&&c.ctx.toCheck.includes(u.t);return `<div class="bi ${oi==="u"+k?"open":""}"><button class="bi-h" data-bi="${m.id}" data-i="u${k}"><span>${esc(u.t)}<small>확인 전</small></span>${I.chev}</button><div class="item-b"><div><div class="item-in"><div class="why">${tg("ai","AI")} ${esc(u.why)}</div><button class="btn sec sm" style="justify-self:start" data-addchk="${m.id}" data-k="${k}">${inL?"확인할 목록에 담김 ✓":"확인할 목록에 담기"}</button></div></div></div></div>`}).join("");
+  return `<div class="w card"><div class="cats">${cats.map(x=>`<button class="cat c-${x[0]}" aria-pressed="${cur===x[0]}" data-cat="${m.id}" data-v="${x[0]}"><span class="n num"><i></i>${x[2]}</span><span class="l">${x[1]}</span></button>`).join("")}</div>
+   <div class="blist" data-cur="${cur}">${list}</div>
+   <div class="srcline">모든 정보는 프로토타입용 가상 예시 · ${ASOF}</div></div>`},
+ weight(h,m){
+  const r=h.record,cap=r&&r.weightCap!=null?r.weightCap:null,x=m.x||0,w0=weightOf(h),w1=(evalOf(h)+x)/TOTAL*100,mx=wMax(w1);
+  return `<div class="w deep"><div class="wrow"><div><div class="lab">추가 금액 (가정)</div><div class="v num" data-wx>${won(x)}원</div></div><div style="text-align:right"><div class="lab">계산된 비중</div><div class="v num" data-wv>${w1.toFixed(1)}%</div></div></div>
+   <input type="range" min="0" max="${CASH}" step="50000" value="${x}" data-wslide="${m.id}" aria-label="추가 금액">
+   <div class="wbar ${cap!=null&&w1>cap?"over":""}" data-wbar><span class="cur" style="width:${w0/mx*100}%"></span><span class="add" style="left:${w0/mx*100}%;width:${(w1-w0)/mx*100}%"></span>${cap!=null?`<span class="cap" style="left:${cap/mx*100}%"><span>내 상한 ${cap}%</span></span>`:""}</div>
+   <div class="g-diff" data-wnote>${wNote(w0,w1,cap)}</div>
+   ${r&&(r.extra||r.memo)?`<div class="readout">${r.extra?`<span class="lab">${tg("mine","내 기록")} ${esc(r.extra.k)}</span>${esc(r.extra.v)}`:""}${r.memo?`<span class="lab" style="margin-top:4px">미래의 나에게 남긴 메모</span>${esc(r.memo)}`:""}</div>`:""}
+   <div class="srcline">예수금 ${won(CASH)}원 안에서 단순 계산 · 수수료·가격 변동 미반영 · 가상 데이터</div></div>`},
+ sort(h,m){
+  const it=h.info.filter(i=>i.ph==="now"),g=m.g||{},AIL={fact:"사실 (공시·뉴스)",market:"사실 (시장 데이터)",opinion:"의견"};
+  const done=it.filter(i=>g[i.id]).length;
+  return `<div class="w card"><div class="w-h"><b>사실일까, 의견일까?</b><span class="pill num">${done}/${it.length}</span></div>
+   ${it.map(i=>{const u=g[i.id],aiF=i.kind==="opinion"?"op":"fact";return `<div class="si"><div class="t">${esc(i.t)}<div class="srcline">${esc(i.d)} · ${esc(i.src)} (가상)</div></div>
+    <div class="vrow"><button class="vbtn ok" aria-pressed="${u==="fact"}" data-sort="${m.id}" data-i="${i.id}" data-v="fact">사실</button><button class="vbtn rv" aria-pressed="${u==="op"}" data-sort="${m.id}" data-i="${i.id}" data-v="op">의견</button>
+    ${u?`<span class="res">${tg("ai","AI 분류 · 추론")} ${AIL[i.kind]}${u!==aiF?" · 내 분류와 달라요":""}</span>`:""}</div></div>`}).join("")}
+   ${done===it.length?`<div class="why">${tg("ai","AI")} 의견 ${it.filter(i=>i.kind==="opinion").length}개, 사실 ${it.filter(i=>i.kind!=="opinion").length}개예요. 의견이 바뀌었다고 사업이 바뀐 것은 아니고, 의견이 그대로여도 사실은 바뀔 수 있어요.</div>`:""}</div>`},
+ snap(h){
+  const p=pctOf(h),r=h.record,m=monthsBetween(h.buyDate,NOW),pm=r&&r.periodM?Math.max(1,r.periodM[0]):12,frac=Math.min(1,m/pm),nw=h.info.filter(i=>i.ph==="now").length,C=2*Math.PI*17;
+  return `<div class="tiles">
+   <button class="tile" data-jump="gauge"><span class="lab">수익률 vs 내 기준</span><span class="v num">${sgn(p)}%</span><span class="l">${r&&r.lossLimit!=null?`내 기준 ${r.lossLimit}%`:"기준 없음"}</span></button>
+   <button class="tile" data-jump="record"><svg class="ring" viewBox="0 0 42 42" aria-hidden="true"><circle cx="21" cy="21" r="17" fill="none" stroke="var(--pn-line)" stroke-width="5"/><circle cx="21" cy="21" r="17" fill="none" stroke="var(--lime)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(C*frac).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 21 21)"/></svg><span class="l">보유 ${m}개월 · 계획 ${esc(r&&r.period||"없음")}</span></button>
+   <button class="tile" data-jump="board"><span class="lab">새 정보</span><span class="v num">${nw}건</span><span class="l">사실·의견 섞임</span></button></div>`},
+ mini(h,m){return `<div class="blist">${m.items.map(id=>{const i=h.info.find(x=>x.id===id);return `<div class="bi"><div class="bi-h"><span>${esc(i.t)}<small>${esc(i.d)} · ${esc(i.src)} (가상)</small></span></div></div>`}).join("")}</div>`},
+ past(h){const L=S.records.filter(r=>r.stock===h.id).sort((a,b)=>b.at.localeCompare(a.at));
+  return L.length?`<div class="log">${L.map(r=>recHTML(r,false)).join("")}</div>`:`<div class="muted">이 종목에 남긴 판단 기록이 아직 없어요.</div>`},
+ emptyRec(){return `<div class="w card"><div class="w-h"><b>그때 내가 정한 기준</b><span class="pill info">기록 없음</span></div>
+   ${["매수 이유","투자 기간","손실 허용 범위","재검토 조건"].map(l=>`<div class="vrow" style="justify-content:space-between"><span class="muted">${l}</span><span class="muted">—</span></div>`).join("")}</div>`},
+ lossPick(h,m){const done=!!m.done;return `<div class="w card"><div class="wrow"><div class="lab">감수할 수 있는 손실</div><div class="v num" data-lpv>${m.none?"정하지 않음":m.lp+"%"}</div></div>
+   <input type="range" min="-50" max="-5" step="1" value="${m.lp}" data-lp="${m.id}" aria-label="손실 허용 범위" ${done?"disabled":""}>
+   <div class="g-scale" style="color:var(--pn-sub)"><span>−50%</span><span>−5%</span></div>
+   ${done?"":`<div class="vrow"><button class="btn pri sm" data-lpok="${m.id}">이 기준으로 정하기</button><button class="btn sec sm" data-lpnone="${m.id}">정하지 않을래요</button></div>`}
+   <div class="muted">AI가 추천하는 값은 없어요. 지금 수익률(${sgn(pctOf(h))}%)과 관계없이 정해도 돼요.</div></div>`},
+ sum(h,m){
+  const c=S.conv[m.stock],L=summaryLines(c),ct=c.ctx;
+  const dot={mine:["✎","var(--pn-card-2)","var(--pn-ink)"],warn:["!","var(--warn-soft)","var(--warn-text)"],ok:["✓","var(--acc-soft)","var(--acc)"],info:["?","var(--info-soft)","var(--info-text)"],rv:["↺","var(--pn-card-2)","var(--pn-ink)"],none:["–","var(--pn-card-2)","var(--pn-sub)"]};
+  const lines=(m.lines||L).map(l=>`<div class="sum-r"><span class="d" style="background:${dot[l[2]][1]};color:${dot[l[2]][2]}">${dot[l[2]][0]}</span><div><div class="k">${esc(l[0])}</div><div class="v">${esc(l[1])}</div></div></div>`).join("");
+  if(m.saved)return `<div class="w card"><div class="sum-l">${lines}<div class="sum-r"><span class="d" style="background:var(--me-bub);color:var(--me-ink)">✓</span><div><div class="k">내 선택</div><div class="v">${esc(DECS.find(d=>d[0]===ct.dec)[1])}</div></div></div></div></div>`;
+  return `<div class="w card"><div class="w-h"><b>오늘 확인한 내용</b>${tg("ai","AI가 대화를 정리")}</div><div class="sum-l">${lines}</div></div>
+   <div class="w card"><div class="w-h"><b>그래서 지금 나는</b>${tg("mine","내가 선택")}</div>
+   <div class="dec">${DECS.map(d=>`<button aria-pressed="${ct.dec===d[0]}" data-dec="${m.id}" data-v="${d[0]}"><span class="rd"></span><span>${d[1]}<small>${d[2]}</small></span></button>`).join("")}</div>
+   <label class="lab" for="memo-${m.id}">내 메모 (선택)</label>
+   <textarea id="memo-${m.id}" rows="3" data-memo="${m.id}" placeholder="예: 손실 기준은 넘었지만 성장 근거가 훼손됐는지 3분기 실적 원문을 읽고 다시 보겠다.">${esc(ct.memo||"")}</textarea>
+   <div class="lab">다시 살펴볼 시점 (선택)</div>
+   <div class="choices">${["1주 후","다음 실적 발표 후","한 달 후"].map(x=>`<button class="chip" aria-pressed="${ct.revisit===x}" data-rv="${m.id}" data-v="${x}">${x}</button>`).join("")}</div>
+   <button class="btn lime" data-savesum="${m.id}" ${ct.dec?"":"disabled"}>판단 기록 저장</button>
+   ${ct.dec?"":`<div class="muted" style="text-align:center">위 네 가지 중 하나를 고르면 저장할 수 있어요.</div>`}</div>`},
+ saved(){return `<div class="w card saved"><svg viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="26"/><path d="M15 27l7 7 15-16"/></svg><b>판단 기록을 저장했어요</b><span class="muted">다음에 이 종목이 흔들릴 때, 오늘의 기록이 ‘지난 판단’으로 함께 보여요.</span></div>`},
+ fb(h,m){const r=S.records.find(x=>x.id===m.rid)||{fb:{}};
+  return `<div class="w card likert">${FB.map(f=>`<div class="lk"><p>${f[1]}</p><div class="scale">${[1,2,3,4,5].map(n=>`<button aria-pressed="${!!(r.fb&&r.fb[f[0]]===n)}" data-fb="${m.id}" data-k="${f[0]}" data-n="${n}">${n}</button>`).join("")}</div><div class="scale-l"><span>전혀 아니다</span><span>매우 그렇다</span></div></div>`).join("")}</div>`}
+};
+const FB=[["h1","매수 당시 기록을 다시 보는 것이 도움이 되었다","회상"],["h2","기준과 현재를 나란히 보니 상황이 더 잘 이해되었다","비교"],["h3","판단의 주도권이 나에게 있다고 느꼈다","주도권"],["h4","AI가 지나치게 개입한다고 느꼈다","개입감"]];
+const wMax=w1=>Math.max(60,Math.ceil((w1+8)/10)*10);
+function wNote(w0,w1,cap){if(cap==null)return `<span class="pill info">직접 정한 비중 상한이 없어요</span>`;
+  if(w1>cap)return `<span class="pill warn num">내 상한보다 ${(w1-cap).toFixed(1)}%p 높음</span>${w0>cap?`<span>추가하지 않아도 이미 상한을 넘은 상태예요.</span>`:""}`;
+  return `<span class="pill ok num">상한까지 ${(cap-w1).toFixed(1)}%p</span>`}
+
+/* history chart */
+const histData=h=>SER[h.id].map(v=>(v/h.avg-1)*100);
+function histGeo(h){const d=histData(h),lim=h.record&&h.record.lossLimit!=null?h.record.lossLimit:null,Wd=360,Hd=120,pl=4,pr=34,pt=8,pb=16,lo=Math.min(...d,lim??0)-4,hi=Math.max(...d,0)+4;
+  return {d,lim,Wd,Hd,pl,pr,pt,pb,X:i=>pl+i*(Wd-pl-pr)/(d.length-1),Y:v=>pt+(hi-v)/(hi-lo)*(Hd-pt-pb)}}
+function crossText(h){const r=h.record;if(!r||r.lossLimit==null)return "";const d=histData(h),i=d.findIndex(v=>v<r.lossLimit);
+  if(i<0)return `<div>보유 기간 동안 내 기준선 아래로 내려간 날은 없어요.</div>`;const dt=new Date(h.buyDate);dt.setDate(dt.getDate()+i);
+  return `<div>${md(dt)}에 처음 내 기준선(${r.lossLimit}%) 아래로 내려갔어요.</div>`}
+function histSVG(h){
+  const g=histGeo(h),{d,lim,Wd,Hd,pl,pr,pt,pb,X,Y}=g;
+  const evs=h.info.filter(i=>{const t=pd(i.d);return t&&t>=h.buyDate&&t<=NOW}).map(i=>({i,k:Math.min(d.length-1,daysBetween(h.buyDate,pd(i.d)))}));
+  return `<svg viewBox="0 0 ${Wd} ${Hd}" data-hist="${h.id}" role="img" aria-label="보유 기간 수익률 추이와 내 기준선">
+   ${lim!=null?`<rect x="${pl}" y="${Y(lim)}" width="${Wd-pl-pr}" height="${Math.max(0,Hd-pb-Y(lim))}" fill="var(--warn)" opacity=".13"/><line x1="${pl}" x2="${Wd-pr}" y1="${Y(lim)}" y2="${Y(lim)}" stroke="var(--deep-ink)" stroke-dasharray="3 3" opacity=".8"/><text x="${Wd-pr+4}" y="${Y(lim)+3}" font-size="9" fill="var(--deep-ink)">${lim}%</text>`:""}
+   <line x1="${pl}" x2="${Wd-pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--deep-sub)" opacity=".5"/><text x="${Wd-pr+4}" y="${Y(0)+3}" font-size="9" fill="var(--deep-sub)">0%</text>
+   <polyline points="${d.map((v,i)=>`${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ")}" fill="none" stroke="var(--lime)" stroke-width="1.8" stroke-linejoin="round"/>
+   <line class="cur" x1="0" x2="0" y1="${pt}" y2="${Hd-pb}" stroke="var(--deep-ink)" opacity="0"/><circle class="curd" r="3.5" fill="var(--deep-ink)" opacity="0"/>
+   ${evs.map(e=>`<g class="ev" data-ev="${e.i.id}" data-hs="${h.id}" tabindex="0" role="button" aria-label="${esc(e.i.t)}"><circle cx="${X(e.k)}" cy="${Y(d[e.k])}" r="10" fill="transparent"/><circle cx="${X(e.k)}" cy="${Y(d[e.k])}" r="4.5" fill="var(--deep)" stroke="${e.i.kind==="opinion"?"var(--info)":"var(--deep-ink)"}" stroke-width="2"/></g>`).join("")}
+   <circle cx="${X(d.length-1)}" cy="${Y(d[d.length-1])}" r="4" fill="var(--lime)"/>
+   <text x="${pl}" y="${Hd-3}" font-size="9" fill="var(--deep-sub)">${md(h.buyDate)} 매수</text><text x="${Wd-pr}" y="${Hd-3}" font-size="9" fill="var(--deep-sub)" text-anchor="end">11.17</text></svg>`;
+}
+function scrub(svg,clientX){
+  const h=H[svg.dataset.hist],g=histGeo(h),{d,lim,Wd,pl,pr,X,Y}=g,rc=svg.getBoundingClientRect();
+  const xv=(clientX-rc.left)/rc.width*Wd,i=Math.max(0,Math.min(d.length-1,Math.round((xv-pl)/(Wd-pl-pr)*(d.length-1))));
+  const c=svg.querySelector(".cur"),cd=svg.querySelector(".curd");c.setAttribute("x1",X(i));c.setAttribute("x2",X(i));c.setAttribute("opacity",".5");cd.setAttribute("cx",X(i));cd.setAttribute("cy",Y(d[i]));cd.setAttribute("opacity","1");
+  const dt=new Date(h.buyDate);dt.setDate(dt.getDate()+i);
+  svg.closest(".gauge").querySelector(".readout").innerHTML=`<span class="lab">${md(dt)} · 보유 ${i}일째</span><b class="num">${sgn(d[i])}%</b>${lim!=null?` · ${d[i]<lim?`<span style="color:var(--warn)">내 기준보다 ${(lim-d[i]).toFixed(1)}%p 아래</span>`:`내 기준까지 ${(d[i]-lim).toFixed(1)}%p`}`:""}`;
+}
+function showEv(el){const h=H[el.dataset.hs],i=h.info.find(x=>x.id===el.dataset.ev);const ro=el.closest(".gauge").querySelector(".readout");
+  ro.innerHTML=`<span class="lab">${esc(i.d)} · ${esc(i.src)} (가상)</span>${esc(i.t)}${i.link?`<div style="margin-top:4px;color:var(--deep-sub)">${tg("ai","추론")} ${esc(i.link)}</div>`:""}`}
+
+function mount(el,m,anim){
+  if(m.w!=="gauge")return;const g=el.querySelector(".gauge"),cnt=el.querySelector("[data-count]");if(!g)return;const tgt=+cnt.dataset.count;
+  if(!anim||RM){g.classList.add("in");cnt.textContent=sgn(tgt)+"%";return}
+  requestAnimationFrame(()=>requestAnimationFrame(()=>g.classList.add("in")));const t0=performance.now();
+  const step=t=>{const k=Math.min(1,(t-t0)/900),e=1-Math.pow(1-k,3);cnt.textContent=sgn(tgt*e)+"%";if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step);
 }
 
-function recordCard(h){
-  const r=h.record;
-  return `<div class="mine">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">${srcTag("mine","내가 쓴 기록 · 원문")}<span class="when">${esc(r.written)}</span></div>
-    <div class="quote">“${esc(r.reason)}”</div>
-    <dl>
-      <dt>투자 기간</dt><dd>${esc(r.period||"정하지 않음")}</dd>
-      <dt>손실 허용</dt><dd>${r.lossLimit!=null&&r.lossLimit!==""?esc(r.lossLimit)+"%":"정하지 않음"}</dd>
-      ${r.weightCap!=null&&r.weightCap!==""?`<dt>비중 상한</dt><dd>${esc(r.weightCap)}% 이하</dd>`:""}
-      ${r.extra?`<dt>${esc(r.extra.k)}</dt><dd>${esc(r.extra.v)}</dd>`:""}
-      <dt>재검토 조건</dt><dd>${esc(r.review||"정하지 않음")}</dd>
-    </dl>
-    ${r.memo?`<div class="memo"><span class="when">미래의 나에게 남긴 메모</span><br>${esc(r.memo)}</div>`:""}
-  </div>`;
+/* ───────── archive ───────── */
+const CL={loss:"손실 걱정",reason:"투자 이유 확인",opinion:"외부 의견",addbuy:"추가 매수 고민",vague:"막연한 불안",none:"기준 없이 확인"};
+function recHTML(r,expandable){
+  const h=H[r.stock],at=r.at.replace("T"," ").replace(/-/g,"."),dec=DECS.find(d=>d[0]===r.decision),open=expandable&&S.openRec===r.id;
+  const head=`<div class="top"><b>${esc(h.name)}</b><span class="num">${at}</span></div>
+   <div class="pls"><span class="pill ${dec&&dec[0]==="review"?"warn":dec&&dec[0]==="keep"?"ok":"info"}">${esc(dec?dec[1]:"선택 없음")}</span><span class="pill num">기록 당시 ${sgn(r.pct)}%</span><span class="pill num">지금 ${sgn(pctOf(h))}%</span>${r.seed?`<span class="pill">예시 기록</span>`:""}</div>
+   ${r.memo?`<div class="memo">“${esc(r.memo)}”</div>`:""}${r.revisit?`<div class="pls"><span class="pill info">다시 살펴볼 시점 · ${esc(r.revisit)}</span></div>`:""}`;
+  if(!expandable)return `<div class="rec"><div class="rec-h">${head}</div></div>`;
+  return `<div class="rec ${open?"open":""}"><button class="rec-h" data-rec="${r.id}" aria-expanded="${open}">${head}</button>
+  <div class="item-b"><div><div class="item-in">
+   ${r.concern?`<div class="kv"><span class="k">신경 쓰인 부분</span><span>${CL[r.concern]||esc(r.concern)}</span></div>`:""}
+   ${(r.lines||[]).map(l=>`<div class="kv"><span class="k">${esc(l[0])}</span><span>${esc(l[1])}</span></div>`).join("")}
+   ${r.secs?`<div class="kv"><span class="k">과정 (테스트용)</span><span class="num">${r.secs}초 · 응답 ${r.path?r.path.length:0}회</span></div>`:""}
+   ${r.fb&&Object.keys(r.fb).length?`<div class="kv"><span class="k">피드백 (1–5)</span><span class="num">${Object.entries(r.fb).map(e=>`${(FB.find(f=>f[0]===e[0])||[0,0,e[0]])[2]} ${e[1]}`).join(" · ")}</span></div>`:""}
+  </div></div></div></div>`;
 }
-function vRecord(h){
-  const s=state.s, r=h.record;
-  const recallOpts=[["clear","분명히 기억나요"],["vague","어렴풋이 기억나요"],["no","잘 기억나지 않아요"]];
-  const imp=[["reason","매수 이유"],["period","투자 기간"],["loss","손실 허용 범위"]].concat(r.weightCap!=null&&r.weightCap!==""?[["weight","종목 비중"]]:[]).concat(r.extra?[["extra",r.extra.k]]:[]).concat([["review","재검토 조건"]]).concat(r.memo?[["memo","나에게 남긴 메모"]]:[]);
-  return [`
-    <h3 class="pt">${r.origin==="buy"?"매수 당시":"보유 중"} 내가 남긴 기록</h3>
-    <p class="lead">AI가 요약하거나 고쳐 쓰지 않은 원문이에요. ${r.origin==="buy"?"":"이 기준은 매수 이후에 작성되었어요."}</p>
-    <div class="recall">${recordCard(h)}
-      ${s.revealed?"":`<div class="cover"><p>기록을 펼치기 전에,<br>이 종목을 왜 샀는지 기억나나요?</p>
-        <div class="chips" style="justify-content:center">${recallOpts.map(o=>`<button class="chip" data-recall="${o[0]}">${o[1]}</button>`).join("")}</div>
-        <button class="link" data-recall="skip">바로 기록 보기</button></div>`}
-    </div>
-    ${s.revealed?`<div class="field"><p class="qlabel">지금 가장 중요하게 느껴지는 기준은 무엇인가요?</p><p class="qhint">여러 개 골라도 되고, 고르지 않아도 돼요.</p>
-      <div class="chips">${imp.map(o=>`<button class="chip" aria-pressed="${s.important.includes(o[0])}" data-imp="${o[0]}">${esc(o[1])}</button>`).join("")}</div></div>`:""}`,
-  `<div class="nav"><button class="btn sec" data-go="entry">이전</button><button class="btn pri grow" data-go="compare" ${s.revealed?"":"disabled"}>현재 상황과 비교하기</button></div>`];
-}
-
-function vCompare(h){
-  const s=state.s, rows=compare(h), p=pctOf(h);
-  const seg=`<div class="seg" role="tablist" aria-label="보기 방식"><button class="${s.view==="compare"?"on":""}" data-view="compare">기준과 함께 보기</button><button class="${s.view==="only"?"on":""}" data-view="only">수익률만 보기</button></div>`;
-  if(s.view==="only") return [`<h3 class="pt">지금의 수익률</h3>${seg}
-    <div class="only">${srcTag("data","계좌 데이터")}<div class="big ${cls(p)}" style="color:var(--pn-ink)">${sgn(p)}%</div><div class="num" style="font-size:13px;color:var(--pn-sub)">평가손익 ${won(evalOf(h)-costOf(h))}원 · 평가금액 ${won(evalOf(h))}원</div><div class="srcline">출처: 가상증권 계좌 · ${ASOF}</div></div>
-    <p class="lead">기존 증권 화면에서 보던 정보예요. 이 숫자만으로는 내 기준과의 관계나 투자 근거의 변화를 알기 어려워요. ‘기준과 함께 보기’로 바꿔 차이를 비교해 보세요.</p>`,
-    `<div class="nav"><button class="btn sec" data-go="record">이전</button><button class="btn pri grow" data-view="compare">기준과 함께 보기</button></div>`];
-  const nIn=rows.filter(r=>r.st==="in").length,nDiff=rows.filter(r=>r.st==="diff").length,nChk=rows.filter(r=>r.st==="check").length;
-  const lossRow=rows.find(r=>r.k==="loss"&&r.bar);
-  const rowHTML=rows.map(r=>{
-    let bar="";
-    if(r.bar){const lo=Math.min(-40,Math.floor((Math.min(r.bar.pct,r.bar.lim)-5)/10)*10),hi=Math.max(20,Math.ceil((r.bar.pct+5)/10)*10),pos=v=>((v-lo)/(hi-lo)*100);
-      const a=Math.min(pos(0),pos(r.bar.pct)),b=Math.max(pos(0),pos(r.bar.pct));
-      bar=`<div class="gap-bar" aria-hidden="true"><span class="cur ${r.st==="in"?"ok":""}" style="left:${a}%;width:${b-a}%"></span><span class="lim" style="left:${pos(r.bar.lim)}%" title="내 기준"></span></div>
-        <div class="gap-scale"><span>${lo}%</span><span>기준 ${r.bar.lim}% │ 0%</span><span>+${hi}%</span></div>`}
-    return `<div class="cmp-row"><div class="cmp-lbl"><span>${esc(r.lbl)}</span><span class="st ${r.st}">${esc(r.stl)}</span></div>
-      <div class="cmp-vals"><div class="past">${esc(r.past)}</div><div class="now ${r.nowTxt?"txt":""}">${esc(r.now)}</div></div>${bar}
-      <div class="cmp-note">${esc(r.note)}</div></div>`}).join("");
-  const then=h.info.filter(i=>i.ph==="then"), now=h.info.filter(i=>i.ph==="now");
-  const relL={direct:"투자 근거와 직접 관련",indirect:"시장 전반 · 간접 관련",opinion:"의견 · 사실 확인 필요",unknown:"관련성 판단 보류"};
-  const dirL={"+":"긍정적 정보","−":"부정적 정보","±":"긍정·부정 혼재","?":"아직 확인되지 않음"};
-  const item=i=>`<div class="tl-i ${i.ph}"><span class="dot"></span><div><div class="t">${esc(i.t)}</div><div class="m"><span class="srcline">${esc(i.d)} · ${esc(i.src)}</span><span class="dir">${dirL[i.dir]}</span>${i.ph==="now"?`<span class="rel">${relL[i.rel]} <b>· 추론</b></span>`:""}</div></div></div>`;
-  return [`
-    <h3 class="pt">과거의 나와 지금의 나</h3>
-    ${seg}
-    <div class="cmp">
-      <div class="cmp-h"><div>${IC.mine}그때 내가 정한 기준</div><div>${IC.data}지금 · ${ASOF.replace(" 기준","")}</div></div>
-      ${rowHTML}
-    </div>
-    <div class="srcline">현재 수치 출처: 가상증권 계좌 · 비중은 총 자산(예수금 포함) 대비 평가금액</div>
-    <div class="data">
-      ${srcTag("ai","기록 이후 달라진 정보")}
-      <div class="tl">
-        <div class="tl-h">매수 당시 알던 정보</div>${then.length?then.map(item).join(""):`<p class="qhint">매수 당시 정보가 기록되어 있지 않아요.</p>`}
-        <div class="tl-h">이후 새로 나온 정보</div>${now.map(item).join("")}
-      </div>
-      <p class="qhint">관련성 분류는 AI의 추론이에요. 사실 여부와 의미는 원문 출처에서 직접 확인해 주세요.</p>
-    </div>
-    <div class="ai">${srcTag("ai","AI 정리")}<span class="tag-inf" style="justify-self:start;margin:0">결론 아님 · 비교 결과</span>
-      <p>직접 정한 기준 ${rows.length}개 중 <b>${nIn}개는 기준 안</b>, <b>${nDiff}개는 기준과 차이</b>, <b>${nChk}개는 직접 확인이 필요</b>해요.</p>
-      ${lossRow&&lossRow.st==="diff"?`<p>${esc(lossRow.note)}</p>`:""}
-      <p>기록 이후 나온 정보에는 투자 근거와 직접 관련된 것과 시장 전반·외부 의견이 섞여 있어요. 이 정리는 어떤 행동이 맞는지 판단하지 않아요.</p>
-    </div>`,
-  `<div class="nav"><button class="btn sec" data-go="record">이전</button><button class="btn pri grow" data-go="questions">판단을 돕는 질문 보기</button></div>`];
-}
-
-function vQuestions(h){
-  const s=state.s, qs=h.q.slice(0,s.qShown), left=h.q.length-s.qShown;
-  return [`
-    <h3 class="pt">스스로 판단하는 데 도움이 될 질문</h3>
-    <p class="lead">정답이 있는 질문이 아니에요. 답하지 않아도 다음으로 넘어갈 수 있어요.</p>
-    ${qs.map((q,i)=>`<div class="qcard">
-      <div style="display:flex;justify-content:space-between;align-items:center">${srcTag("ai","AI가 고른 질문")}<span class="qn">${i+1} / ${h.q.length}</span></div>
-      <p class="qt">${esc(q.t)}</p>
-      <details><summary>왜 이 질문인가요? <span class="tag-inf">추론</span></summary><p>${esc(q.why)}</p></details>
-      <textarea id="note-${h.id}-${i}" data-note="${i}" rows="2" placeholder="내 생각 (선택) · 짧게 적어도 괜찮아요">${esc(s.notes[i]||"")}</textarea>
-    </div>`).join("")}
-    ${left>0?`<button class="btn sec sm" data-act="moreQ" style="justify-self:start">질문 하나 더 보기 (${left}개 남음)</button>`:""}`,
-  `<div class="nav"><button class="btn sec" data-go="compare">이전</button><button class="btn pri grow" data-go="decide">내 판단 정리하기</button></div>`];
-}
-
-const CHOICES=[
-  ["basis","기존 투자 근거를 다시 확인하고 싶다","매수 이유가 지금도 유효한지 스스로 점검"],
-  ["info","달라진 정보가 무엇인지 더 확인하고 싶다","원문 공시·실적 등 출처를 직접 확인"],
-  ["criteria","내 투자 기준을 재검토하고 싶다","손실 허용 범위·기간·비중 등을 다시 생각"],
-  ["record","현재 판단을 기록하고 나중에 다시 살펴보고 싶다","지금의 생각을 남겨 두고 정해 둔 시점에 다시 보기"]
-];
-const REVISIT=["1주 후","다음 실적 발표 후","한 달 후","정하지 않음"];
-function vDecide(h){
-  const s=state.s, ok=s.text.trim().length>=5;
-  return [`
-    <h3 class="pt">지금 나는 어떻게 판단하고 있나요?</h3>
-    <p class="lead">매수·매도 버튼이 아니라 생각의 다음 단계를 고르는 선택지예요. 여러 개 골라도 돼요.</p>
-    <div class="opts">${CHOICES.map(c=>`<button class="opt" aria-pressed="${s.choices.includes(c[0])}" data-choice="${c[0]}"><span class="box">${IC.check}</span><span><b>${c[1]}</b><span>${c[2]}</span></span></button>`).join("")}</div>
-    ${s.choices.includes("criteria")?`<div class="field"><label for="critEdit">바꾸고 싶은 기준이 있다면 직접 적어 두세요 (선택)</label>
-      <input type="text" id="critEdit" data-field="criteriaEdit" value="${esc(s.criteriaEdit)}" placeholder="예: 손실 허용 범위를 다시 정하기 전에 3분기 실적 원문부터 읽기">
-      <span class="help">원래 기록은 그대로 보존되고, 변경 메모는 이번 판단 기록에 함께 저장돼요.</span></div>`:""}
-    <div class="field"><label for="judgeText">${IC.mine.replace('<svg','<svg style="width:12px;height:12px;vertical-align:-1px"')} 나의 판단 기록</label>
-      <textarea id="judgeText" class="mine-input" data-field="text" placeholder="예: 현재 손실은 기준을 벗어났지만, 사업의 성장 근거가 훼손되었는지 추가 확인한 뒤 내 기준을 다시 검토하겠다.">${esc(s.text)}</textarea>
-      <span class="help">AI는 이 기록을 고쳐 쓰거나 평가하지 않아요.</span></div>
-    <div class="field"><label>다시 살펴볼 시점</label><div class="chips">${REVISIT.map(r=>`<button class="chip" aria-pressed="${s.revisit===r}" data-revisit="${r}">${r}</button>`).join("")}</div></div>`,
-  `<div class="nav"><button class="btn sec" data-go="questions">이전</button><button class="btn pri grow" id="saveBtn" data-act="save" ${ok?"":"disabled"}>판단 기록 저장</button></div>
-   <div class="disc" id="saveHint" ${ok?"hidden":""}>판단 기록을 5자 이상 쓰면 저장할 수 있어요.</div>`];
-}
-
-const choiceLabel=k=>(CHOICES.find(c=>c[0]===k)||[,k])[1];
-const impLabel={reason:"매수 이유",period:"투자 기간",loss:"손실 허용 범위",weight:"종목 비중",extra:"추가 조건",review:"재검토 조건",memo:"나에게 남긴 메모"};
-const recallLabel={clear:"분명히 기억남",vague:"어렴풋이 기억남",no:"잘 기억나지 않음",skip:"건너뜀"};
-function recCard(r,expand){
-  const h=H[r.stock]; const at=r.at.replace("T"," ").replace(/-/g,".");
-  const nowP=pctOf(h);
-  const tr=r.trace?Object.entries(r.trace).filter(e=>e[0]!=="done").map(e=>`${({entry:"진입",record:"내 기록",compare:"비교",questions:"질문",decide:"판단"})[e[0]]||e[0]} ${Math.round(e[1]/1000)}초`).join(" · "):"";
-  return `<div class="rec">
-    <div class="rec-h"><b>${esc(h.name)}</b><span class="num">${at}</span></div>
-    <div class="snap"><span class="kv num">기록 당시 ${sgn(r.pct)}%</span><span class="kv num">지금 ${sgn(nowP)}%</span>${(r.diffs||[]).map(d=>`<span class="kv">${esc(d)}</span>`).join("")}${r.seed?`<span class="kv">예시 기록</span>`:""}</div>
-    <div class="txt">${esc(r.text)}</div>
-    <div class="snap">${(r.choices||[]).map(c=>`<span class="kv">${esc(choiceLabel(c))}</span>`).join("")}${r.revisit?`<span class="due">다시 살펴볼 시점: ${esc(r.revisit)}</span>`:""}</div>
-    ${expand?`<div class="more">
-      ${r.criteriaEdit?`<div><span class="k">기준 변경 메모</span><span>${esc(r.criteriaEdit)}</span></div>`:""}
-      ${r.important&&r.important.length?`<div><span class="k">중요하게 본 기준</span><span>${r.important.map(k=>impLabel[k]||k).join(", ")}</span></div>`:""}
-      ${r.recall?`<div><span class="k">매수 이유 회상</span><span>${recallLabel[r.recall]}</span></div>`:""}
-      ${Object.keys(r.notes||{}).filter(k=>r.notes[k]).map(k=>`<div><span class="k">질문 ${+k+1} 메모</span><span>${esc(r.notes[k])}</span></div>`).join("")}
-      ${r.viewedOnly?`<div><span class="k">보기 방식</span><span>‘수익률만 보기’도 확인함</span></div>`:""}
-      ${tr?`<div><span class="k">과정 (테스트용)</span><span class="num" style="font-size:11px">${tr}</span></div>`:""}
-      ${r.fb&&Object.keys(r.fb).length?`<div><span class="k">피드백 (1–5)</span><span class="num" style="font-size:11px">${Object.entries(r.fb).map(e=>`${FB.find(f=>f[0]===e[0])[2]} ${e[1]}`).join(" · ")}</span></div>`:""}
-    </div>`:`<button class="link" data-openrec="${r.id}" style="justify-self:start">자세히 보기</button>`}
-  </div>`;
-}
-const FB=[["h1","매수 당시 기록을 다시 보는 것이 도움이 되었다","회상"],["h2","기준과 현재를 나란히 보니 상황이 더 잘 이해되었다","비교"],["h3","판단의 주도권이 나에게 있다고 느꼈다","주도권"],["h3b","AI가 지나치게 개입한다고 느꼈다","개입감"]];
-function vDone(h){
-  const r=state.records.find(x=>x.id===state.lastSaved);
-  return [`
-    <div class="ok-banner">${IC.ok}판단을 기록했어요</div>
-    ${r?recCard(r,true):""}
-    <p class="lead">저장한 기록은 ‘판단 기록’ 탭에서 언제든 다시 볼 수 있어요. 다음에 이 종목이 흔들릴 때 이 기록이 ‘과거의 나’로 함께 표시돼요.</p>
-    <div class="data likert">
-      <div style="display:flex;justify-content:space-between;align-items:center">${srcTag("data","짧은 피드백")}<span class="qhint">테스트 참가자용 · 선택</span></div>
-      ${FB.map(f=>`<div class="li"><p>${f[1]}</p><div class="scale">${[1,2,3,4,5].map(n=>`<button aria-pressed="${r&&r.fb&&r.fb[f[0]]===n}" data-fb="${f[0]}" data-n="${n}">${n}</button>`).join("")}</div><div class="scale-l"><span>전혀 아니다</span><span>매우 그렇다</span></div></div>`).join("")}
-    </div>`,
-  `<div class="nav"><button class="btn sec" data-act="closePanel">패널 닫기</button><button class="btn pri grow" data-tab="archive">판단 기록 모아 보기</button></div>`];
-}
-
-function vArchive(){
-  const list=state.records.filter(r=>state.filter==="all"||r.stock===state.sel).sort((a,b)=>b.at.localeCompare(a.at));
-  const h=H[state.sel];
-  return [`
-    <h3 class="pt">저장된 판단 기록</h3>
-    <div class="seg"><button class="${state.filter==="cur"?"on":""}" data-filter="cur">${esc(h.name)}</button><button class="${state.filter==="all"?"on":""}" data-filter="all">전체 종목</button></div>
-    ${h.record&&state.filter==="cur"?`<details class="data"><summary style="cursor:pointer;font-size:13px;font-weight:600">기준 원문 보기 · ${esc(h.record.written)}</summary><div style="margin-top:10px">${recordCard(h)}</div></details>`:""}
-    ${list.length?list.map(r=>recCard(r,state.openRec===r.id)).join(""):`<div class="empty">아직 이 종목에 남긴 판단 기록이 없어요.<br>‘기준 확인’ 탭에서 첫 기록을 남길 수 있어요.</div>`}
-    <div class="sep"></div>
-    <button class="link" data-act="reset" style="justify-self:start;color:var(--pn-sub)">데모 데이터 초기화</button>
-    <div class="disc" id="resetMsg"></div>`,
-  `<div class="nav"><button class="btn pri grow" data-tab="check">기준 확인으로 돌아가기</button></div>`];
-}
-
-function vNoCriteria(h){
-  const p=pctOf(h), m=monthsBetween(h.buyDate,NOW), d=daysBetween(h.buyDate,NOW);
-  return [`
-    <h3 class="pt">이 종목에는 매수 당시 남긴 기준이 없어요</h3>
-    <p class="lead">AI는 투자 이유나 기준을 대신 만들거나 추측하지 않아요. 비교할 기준이 없으니, 원하면 지금 직접 정리해 둘 수 있어요.</p>
-    <div class="data">${srcTag("data","현재의 나")}
-      <div class="pos" style="font-size:13px"><div><span class="k" style="color:var(--pn-sub)">수익률</span><span class="num">${sgn(p)}%</span></div><div><span class="k" style="color:var(--pn-sub)">비중</span><span class="num">${weightOf(h).toFixed(1)}%</span></div><div><span class="k" style="color:var(--pn-sub)">보유</span><span class="num">${d}일</span></div><div><span class="k" style="color:var(--pn-sub)">매수일</span><span class="num">${fmtD(h.buyDate)}</span></div></div>
-      <div class="srcline">출처: 가상증권 계좌 · ${ASOF}</div></div>
-    <div class="cmp"><div class="cmp-h"><div>${IC.mine}그때 내가 정한 기준</div><div>${IC.data}지금</div></div>
-      ${["매수 이유","투자 기간","손실 허용 범위","재검토 조건"].map(l=>`<div class="cmp-row"><div class="cmp-lbl"><span>${l}</span><span class="st check">기록 없음</span></div><div class="cmp-vals"><div class="past" style="color:var(--pn-sub)">—</div><div class="now txt" style="color:var(--pn-sub)">비교할 수 없음</div></div></div>`).join("")}</div>`,
-  `<div class="nav"><button class="btn ghost" data-act="closePanel">닫기</button><button class="btn pri grow" data-go="setup">지금 내 기준 정리하기</button></div>`];
-}
-function vSetup(h){
-  const f=state.setup||(state.setup={reason:"",period:"",loss:"",review:""});
-  const periods=["3개월 이내","3~12개월","1~2년","2년 이상","정하지 않음"];
-  return [`
-    <h3 class="pt">${esc(h.name)} · 내 기준 정리하기</h3>
-    <p class="lead">질문에 답하듯 직접 적어 주세요. 비워 둔 항목은 ‘정하지 않음’으로 남고, AI가 채우지 않아요. 이 기록에는 <b>매수 이후 작성</b>이라고 표시돼요.</p>
-    <div class="field"><label for="su-reason">이 종목을 왜 샀나요?</label><textarea id="su-reason" class="mine-input" style="min-height:90px" data-setup="reason" placeholder="그때 떠올렸던 이유를 내 말로 적어 보세요">${esc(f.reason)}</textarea></div>
-    <div class="field"><label>얼마 동안 보유할 생각이었나요?</label><div class="chips">${periods.map(x=>`<button class="chip" aria-pressed="${f.period===x}" data-setperiod="${x}">${x}</button>`).join("")}</div></div>
-    <div class="field"><label for="su-loss">어느 정도 손실까지 감수할 수 있나요?</label><div class="inline-num"><input type="number" id="su-loss" data-setup="loss" value="${esc(f.loss)}" placeholder="-15" max="0" step="1"><span class="qhint">% (비워 두면 정하지 않음)</span></div></div>
-    <div class="field"><label for="su-review">어떤 일이 생기면 다시 검토하고 싶나요?</label><input type="text" id="su-review" data-setup="review" value="${esc(f.review)}" placeholder="예: 원가 부담으로 이익이 줄어들 때"></div>`,
-  `<div class="nav"><button class="btn sec" data-go="entry">이전</button><button class="btn pri grow" data-act="saveSetup" id="setupBtn" ${f.reason.trim().length>=3?"":"disabled"}>내 기준 저장</button></div>`];
+function renderLog(){
+  const h=H[S.sel],L=S.records.filter(r=>S.filter==="all"||r.stock===S.sel).sort((a,b)=>b.at.localeCompare(a.at));
+  $("#logView").innerHTML=`<div class="log">
+   <div class="seg"><button class="${S.filter==="cur"?"on":""}" data-filter="cur">${esc(h.name)}</button><button class="${S.filter==="all"?"on":""}" data-filter="all">전체 종목</button></div>
+   ${L.length?L.map(r=>recHTML(r,true)).join(""):`<div class="empty"><span class="orb"></span>아직 이 종목에 남긴 판단 기록이 없어요.<br>‘함께 정리하기’에서 대화를 마치면 여기에 쌓여요.<button class="btn sec sm" data-tab="chat">함께 정리하기로 가기</button></div>`}
+   <div class="vrow" style="justify-content:space-between;margin-top:6px"><span class="muted">기록은 이 브라우저에만 저장돼요</span><button class="link" data-act="reset">데모 데이터 초기화</button></div></div>`;
 }
 
 /* ───────── actions ───────── */
-function selectStock(id){
-  if(state.sel===id) return;
-  state.sel=id; state.step="entry"; state.s=newSession(); state.orderMsg=""; state.setup=null; state.openRec=null;
-  if(state.tab!=="archive") state.tab="check";
-  renderSite(); renderPanel(); renderNudge();
-}
-function setOpen(v){
-  state.open=v; $("#viewport").classList.toggle("open",v);
-  $("#extBtn").classList.toggle("on",v); $("#extBtn").setAttribute("aria-pressed",String(v));
-  $("#extBtn").setAttribute("aria-label",v?"My Decision Companion 패널 닫기":"My Decision Companion 패널 열기");
-  if(v) state.nudged[state.sel]=true;
-  renderPanel(); renderNudge();
-}
-function saveRecord(){
-  const h=H[state.sel], s=state.s, t=Date.now();
-  s.trace[s.cur]=(s.trace[s.cur]||0)+(t-s.t0); s.t0=t;
-  const rows=compare(h).filter(r=>r.st!=="check").map(r=>`${r.lbl} ${r.stl}`);
-  const id="r"+t.toString(36);
-  const d=new Date(); const at=`${fmtD(NOW).replace(/\./g,"-")}T${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-  state.records.push({id,stock:h.id,at,pct:+pctOf(h).toFixed(1),weight:+weightOf(h).toFixed(1),diffs:rows,choices:s.choices.slice(),text:s.text.trim(),revisit:s.revisit,criteriaEdit:s.criteriaEdit.trim(),important:s.important.slice(),recall:s.recall,notes:{...s.notes},viewedOnly:!!s.viewedOnly,trace:{...s.trace},fb:{}});
-  state.lastSaved=id; persist(); goStep("done");
-}
+function toast(t){const e=$("#toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,1900)}
+function setOpen(v){S.open=v;$("#viewport").classList.toggle("open",v);$("#panel").inert=!v;
+  const b=$("#extBtn");b.classList.toggle("on",v);b.setAttribute("aria-pressed",String(v));b.setAttribute("aria-label",v?"My Decision Companion 닫기":"My Decision Companion 열기");
+  if(v){S.nudged[S.sel]=true;if(S.tab==="chat")rebuild();else renderLog()}
+  renderChrome()}
+function selectStock(id){if(S.sel===id)return;S.sel=id;S.orderMsg="";S.openRec=null;renderSite();renderChrome();if(S.open){if(S.tab==="chat")rebuild();else renderLog()}}
+function restart(){const c=conv();c.gen++;c.msgs=[];c.queue=[];c.started=false;c.ctx=freshCtx();c.chain=Promise.resolve();S.tab="chat";renderChrome();rebuild()}
+function findMsg(id){for(const c of Object.values(S.conv)){const m=c.msgs.find(x=>x.id===+id);if(m)return [c,m]}return [null,null]}
+const memoSync=(c,m)=>{const t=document.querySelector(`[data-memo="${m.id}"]`);if(t)c.ctx.memo=t.value};
 
 document.addEventListener("click",e=>{
-  const t=e.target.closest("button,[data-sel]"); if(!t) return;
-  const ds=t.dataset;
-  if(t.id==="extBtn"){setOpen(!state.open);return}
-  if(ds.sel){selectStock(ds.sel);return}
-  if(ds.order){state.orderMsg=`가상 화면입니다. ${ds.order} 주문은 실행되지 않아요.`;renderSite();return}
-  if(ds.act==="openPanel"){state.tab="check";setOpen(true);return}
-  if(ds.act==="dismissNudge"){state.nudged[state.sel]=true;renderNudge();return}
-  if(ds.act==="closePanel"){setOpen(false);return}
-  if(ds.tab){state.tab=ds.tab;if(ds.tab==="check"&&state.step==="done"){state.step="entry";state.s=newSession()}renderPanel();return}
-  if(ds.go){goStep(ds.go);return}
-  const s=state.s;
-  if(ds.recall){s.recall=ds.recall;s.revealed=true;renderPanel();return}
-  if(ds.imp){const i=s.important.indexOf(ds.imp);i<0?s.important.push(ds.imp):s.important.splice(i,1);t.setAttribute("aria-pressed",String(i<0));return}
-  if(ds.view){s.view=ds.view;if(ds.view==="only")s.viewedOnly=true;renderPanel();return}
-  if(ds.act==="moreQ"){s.qShown++;renderPanel();return}
-  if(ds.choice){const i=s.choices.indexOf(ds.choice);i<0?s.choices.push(ds.choice):s.choices.splice(i,1);renderPanel();return}
-  if(ds.revisit){s.revisit=s.revisit===ds.revisit?"":ds.revisit;renderPanel();return}
-  if(ds.act==="save"){if(s.text.trim().length>=5)saveRecord();return}
-  if(ds.fb){const r=state.records.find(x=>x.id===state.lastSaved);if(r){r.fb=r.fb||{};r.fb[ds.fb]=+ds.n;persist();renderPanel()}return}
-  if(ds.filter){state.filter=ds.filter;renderPanel();return}
-  if(ds.openrec){state.openRec=ds.openrec;renderPanel();return}
-  if(ds.act==="reset"){
-    if(t.dataset.confirm!=="1"){t.dataset.confirm="1";t.textContent="한 번 더 누르면 초기화돼요";return}
-    state.records=SEED_RECORDS.slice();state.custom={};H.C.record=null;state.step="entry";state.s=newSession();state.tab="check";persist();renderSite();renderPanel();return}
-  if(ds.setperiod){state.setup.period=state.setup.period===ds.setperiod?"":ds.setperiod;renderPanel();return}
-  if(ds.act==="saveSetup"){
-    const f=state.setup, map={"3개월 이내":[0,3],"3~12개월":[3,12],"1~2년":[12,24],"2년 이상":[24,999]};
-    const loss=f.loss===""?null:-Math.abs(Number(f.loss));
-    const rec={written:`${fmtD(NOW)} · 보유 중 작성 (매수 ${daysBetween(H.C.buyDate,NOW)}일 후)`,origin:"later",reason:f.reason.trim(),
-      reasonShort:f.reason.trim().slice(0,22)+(f.reason.trim().length>22?"…":""),
-      period:f.period&&f.period!=="정하지 않음"?f.period:"",periodM:map[f.period]||null,lossLimit:loss,weightCap:null,review:f.review.trim(),extra:null,memo:""};
-    H[state.sel].record=rec; state.custom[state.sel]=rec; persist(); state.setup=null; state.s=newSession(); state.s.revealed=true; state.s.recall="skip";
-    renderSite(); goStep("record"); return}
+  const t=e.target.closest("button,[data-sel],.ev");if(!t)return;const d=t.dataset;
+  if(t.id==="extBtn")return setOpen(!S.open);
+  if(d.sel)return selectStock(d.sel);
+  if(d.ev)return showEv(t);
+  if(d.order){S.orderMsg=`가상 화면이에요. ${d.order} 주문은 실행되지 않아요.`;return renderSite()}
+  if(d.act==="open"){S.tab="chat";return setOpen(true)}
+  if(d.act==="close")return setOpen(false);
+  if(d.act==="dismiss"){S.nudged[S.sel]=true;return renderChrome()}
+  if(d.act==="restart")return restart();
+  if(d.act==="reset"){if(d.c!=="1"){d.c="1";t.textContent="한 번 더 누르면 초기화돼요";return}
+    S.records=SEED.slice();S.edits={};S.valid={};S.custom={};H.C.record=null;Object.values(S.conv).forEach(c=>c.gen++);S.conv={};persist();renderSite();S.tab="chat";renderChrome();rebuild();return toast("데모 데이터를 초기화했어요")}
+  if(d.tab){S.tab=d.tab;renderChrome();return d.tab==="chat"?rebuild():renderLog()}
+  if(d.filter){S.filter=d.filter;return renderLog()}
+  if(d.rec){S.openRec=S.openRec===d.rec?null:d.rec;t.closest(".rec").classList.toggle("open",S.openRec===d.rec);t.setAttribute("aria-expanded",S.openRec===d.rec);
+    document.querySelectorAll("#logView .rec.open").forEach(x=>{if(x!==t.closest(".rec"))x.classList.remove("open")});return}
+  if(d.jump){if(!S.open)return;const c=conv();if(S.tab!=="chat"){S.tab="chat";renderChrome();rebuild()}me(c,NEXTL[d.jump]);return post(c,d.jump,t.id==="ctx"?"지금 위치를 다시 보여 드릴게요.":undefined)}
+  if(d.m){const[c,m]=findMsg(d.m);if(!c||m.ans)return;
+    if(d.done)return ON[m.on](c,m.sel||[],m);
+    if(d.sub){const v=document.querySelector(`[data-inp="${m.id}"]`).value.trim();if(v)ON[m.on](c,[],m,v);return}
+    if(d.c==="__skip")return ON[m.on](c,[],m,"");
+    if(m.multi){m.sel=m.sel||[];const i=m.sel.indexOf(d.c);i<0?m.sel.push(d.c):m.sel.splice(i,1);t.setAttribute("aria-pressed",String(i<0));const db=t.closest(".cslot").querySelector("[data-done]");if(db)db.disabled=!m.sel.length;return}
+    return ON[m.on](c,[d.c],m)}
+  if(d.acc){const[,m]=findMsg(d.acc);const i=m.openNow.indexOf(d.k);i<0?m.openNow.push(d.k):m.openNow.splice(i,1);const it=t.closest(".item");it.classList.toggle("open",i<0);t.setAttribute("aria-expanded",String(i<0));return}
+  if(d.valid){const[c,m]=findMsg(d.valid);const v=(S.valid[c.stock]=S.valid[c.stock]||{});if(v[d.k]===d.v)delete v[d.k];else v[d.k]=d.v;persist();return refreshWidget(m)}
+  if(d.edit){const[,m]=findMsg(d.edit);m.editing=d.k;refreshWidget(m);const ta=document.querySelector(`[data-editta="${m.id}"]`);if(ta)ta.focus();return}
+  if(d.editcancel){const[,m]=findMsg(d.editcancel);m.editing=null;return refreshWidget(m)}
+  if(d.editsave){const[c,m]=findMsg(d.editsave);const v=document.querySelector(`[data-editta="${m.id}"]`).value.trim();
+    if(v){(S.edits[c.stock]=S.edits[c.stock]||{})[d.k]={text:v,at:fmtD(NOW)};persist();toast("수정본을 저장했어요. 원문은 그대로 남아요")}m.editing=null;return refreshWidget(m)}
+  if(d.cat){const[,m]=findMsg(d.cat);m.open=d.v;m.oi=null;return refreshWidget(m)}
+  if(d.bi){const[,m]=findMsg(d.bi);m.oi=m.oi===d.i?null:d.i;const b=t.closest(".bi"),was=b.classList.contains("open");b.parentElement.querySelectorAll(".bi.open").forEach(x=>x.classList.remove("open"));if(!was)b.classList.add("open");return}
+  if(d.addchk){const[c,m]=findMsg(d.addchk);const u=H[c.stock].unknowns[+d.k];addUnique(c.ctx.toCheck,u.t);t.textContent="확인할 목록에 담김 ✓";return toast("확인할 목록에 담았어요")}
+  if(d.sort){const[,m]=findMsg(d.sort);m.g=m.g||{};m.g[d.i]=d.v;return refreshWidget(m)}
+  if(d.lpok||d.lpnone){const[c,m]=findMsg(d.lpok||d.lpnone);if(m.done)return;m.none=!!d.lpnone;m.done=true;c.ctx.setup.loss=m.none?null:m.lp;refreshWidget(m);me(c,m.none?"정하지 않을래요":`${m.lp}%까지 감수할 수 있어요`);
+    return ai(c,{key:"su4",text:"마지막으로, <b>어떤 일이 생기면 다시 검토하고 싶나요?</b>",input:{ph:"예: 원가 부담으로 이익이 줄어들 때",skip:1},on:"su4"})}
+  if(d.dec){const[c,m]=findMsg(d.dec);if(m.saved)return;memoSync(c,m);c.ctx.dec=d.v;return refreshWidget(m)}
+  if(d.rv){const[c,m]=findMsg(d.rv);if(m.saved)return;memoSync(c,m);c.ctx.revisit=c.ctx.revisit===d.v?"":d.v;return refreshWidget(m)}
+  if(d.savesum){const[c,m]=findMsg(d.savesum);if(m.saved||!c.ctx.dec)return;memoSync(c,m);m.lines=summaryLines(c);return saveSummary(c,m)}
+  if(d.fb){const[,m]=findMsg(d.fb);const r=S.records.find(x=>x.id===m.rid);if(r){r.fb=r.fb||{};r.fb[d.k]=+d.n;persist();refreshWidget(m)}return}
 });
-document.addEventListener("keydown",e=>{const r=e.target.closest("tr[data-sel]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selectStock(r.dataset.sel)}});
-document.addEventListener("input",e=>{
-  const t=e.target, s=state.s;
-  if(t.dataset.note!=null){s.notes[t.dataset.note]=t.value;return}
-  if(t.dataset.field){s[t.dataset.field]=t.value;
-    if(t.dataset.field==="text"){const ok=t.value.trim().length>=5;const b=$("#saveBtn");if(b)b.disabled=!ok;const hn=$("#saveHint");if(hn)hn.hidden=ok}return}
-  if(t.dataset.setup){state.setup[t.dataset.setup]=t.value;const b=$("#setupBtn");if(b)b.disabled=state.setup.reason.trim().length<3}
+document.addEventListener("keydown",e=>{
+  const r=e.target.closest&&e.target.closest("tr[data-sel]");if(r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();selectStock(r.dataset.sel)}
+  const ev=e.target.closest&&e.target.closest(".ev");if(ev&&(e.key==="Enter"||e.key===" ")){e.preventDefault();showEv(ev)}
+});
+document.addEventListener("input",e=>{const t=e.target,d=t.dataset;
+  if(d.inp){const b=t.closest(".cslot").querySelector("[data-sub]");if(b)b.disabled=!t.value.trim();return}
+  if(d.memo){const[c]=findMsg(d.memo);if(c)c.ctx.memo=t.value;return}
+  if(d.wslide){const[c,m]=findMsg(d.wslide);m.x=+t.value;const h=H[c.stock],w0=weightOf(h),w1=(evalOf(h)+m.x)/TOTAL*100,cap=h.record&&h.record.weightCap!=null?h.record.weightCap:null,mx=wMax(w1);
+    const wrap=t.closest(".w");wrap.querySelector("[data-wx]").textContent=won(m.x)+"원";wrap.querySelector("[data-wv]").textContent=w1.toFixed(1)+"%";
+    const bar=wrap.querySelector("[data-wbar]");bar.classList.toggle("over",cap!=null&&w1>cap);bar.querySelector(".cur").style.width=w0/mx*100+"%";const ad=bar.querySelector(".add");ad.style.left=w0/mx*100+"%";ad.style.width=(w1-w0)/mx*100+"%";
+    const cp=bar.querySelector(".cap");if(cp)cp.style.left=cap/mx*100+"%";wrap.querySelector("[data-wnote]").innerHTML=wNote(w0,w1,cap);return}
+  if(d.lp){const[,m]=findMsg(d.lp);m.lp=+t.value;m.none=false;t.closest(".w").querySelector("[data-lpv]").textContent=m.lp+"%";return}
+  if(t.id==="ask")$("#sendBtn").disabled=!t.value.trim();
+});
+const onScrub=e=>{const s=e.target.closest&&e.target.closest("svg[data-hist]");if(s&&!e.target.closest(".ev"))scrub(s,e.clientX)};
+document.addEventListener("pointermove",onScrub);document.addEventListener("pointerdown",onScrub);
+
+/* free questions: rule-based, never a buy/sell conclusion or price outlook */
+$("#composer").addEventListener("submit",e=>{e.preventDefault();const inp=$("#ask"),q=inp.value.trim();if(!q)return;inp.value="";$("#sendBtn").disabled=true;
+  const c=conv(),h=H[c.stock];me(c,q);
+  if(/팔|매도|사야|살까|사도|매수|손절|익절|오를|떨어|반등|전망|목표가|버텨|물타/.test(q))
+    ai(c,{key:"free",text:`그 질문에는 <b>결론이나 가격 전망을 드리지 않아요.</b> 결정은 ${USER}님의 몫이에요. 대신 판단에 쓸 재료를 꺼내 드릴 수 있어요.`,ch:[{id:"record",l:"내 기준 다시 보기"},{id:"board",l:"달라진 정보 보기"},{id:"gauge",l:"지금 위치 보기"}],on:"jump"});
+  else if(/실적|매출|공시|이익|흑자/.test(q)){const it=h.info.filter(i=>i.area==="earnings");ai(c,{key:"free",text:it.length?"기록된 실적 관련 정보예요. 모두 가상 예시이고, 판단 전에 원문 확인을 권해요.":"기록된 실적 정보가 없어요.",w:it.length?"mini":null,items:it.map(i=>i.id)})}
+  else if(/비중|추가/.test(q))post(c,"weight","비중을 직접 계산해 볼 수 있어요. 계산일 뿐, 권유가 아니에요.");
+  else if(/기준|손실|허용/.test(q))post(c,"gauge","내 기준과 지금 위치예요.");
+  else if(/이유|근거|왜 샀/.test(q)&&h.record)post(c,"record","매수 당시 내가 쓴 기록이에요.");
+  else if(/기록|지난/.test(q))ai(c,{key:"past",text:"이 종목에 남긴 지난 판단 기록이에요.",w:"past"});
+  else ai(c,{key:"free",text:"이 프로토타입은 준비된 가상 정보 안에서만 답할 수 있어요. 보고 싶은 것을 골라 주세요.",ch:(h.record?[{id:"record",l:"내 기록"}]:[]).concat([{id:"board",l:"달라진 정보"},{id:"gauge",l:"지금 위치"},{id:"weight",l:"비중 계산"}]),on:"jump"});
 });
 
-/* resize */
-(function(){
-  const handle=$("#resize"); let sx=0,sw=0,drag=false;
-  const apply=w=>{state.panelW=Math.max(320,Math.min(560,w));document.documentElement.style.setProperty("--panel-w",state.panelW+"px")};
-  apply(state.panelW);
-  handle.addEventListener("pointerdown",e=>{drag=true;sx=e.clientX;sw=state.panelW;handle.classList.add("drag");handle.setPointerCapture(e.pointerId)});
-  handle.addEventListener("pointermove",e=>{if(drag)apply(sw+(sx-e.clientX))});
-  const end=()=>{if(drag){drag=false;handle.classList.remove("drag");persist()}};
-  handle.addEventListener("pointerup",end);handle.addEventListener("pointercancel",end);
-})();
+/* panel resize */
+(function(){const hd=$("#resize");let sx=0,sw=0,dr=false;
+  const ap=w=>{S.panelW=Math.max(360,Math.min(600,w));document.documentElement.style.setProperty("--panel-w",S.panelW+"px")};ap(S.panelW);
+  hd.addEventListener("pointerdown",e=>{dr=true;sx=e.clientX;sw=S.panelW;hd.classList.add("drag");hd.setPointerCapture(e.pointerId);$("#panel").style.transition="none"});
+  hd.addEventListener("pointermove",e=>{if(dr)ap(sw+(sx-e.clientX))});
+  const end=()=>{if(dr){dr=false;hd.classList.remove("drag");$("#panel").style.transition="";persist()}};hd.addEventListener("pointerup",end);hd.addEventListener("pointercancel",end)})();
 
-renderSite(); renderPanel(); renderNudge();
+renderSite();renderChrome();
 })();
 </script>
