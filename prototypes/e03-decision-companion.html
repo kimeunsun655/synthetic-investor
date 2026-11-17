@@ -5,41 +5,41 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
 /* Layout: simulated desktop Chrome. Fictional brokerage on the left, conversational side panel on the right.
-   Panel = AI thread (orb avatar) + user reply pills + embedded interactive widgets. Data widgets use a dark "deep" card with lime marks. */
+   Panel = AI thread (orb avatar) + user reply pills + embedded interactive widgets. Data widgets use a dark "deep" card with violet marks; AI tags use teal. */
 :root{
-  --page:#E5E8E0; --chrome:#D7DBD2; --chrome-hi:#F2F4EF; --chrome-ink:#353B33; --chrome-sub:#6C7368; --omni:#E6E9E2;
-  --site-bg:#F5F6F3; --site-card:#FFFFFF; --site-ink:#15181A; --site-sub:#6B7280; --site-line:#E8EAE5; --site-brand:#2B3A67; --site-hover:#F3F5F1; --site-sel:#EEF3E4;
+  --page:#E7E6EF; --chrome:#D9D8E4; --chrome-hi:#F3F2F8; --chrome-ink:#363447; --chrome-sub:#6E6B82; --omni:#E8E7F0;
+  --site-bg:#F6F6F9; --site-card:#FFFFFF; --site-ink:#16151C; --site-sub:#6B6A7D; --site-line:#E8E7EE; --site-brand:#2B3A67; --site-hover:#F4F3F8; --site-sel:#EFEDFB;
   --up:#D6343C; --down:#2A62D2;
-  --pn-bg:#F2F4EE; --pn-glow:rgba(176,220,96,.30); --pn-card:#FFFFFF; --pn-card-2:#F7F8F4; --pn-ink:#161A15; --pn-sub:#697066; --pn-line:#E3E7DC;
-  --lime:#B8E65F; --lime-ink:#1C2709; --acc:#4A6C10; --acc-soft:#EAF4D6;
-  --deep:#1E221E; --deep-2:#2B302A; --deep-line:#3A4038; --deep-ink:#F1F4EC; --deep-sub:#A0A99A;
-  --warn:#E9A84C; --warn-text:#8A5A12; --warn-soft:#FBF0DE; --info:#8C9CC4; --info-text:#3F4F78; --info-soft:#EBEFF8;
-  --me-bub:#1E221E; --me-ink:#F1F4EC;
-  --shadow-sm:0 1px 2px rgba(25,32,20,.05),0 2px 8px rgba(25,32,20,.05);
-  --shadow:0 2px 6px rgba(25,32,20,.06),0 14px 36px rgba(25,32,20,.10);
+  --pn-bg:#F4F3F9; --pn-glow:rgba(130,110,240,.22); --pn-card:#FFFFFF; --pn-card-2:#F7F6FB; --pn-ink:#17151F; --pn-sub:#6C6981; --pn-line:#E4E2EE;
+  --lime:#7563E8; --lime-ink:#FFFFFF; --acc:#5B4BC4; --acc-soft:#ECE9FC;
+  --deep:#1D1B29; --deep-2:#2A2839; --deep-line:#3A3850; --deep-ink:#F2F1F8; --deep-sub:#A3A0B8;
+  --warn:#E9A84C; --warn-text:#8A5A12; --warn-soft:#FBF0DE; --info:#5FA8A0; --info-text:#2F6A64; --info-soft:#E3F2F0;
+  --me-bub:#1D1B29; --me-ink:#F2F1F8;
+  --shadow-sm:0 1px 2px rgba(28,24,48,.05),0 2px 8px rgba(28,24,48,.05);
+  --shadow:0 2px 6px rgba(28,24,48,.06),0 14px 36px rgba(28,24,48,.10);
   --f:"Manrope","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --f-site:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --panel-w:420px; --r:18px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --page:#0D0F0D; --chrome:#1C201C; --chrome-hi:#262B25; --chrome-ink:#D8DDD3; --chrome-sub:#8E978A; --omni:#151815;
-  --site-bg:#121412; --site-card:#1A1D1A; --site-ink:#E8EBE5; --site-sub:#929A8F; --site-line:#2A2F29; --site-brand:#A9BAEB; --site-hover:#20241F; --site-sel:#253021;
+  --page:#0E0D13; --chrome:#1D1C25; --chrome-hi:#272632; --chrome-ink:#DCDAE6; --chrome-sub:#8F8CA3; --omni:#15141B;
+  --site-bg:#121118; --site-card:#1A1921; --site-ink:#E9E8F0; --site-sub:#9491A6; --site-line:#2B2A35; --site-brand:#A9BAEB; --site-hover:#211F2A; --site-sel:#272340;
   --up:#F0656B; --down:#6E9BF5;
-  --pn-bg:#141714; --pn-glow:rgba(150,200,70,.16); --pn-card:#1D211D; --pn-card-2:#232823; --pn-ink:#ECEFE8; --pn-sub:#9AA294; --pn-line:#2E342D;
-  --lime:#C2EE74; --lime-ink:#18210A; --acc:#C2EE74; --acc-soft:#28331B;
-  --deep:#252A24; --deep-2:#30362F; --deep-line:#3F463D; --deep-ink:#F1F4EC; --deep-sub:#A0A99A;
-  --warn:#E9B062; --warn-text:#F0C27F; --warn-soft:#352A18; --info:#9AAAD2; --info-text:#B9C6E6; --info-soft:#222A3A;
-  --me-bub:#353C33; --me-ink:#ECEFE8;
+  --pn-bg:#141319; --pn-glow:rgba(130,110,240,.18); --pn-card:#1D1C24; --pn-card-2:#24232D; --pn-ink:#ECEBF3; --pn-sub:#9C99B0; --pn-line:#2F2D3A;
+  --lime:#A397FF; --lime-ink:#14112A; --acc:#B3A9FF; --acc-soft:#2A2547;
+  --deep:#25232F; --deep-2:#302E3C; --deep-line:#403D50; --deep-ink:#F2F1F8; --deep-sub:#A3A0B8;
+  --warn:#E9B062; --warn-text:#F0C27F; --warn-soft:#352A18; --info:#7CC3BA; --info-text:#9ED6CE; --info-soft:#1C3330;
+  --me-bub:#37344A; --me-ink:#ECEBF3;
   --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow:0 2px 6px rgba(0,0,0,.3),0 14px 36px rgba(0,0,0,.45); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --page:#0D0F0D; --chrome:#1C201C; --chrome-hi:#262B25; --chrome-ink:#D8DDD3; --chrome-sub:#8E978A; --omni:#151815;
-  --site-bg:#121412; --site-card:#1A1D1A; --site-ink:#E8EBE5; --site-sub:#929A8F; --site-line:#2A2F29; --site-brand:#A9BAEB; --site-hover:#20241F; --site-sel:#253021;
+  --page:#0E0D13; --chrome:#1D1C25; --chrome-hi:#272632; --chrome-ink:#DCDAE6; --chrome-sub:#8F8CA3; --omni:#15141B;
+  --site-bg:#121118; --site-card:#1A1921; --site-ink:#E9E8F0; --site-sub:#9491A6; --site-line:#2B2A35; --site-brand:#A9BAEB; --site-hover:#211F2A; --site-sel:#272340;
   --up:#F0656B; --down:#6E9BF5;
-  --pn-bg:#141714; --pn-glow:rgba(150,200,70,.16); --pn-card:#1D211D; --pn-card-2:#232823; --pn-ink:#ECEFE8; --pn-sub:#9AA294; --pn-line:#2E342D;
-  --lime:#C2EE74; --lime-ink:#18210A; --acc:#C2EE74; --acc-soft:#28331B;
-  --deep:#252A24; --deep-2:#30362F; --deep-line:#3F463D; --deep-ink:#F1F4EC; --deep-sub:#A0A99A;
-  --warn:#E9B062; --warn-text:#F0C27F; --warn-soft:#352A18; --info:#9AAAD2; --info-text:#B9C6E6; --info-soft:#222A3A;
-  --me-bub:#353C33; --me-ink:#ECEFE8;
+  --pn-bg:#141319; --pn-glow:rgba(130,110,240,.18); --pn-card:#1D1C24; --pn-card-2:#24232D; --pn-ink:#ECEBF3; --pn-sub:#9C99B0; --pn-line:#2F2D3A;
+  --lime:#A397FF; --lime-ink:#14112A; --acc:#B3A9FF; --acc-soft:#2A2547;
+  --deep:#25232F; --deep-2:#302E3C; --deep-line:#403D50; --deep-ink:#F2F1F8; --deep-sub:#A3A0B8;
+  --warn:#E9B062; --warn-text:#F0C27F; --warn-soft:#352A18; --info:#7CC3BA; --info-text:#9ED6CE; --info-soft:#1C3330;
+  --me-bub:#37344A; --me-ink:#ECEBF3;
   --shadow-sm:0 1px 2px rgba(0,0,0,.3); --shadow:0 2px 6px rgba(0,0,0,.3),0 14px 36px rgba(0,0,0,.45); color-scheme:dark}
 
 html,body{height:100%}
@@ -82,8 +82,8 @@ button{cursor:pointer;background:none;border:0;padding:0}
 
 /* ── AI orb ── */
 .orb{display:block;border-radius:50%;flex:none;position:relative;
-  background:radial-gradient(circle at 34% 30%,#F4FFD9 0 12%,transparent 42%),conic-gradient(from 210deg,#9ED65A,#E3F7A8,#6FA83A,#CDEB8E,#9ED65A);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 2px 8px rgba(110,160,40,.35)}
+  background:radial-gradient(circle at 34% 30%,#F6F3FF 0 12%,transparent 42%),conic-gradient(from 210deg,#8B7CF6,#DCD5FF,#6A5AE0,#C3B8FF,#8B7CF6);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 2px 8px rgba(110,90,230,.35)}
 .orb::after{content:"";position:absolute;inset:26%;border-radius:50%;background:var(--pn-card);opacity:.9}
 .orb.think{animation:orbspin 1.6s linear infinite}
 @keyframes orbspin{to{transform:rotate(360deg)}}
