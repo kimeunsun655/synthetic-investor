@@ -139,6 +139,33 @@ button.tbtn:hover{background:var(--chrome)}
 .mark{width:8px;height:8px;border-radius:50%;background:var(--p-mark);display:inline-block;flex:none}
 .launcher{position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:5;padding:14px 8px;border-radius:10px 0 0 10px;border:1px solid var(--p-line2);border-right:0;font-size:12px;font-weight:600;writing-mode:vertical-rl;letter-spacing:.08em;display:flex;align-items:center;gap:8px;transition:padding .2s var(--ease)}
 .launcher:hover{padding-right:11px}
+/* launcher variants (draft) */
+.lgo{width:24px;height:24px;border-radius:7px;background:var(--lime);color:#152000;display:grid;place-items:center;flex:none}
+.lgo svg{width:14px;height:14px}
+.lc-side{position:absolute;right:0;top:50%;transform:translateY(-50%);z-index:5;display:flex;align-items:center;gap:10px;padding:10px 14px 10px 10px;border-radius:12px 0 0 12px;background:#141614;color:#F1F4EE;box-shadow:-6px 8px 24px rgba(0,0,0,.18);border:1px solid #2B3029;border-right:0;text-align:left;transition:padding .2s var(--ease)}
+.lc-side:hover{padding-right:18px}
+.lc-side b{display:block;font-size:13px;font-weight:600}
+.lc-side small{display:block;font-size:11.5px;color:#F2B451;margin-top:1px}
+.lc-side small.ok{color:#9FE07A}.lc-side small.none{color:#80877C}
+.lc-fab{position:absolute;right:26px;bottom:26px;z-index:6;width:58px;height:58px;border-radius:50%;background:#141614;color:var(--lime);display:grid;place-items:center;box-shadow:0 0 0 2px var(--lime),0 10px 30px rgba(0,0,0,.25),0 0 22px var(--lime-glow);transition:transform .2s var(--ease)}
+.lc-fab:hover{transform:scale(1.05)}
+.lc-fab svg{width:24px;height:24px}
+.lc-fab .bd{position:absolute;top:2px;right:2px;width:13px;height:13px;border-radius:50%;background:#E9A23B;border:2px solid #141614}
+.lc-fab .lbl{position:absolute;right:calc(100% + 12px);top:50%;transform:translateY(-50%);white-space:nowrap;background:#141614;color:#F1F4EE;font-size:13px;font-weight:600;padding:8px 12px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s}
+.lc-fab .lbl small{display:block;font-size:11.5px;font-weight:500;color:#F2B451;margin-top:1px}
+.lc-fab:hover .lbl,.lc-fab.show .lbl{opacity:1}
+.lc-pill{position:absolute;right:26px;bottom:26px;z-index:6;display:flex;align-items:center;gap:10px;height:52px;padding:0 16px 0 10px;border-radius:26px;background:#141614;color:#F1F4EE;box-shadow:0 0 0 1.5px var(--lime),0 10px 30px rgba(0,0,0,.25);font-size:14px;font-weight:600;transition:transform .2s var(--ease)}
+.lc-pill:hover{transform:translateY(-2px)}
+.lc-pill .lgo{border-radius:50%;width:32px;height:32px}
+.lc-pill .sep{width:1px;height:18px;background:#343A32}
+.lc-pill .st2{font-size:13px;font-weight:500;color:#F2B451}.lc-pill .st2.ok{color:#9FE07A}.lc-pill .st2.none{color:#80877C}
+.lc-pill .chev{width:14px;height:14px;color:#80877C;transform:rotate(-90deg)}
+.lc-inline{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:12px;background:#141614;color:#F1F4EE;box-shadow:0 0 0 1px var(--lime);text-align:left;font-family:var(--f)}
+.lc-inline .lgo{width:22px;height:22px;border-radius:6px}
+.lc-inline .tx{flex:1;min-width:0;font-size:13px;line-height:1.4}
+.lc-inline .tx small{display:block;font-size:11px;color:#80877C}
+.lc-inline .tx b{font-weight:600}.lc-inline .w8{color:#F2B451;font-weight:600}.lc-inline .ok8{color:#9FE07A;font-weight:600}
+.lc-inline .go{font-size:12.5px;color:var(--lime);font-weight:600;white-space:nowrap}
 @keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @keyframes tagin{from{opacity:0}to{opacity:1}}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
@@ -462,7 +489,7 @@ input[type=range]{width:100%;accent-color:var(--p-mark)}
         </div>
         <div class="toast" id="toast" hidden></div>
       </aside>
-      <button class="launcher xt" id="launcher" data-act="open"><span class="mark"></span>내 기준</button>
+      <div id="launch"></div>
       <div class="nudge xt" id="nudge" hidden></div>
     </div>
   </div>
@@ -538,7 +565,7 @@ function load(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e
 function persist(){try{localStorage.setItem(KEY,JSON.stringify({records:S.records,edits:S.edits,valid:S.valid,custom:S.custom,panelW:S.panelW,tips:S.tips}))}catch(e){}}
 const SEED=[{id:"seed-a1",stock:"A",at:"2026-10-02T21:12",pct:-9.2,concern:"loss",decision:"keep",memo:"아직 기준 안이라 그대로 둔다. 11월 초 실적 발표가 나오면 매출 성장률이 유지되는지 다시 확인하겠다.",revisit:"다음 실적 발표 후",lines:[["손실 기준","범위 안 (여유 10.8%p)"]],seed:true,fb:{}}];
 const sv=load()||{};
-const S={sel:"A",open:false,tab:"chat",panelW:sv.panelW||420,tips:sv.tips||{},records:Array.isArray(sv.records)?sv.records:SEED.slice(),edits:sv.edits||{},valid:sv.valid||{},custom:sv.custom||{},
+const S={lv:"tab",sel:"A",open:false,tab:"chat",panelW:sv.panelW||420,tips:sv.tips||{},records:Array.isArray(sv.records)?sv.records:SEED.slice(),edits:sv.edits||{},valid:sv.valid||{},custom:sv.custom||{},
   nudged:{},orderMsg:"",conv:{},filter:"cur",openRec:null};
 Object.keys(S.custom).forEach(k=>{if(H[k])H[k].record=S.custom[k]});
 
@@ -588,9 +615,20 @@ function renderSite(){
 }
 
 /* ───────── chrome: header, nudge, launcher ───────── */
+const LGO='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"/><path d="M8 2.5v11"/></svg>';
+function renderLauncher(){const h=H[S.sel],r=h.record,p=pctOf(h),box=$("#launch"),old=document.querySelector(".lc-inline");if(old)old.remove();
+  if(S.open){box.innerHTML="";return}
+  const dv=deviations(h).find(d=>d.k==="loss"),stCls=!r?"none":dv&&dv.dev?"":"ok",stTx=!r?"기준 없음 · 정리하기":dv?(dv.dev?`기준보다 ${(r.lossLimit-p).toFixed(1)}%p 아래`:`기준까지 ${(p-r.lossLimit).toFixed(1)}%p 여유`):"손실 기준 없음";
+  const v=S.lv||"tab";
+  if(v==="tab")box.innerHTML=`<button class="launcher xt" data-act="open"><span class="mark"></span>내 기준</button>`;
+  else if(v==="side")box.innerHTML=`<button class="lc-side" data-act="open" aria-label="내 기준 열기"><span class="lgo">${LGO}</span><span><b>내 기준</b><small class="${stCls}">${stTx}</small></span></button>`;
+  else if(v==="fab")box.innerHTML=`<button class="lc-fab" data-act="open" aria-label="내 기준 열기">${LGO}${r?`<span class="bd"></span>`:""}<span class="lbl">내 기준과 비교해 보기<small>${stTx}</small></span></button>`;
+  else if(v==="pill")box.innerHTML=`<button class="lc-pill" data-act="open"><span class="lgo">${LGO}</span>내 기준 확인<span class="sep"></span><span class="st2 ${stCls}">${stTx}</span>${CHEV}</button>`;
+  else if(v==="inline"){box.innerHTML="";const det=document.querySelector(".det");if(det){const b=document.createElement("button");b.className="lc-inline";b.dataset.act="open";
+    b.innerHTML=`<span class="lgo">${LGO}</span><span class="tx"><small>Decision Companion</small>${r&&r.lossLimit!=null?`<b>내 기준 ${r.lossLimit}%</b> · <span class="${stCls?"ok8":"w8"}">${stTx}</span>`:`<b>${stTx}</b>`}</span><span class="go">비교해 보기 ›</span>`;det.insertBefore(b,det.children[1])}}}
 function renderChrome(){
   const h=H[S.sel];
-  $("#extDot").hidden=S.open||!!S.nudged[h.id]||!h.record;$("#launcher").hidden=S.open;
+  $("#extDot").hidden=S.open||!!S.nudged[h.id]||!h.record;renderLauncher();
   const n=$("#nudge"),show=!S.open&&!S.nudged[h.id]&&!!h.record;n.hidden=!show;
   if(show)n.innerHTML=`<div class="who"><span class="mark"></span>Decision Companion · ${esc(h.name)}</div><p>매수 당시 적어 둔 기준이 있어요. 지금 상황과 함께 확인해 볼까요?</p><div class="row"><button class="btn sec sm" data-act="dismiss">나중에</button><button class="btn pri sm" data-act="open">확인해 보기</button></div>`;
   document.querySelectorAll(".tabs button").forEach(x=>{const on=x.dataset.tab===S.tab;x.classList.toggle("on",on);x.setAttribute("aria-selected",on)});
@@ -909,6 +947,7 @@ function renderLog(){const h=H[S.sel],L=S.records.filter(r=>S.filter==="all"||r.
 
 /* ───────── actions ───────── */
 function toast(t){const e=$("#toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,1800)}
+window.__setLV=v=>{S.lv=v;renderChrome()};
 function setOpen(v){S.open=v;$("#viewport").classList.toggle("open",v);$("#panel").inert=!v;const b=$("#extBtn");b.classList.toggle("on",v);b.setAttribute("aria-pressed",String(v));b.setAttribute("aria-label",v?"Decision Companion 닫기":"Decision Companion 열기");
   if(v){S.nudged[S.sel]=true;if(S.tab==="chat")rebuild();else renderLog()}renderChrome()}
 function selectStock(id){if(S.sel===id)return;S.sel=id;S.orderMsg="";S.openRec=null;renderSite();renderChrome();if(S.open){S.tab==="chat"?rebuild():renderLog()}}
