@@ -186,7 +186,7 @@ button.tbtn:hover{background:var(--chrome)}
 .msg{display:grid;gap:10px;min-width:0}
 .msg.ai{grid-template-columns:10px minmax(0,1fr);gap:10px}
 .msg.ai>.mark{margin-top:8px;width:7px;height:7px}
-.enter{animation:rise .3s var(--ease) both}
+.msg.me.enter{animation:rise .3s var(--ease) both}
 .mb{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}
 .mb>.txt{font-size:14.5px;line-height:1.65;margin:0;text-wrap:pretty}
 .mb>.txt b{font-weight:600}
@@ -237,6 +237,44 @@ input[type=range]{width:100%;accent-color:var(--p-mark)}
 .sum-r>*,.kv>*{min-width:0;overflow-wrap:anywhere}
 .w>*,.mb>*,.slot>*{min-width:0}
 .note,.src,.readout,.txt{overflow-wrap:anywhere}
+/* intro (start screen) */
+.p-body{display:flex;flex-direction:column}
+.intro{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:28px 22px 36px;animation:fade .35s var(--ease)}
+.intro h2{font-size:23px;font-weight:700;letter-spacing:-.025em;line-height:1.35;margin:0;text-align:center;text-wrap:balance}
+.grad{background:linear-gradient(90deg,var(--p-mark) 0%,var(--p-mark) 25%,var(--p-ink) 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.intro .lead{text-align:center;font-size:13px;color:var(--p-ink3);margin:-6px 0 6px;line-height:1.5}
+.ask.big{flex-direction:column;align-items:stretch;padding:14px 12px 10px 16px;border-radius:16px;gap:6px;min-height:104px;background:var(--p-bg2);border-color:var(--p-line2)}
+.ask input[type=text]{border:0;background:none;padding:0;border-radius:0}
+.ask.big input[type=text]{font-size:15px;height:30px}
+.ask.big button{align-self:flex-end;border-radius:50%}
+.thread.fromintro{animation:fade .3s var(--ease)}
+/* ↳ suggestion rows */
+.sugg{display:grid;grid-template-columns:minmax(0,1fr)}
+.sg{display:grid;grid-template-columns:16px auto minmax(0,1fr) 18px;gap:8px;align-items:baseline;padding:12px 4px;border-bottom:1px solid var(--p-line);text-align:left;font-size:14px;line-height:1.45;color:var(--p-ink);transition:background .15s,color .15s}
+.sg:last-child{border-bottom:0}
+.sg:hover{background:var(--p-bg2)}
+.sg .ar{color:var(--p-mark);font-weight:700}
+.sg .tg2{color:var(--p-ink3);font-size:13px;white-space:nowrap}
+.sg .ck{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--p-line2);display:grid;place-items:center;align-self:center}
+.sg .ck svg{width:10px;height:10px;opacity:0;color:var(--p-pri-ink)}
+.sg[aria-pressed="true"]{font-weight:600}
+.sg[aria-pressed="true"] .ck{background:var(--p-pri);border-color:var(--p-pri)}
+.sg[aria-pressed="true"] .ck svg{opacity:1}
+.intro .sg,.enter .sg{opacity:0;animation:sgin .35s var(--ease) forwards;animation-delay:calc(var(--i) * 85ms + var(--d,0ms))}
+.intro .sugg{--d:200ms}
+@keyframes sgin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* staged answer reveal */
+.msg.ai.enter>.mark,.enter .mb>.txt,.enter .srcs{animation:rise .3s var(--ease) both}
+.enter .wslot{animation:rise .38s .16s var(--ease) both}
+.enter .cslot{--d:220ms}.enter.hasw .cslot{--d:520ms}
+.enter .cslot>.btn,.enter .cslot>div:not(.sugg),.enter .cslot>textarea{animation:rise .3s var(--ease) both;animation-delay:var(--d)}
+/* loading */
+.loading{display:grid;gap:9px;padding:2px 0 4px;grid-column:2}
+.loading .lt{font-size:13px;color:var(--p-ink3)}
+.sk{height:11px;border-radius:6px;background:linear-gradient(90deg,var(--p-bg3) 0%,var(--p-line2) 45%,var(--p-bg3) 90%);background-size:220% 100%;animation:shimmer 1.15s linear infinite}
+@keyframes shimmer{from{background-position:120% 0}to{background-position:-100% 0}}
+.srcs{display:flex;flex-wrap:wrap;gap:5px;margin-top:-4px}
+.srcchip{font-size:11px;color:var(--p-ink2);background:var(--p-bg3);border-radius:6px;padding:2px 7px}
 /* widget surface */
 .w{background:var(--p-bg2);border-radius:14px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}
 .w-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;font-weight:600}
@@ -360,8 +398,7 @@ input[type=range]{width:100%;accent-color:var(--p-mark)}
 </style>
 
 <div class="stage">
-  <div class="simnote"><b>E03 프로토타입</b><span>Chrome 사이드 패널 시뮬레이션 · 실제 확장 프로그램, 계좌, 실시간 시세와 연결되지 않음 · 종목·수치·뉴스는 가상 예시 · 기준 시점 2026.11.17 15:30</span>
-    <span class="vsw" role="group" aria-label="패널 구분 시안"><button data-variant="v-both">A 다크+테두리</button><button data-variant="v-dark">B 다크 패널</button><button data-variant="v-border">C 테두리</button></span></div>
+  <div class="simnote"><b>E03 프로토타입</b><span>Chrome 사이드 패널 시뮬레이션 · 실제 확장 프로그램, 계좌, 실시간 시세와 연결되지 않음 · 종목·수치·뉴스는 가상 예시 · 기준 시점 2026.11.17 15:30</span></div>
   <div class="browser v-both" id="browser" aria-label="브라우저 시뮬레이션">
     <div class="tabstrip"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
       <div class="tab on"><span class="fav"></span>잔고 · 가상증권 WTS</div><div class="tab">시장 뉴스 · 가상 경제</div></div>
@@ -386,7 +423,7 @@ input[type=range]{width:100%;accent-color:var(--p-mark)}
           <div class="tabs" role="tablist"><button role="tab" data-tab="chat">함께 정리하기</button><button role="tab" data-tab="log">판단 기록 <span class="num" id="logCount"></span></button></div>
         </div>
         <button class="ctx" id="ctx" data-jump="gauge" title="기준과 지금 위치 보기"></button>
-        <div class="p-body" id="pBody"><div class="thread" id="thread"></div><div id="logView" hidden></div></div>
+        <div class="p-body" id="pBody"><div class="intro" id="intro" hidden></div><div class="thread" id="thread"></div><div id="logView" hidden></div></div>
         <div class="p-foot" id="pFoot">
           <form class="ask" id="ask" autocomplete="off"><input id="askIn" type="text" placeholder="궁금한 걸 직접 물어봐도 돼요" aria-label="질문하기"><button id="askBtn" type="submit" aria-label="보내기" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg></button></form>
           <div class="disc">매수·매도를 권하거나 가격을 전망하지 않아요. 최종 판단은 언제나 직접 해요.</div>
@@ -466,10 +503,10 @@ const weightOf=h=>evalOf(h)/TOTAL*100;
 /* ───────── storage (this browser only) ───────── */
 const KEY="mdc-e03-v4";
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}}
-function persist(){try{localStorage.setItem(KEY,JSON.stringify({records:S.records,edits:S.edits,valid:S.valid,custom:S.custom,panelW:S.panelW,variant:S.variant}))}catch(e){}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({records:S.records,edits:S.edits,valid:S.valid,custom:S.custom,panelW:S.panelW}))}catch(e){}}
 const SEED=[{id:"seed-a1",stock:"A",at:"2026-10-02T21:12",pct:-9.2,concern:"loss",decision:"keep",memo:"아직 기준 안이라 그대로 둔다. 11월 초 실적 발표가 나오면 매출 성장률이 유지되는지 다시 확인하겠다.",revisit:"다음 실적 발표 후",lines:[["손실 기준","범위 안 (여유 10.8%p)"]],seed:true,fb:{}}];
 const sv=load()||{};
-const S={sel:"A",open:false,tab:"chat",panelW:sv.panelW||420,variant:sv.variant||"v-both",records:Array.isArray(sv.records)?sv.records:SEED.slice(),edits:sv.edits||{},valid:sv.valid||{},custom:sv.custom||{},
+const S={sel:"A",open:false,tab:"chat",panelW:sv.panelW||420,records:Array.isArray(sv.records)?sv.records:SEED.slice(),edits:sv.edits||{},valid:sv.valid||{},custom:sv.custom||{},
   nudged:{},orderMsg:"",conv:{},filter:"cur",openRec:null};
 Object.keys(S.custom).forEach(k=>{if(H[k])H[k].record=S.custom[k]});
 
@@ -520,8 +557,7 @@ function renderSite(){
 
 /* ───────── chrome: header, nudge, launcher ───────── */
 function renderChrome(){
-  const h=H[S.sel],b=$("#browser");b.classList.remove("v-both","v-dark","v-border");b.classList.add(S.variant);
-  document.querySelectorAll("[data-variant]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.variant===S.variant));
+  const h=H[S.sel];
   $("#extDot").hidden=S.open||!!S.nudged[h.id]||!h.record;$("#launcher").hidden=S.open;
   const n=$("#nudge"),show=!S.open&&!S.nudged[h.id]&&!!h.record;n.hidden=!show;
   if(show)n.innerHTML=`<div class="who"><span class="mark"></span>Decision Companion · ${esc(h.name)}</div><p>매수 당시 적어 둔 기준이 있어요. 지금 상황과 함께 확인해 볼까요?</p><div class="row"><button class="btn sec sm" data-act="dismiss">나중에</button><button class="btn pri sm" data-act="open">확인해 보기</button></div>`;
@@ -531,16 +567,35 @@ function renderChrome(){
   const st=!r?`<span class="state none">기록된 기준 없음</span>`:loss?(loss.dev?`<span class="state warn">내 기준 ${r.lossLimit}%보다 ${(r.lossLimit-p).toFixed(1)}%p 아래</span>`:`<span class="state ok">내 기준 ${r.lossLimit}%까지 ${(p-r.lossLimit).toFixed(1)}%p 여유</span>`):`<span class="state none">손실 기준 없음</span>`;
   $("#ctx").innerHTML=`<div><div class="n">${esc(h.name)} · 보유 ${daysBetween(h.buyDate,NOW)}일</div><div class="bigp num ${cls(p)}">${sgn(p)}%</div></div><div class="r">${st}<span class="hint">위치 보기</span></div>`;
   $("#thread").hidden=S.tab!=="chat";$("#logView").hidden=S.tab!=="log";$("#pFoot").hidden=S.tab!=="chat";
+  applyMode();
 }
 
 /* ───────── conversation engine ───────── */
 let MID=0;
+const LOADL={gauge:["내 기준과 계좌 데이터를 확인하고 있어요","위치를 정리하고 있어요"],record:["매수 당시 기록을 불러오고 있어요","원문과 요약을 정리하고 있어요"],board:["그때와 지금을 비교하고 있어요","네 가지로 나누고 있어요"],
+ weight:["계좌 비중을 계산하고 있어요","정리하고 있어요"],sort:["최근 정보를 모으고 있어요","정리하고 있어요"],snap:["지금 상황을 요약하고 있어요","정리하고 있어요"],sum:["오늘 답변을 모으고 있어요","정리하고 있어요"],
+ mini:["관련 정보를 찾고 있어요","정리하고 있어요"],past:["지난 판단 기록을 불러오고 있어요","정리하고 있어요"],_:["답변 계획 중…","답변 정리 중…"]};
+const isIntro=c=>!!c&&c.msgs.length===1&&c.msgs[0].intro&&!c.msgs[0].ans;
+function applyMode(){const c=S.conv[S.sel],intro=S.open&&S.tab==="chat"&&isIntro(c),f=$("#ask");
+  $("#intro").hidden=!intro;$("#thread").hidden=intro||S.tab!=="chat";
+  if(intro){const slot=$("#introAsk");if(slot&&f.parentElement!==slot)slot.append(f);f.classList.add("big")}else if(f.parentElement!==$("#pFoot")){$("#pFoot").prepend(f);f.classList.remove("big")}
+  $("#pFoot").hidden=S.tab!=="chat";$("#ask").hidden=false}
+function renderIntro(c){const h=H[c.stock],m=c.msgs[0];
+  $("#intro").innerHTML=h.record?`<h2><span class="grad">흔들릴 때,</span> 내 기준부터 꺼내 볼까요?</h2><p class="lead">${esc(h.name)} · 지금 가장 신경 쓰이는 점을 고르거나 직접 적어 주세요</p><div id="introAsk"></div>${choicesHTML(m)}`
+   :`<h2><span class="grad">기준이 없어도</span> 지금부터 정리할 수 있어요</h2><p class="lead">${esc(h.name)}에는 매수 당시 남긴 기준이 없어요. 추측해서 만들지 않아요.</p><div id="introAsk"></div>${choicesHTML(m)}`;
+  const f=$("#ask");$("#introAsk").append(f);f.classList.add("big")}
+function leaveIntro(c){const t=$("#thread");t.innerHTML="";c.msgs.forEach(m=>{const el=renderMsg(m,false);t.append(el);mount(el,m,false)});t.classList.remove("fromintro");void t.offsetWidth;t.classList.add("fromintro");applyMode()}
+const SRCS={gauge:h=>["가상증권 계좌 · 11.17 15:30"].concat(h.record?["내 기록 · "+h.record.written.slice(5,10)]:[]),record:h=>["내 기록 원문 · "+h.record.written],board:h=>["실적 공시 (가상)","시장 데이터 (가상)"].concat(h.record?["내 기록"]:[]),weight:()=>["가상증권 계좌 · 예수금"],sort:()=>["공시·뉴스·커뮤니티 (가상)"],snap:()=>["가상증권 계좌"]};
 const freshCtx=()=>({answers:{},toCheck:[],review:[],path:[],t0:Date.now()});
 function conv(){const id=S.sel;if(!S.conv[id])S.conv[id]={stock:id,msgs:[],ctx:freshCtx(),queue:[],chain:Promise.resolve(),gen:0,started:false};return S.conv[id]}
 const shown=c=>S.open&&S.tab==="chat"&&c.stock===S.sel&&S.conv[c.stock]===c;
 function scrollEnd(){const b=$("#pBody");requestAnimationFrame(()=>{b.scrollTop=b.scrollHeight})}
 function ai(c,m){m.id=++MID;m.who="ai";const gen=c.gen;c.chain=c.chain.then(async()=>{
-  if(gen!==c.gen)return;await wait(m.fast?140:260);if(gen!==c.gen)return;
+  if(gen!==c.gen)return;
+  const ph=LOADL[m.w]||LOADL._;let t=null;
+  if(shown(c)){t=document.createElement("div");t.className="msg ai";t.innerHTML=`<span class="mark" aria-hidden="true"></span><div class="loading"><span class="lt">${ph[0]}</span><span class="sk"></span><span class="sk"></span><span class="sk" style="width:68%"></span></div>`;$("#thread").append(t);scrollEnd()}
+  if(m.w){await wait(560);if(t)t.querySelector(".lt").textContent=ph[1];await wait(460)}else await wait(m.fast?260:420);
+  if(t)t.remove();if(gen!==c.gen)return;
   m.stock=c.stock;c.msgs.push(m);if(shown(c)){const el=renderMsg(m,true);$("#thread").append(el);mount(el,m,true);scrollEnd()}});return m}
 function me(c,text,of){const m={id:++MID,who:"me",text,of,stock:c.stock};c.msgs.push(m);if(shown(c)){$("#thread").append(renderMsg(m,true));scrollEnd()}}
 const EDITABLE=["concern","q1","q2v","q2p","q2o","q2p2","unsure","q3","q3r","q4"];
@@ -548,26 +603,27 @@ function renderMsg(m,anim){
   const el=document.createElement("div");el.dataset.mid=m.id;
   if(m.who==="me"){el.className="msg me"+(anim?" enter":"");const src=m.of&&findMsg(m.of)[1];
     el.innerHTML=`${src&&EDITABLE.includes(src.key)?`<button class="editans" data-editans="${m.of}">답 수정</button>`:""}<div class="bub">${esc(m.text)}</div>`;return el}
-  el.className="msg ai"+(anim?" enter":"");
-  el.innerHTML=`<span class="mark" aria-hidden="true"></span><div class="mb">${m.text?`<p class="txt">${m.text}</p>`:""}${m.w?`<div class="slot wslot">${W[m.w](H[m.stock],m)}</div>`:""}<div class="slot cslot">${choicesHTML(m)}</div></div>`;
+  if(m.intro&&m.ans){el.hidden=true;return el}
+  el.className="msg ai"+(anim?" enter":"")+(m.w?" hasw":"");
+  el.innerHTML=`<span class="mark" aria-hidden="true"></span><div class="mb">${m.text?`<p class="txt">${m.text}</p>`:""}${m.srcs?`<div class="srcs">${m.srcs.map(x=>`<span class="srcchip">${esc(x)}</span>`).join("")}</div>`:""}${m.w?`<div class="slot wslot">${W[m.w](H[m.stock],m)}</div>`:""}<div class="slot cslot">${choicesHTML(m)}</div></div>`;
   return el;
 }
 function choicesHTML(m){
   if((!m.ch&&!m.input)||m.ans)return"";const sel=m.sel||[];let s="";
-  if(m.ch){if(m.col||m.multi)s+=`<div class="opts">${m.ch.map(o=>`<button class="opt ${m.multi?"multi":""}" data-m="${m.id}" data-c="${o.id}" aria-pressed="${sel.includes(o.id)}"><span class="rd">${TICK}</span><span>${esc(o.l)}</span></button>`).join("")}</div>`;
-    else s+=`<div class="chips">${m.ch.map(o=>`<button class="chip ${o.pri?"pri":""} ${o.ghost?"ghost":""}" data-m="${m.id}" data-c="${o.id}">${esc(o.l)}</button>`).join("")}</div>`}
+  if(m.ch)s+=`<div class="sugg">${m.ch.map((o,i)=>`<button class="sg" style="--i:${i}" data-m="${m.id}" data-c="${o.id}" ${m.multi?`aria-pressed="${sel.includes(o.id)}"`:""}><span class="ar">↳</span><span class="tg2">${esc(o.t||"")}</span><span>${esc(o.l)}</span><span class="${m.multi?"ck":""}">${m.multi?TICK:""}</span></button>`).join("")}</div>`;
   if(m.multi)s+=`<div><button class="btn pri sm" data-m="${m.id}" data-done="1" ${sel.length?"":"disabled"}>선택 완료</button></div>`;
   if(m.input)s+=`<textarea rows="2" data-inp="${m.id}" placeholder="${esc(m.input.ph)}"></textarea><div class="actions"><button class="btn pri sm" data-m="${m.id}" data-sub="1" disabled>보내기</button>${m.input.skip?`<button class="btn sec sm" data-m="${m.id}" data-c="__skip">건너뛰기</button>`:""}</div>`;
   return s;
 }
 function rebuild(){
   const c=conv(),t=$("#thread");t.innerHTML="";
-  c.msgs.forEach(m=>{const el=renderMsg(m,false);t.append(el);mount(el,m,false)});
   if(!c.started){c.started=true;start(c)}
+  if(isIntro(c)){renderIntro(c);applyMode();$("#pBody").scrollTop=0;return}
+  c.msgs.forEach(m=>{const el=renderMsg(m,false);t.append(el);mount(el,m,false)});applyMode();
   const b=$("#pBody");b.style.scrollBehavior="auto";b.scrollTop=b.scrollHeight;b.style.scrollBehavior="";
 }
 function refreshWidget(m){const el=document.querySelector(`[data-mid="${m.id}"] .wslot`);if(el){el.innerHTML=W[m.w](H[m.stock],m);mount(el.closest(".msg"),m,false)}}
-function answer(c,m,label,ids){m.snap=JSON.parse(JSON.stringify(c.ctx));m.snapQ=c.queue.slice();m.ans=ids;
+function answer(c,m,label,ids){m.snap=JSON.parse(JSON.stringify(c.ctx));m.snapQ=c.queue.slice();m.ans=ids;if(m.intro&&shown(c))leaveIntro(c);
   const cs=document.querySelector(`[data-mid="${m.id}"] .cslot`);if(cs)cs.innerHTML="";if(label)me(c,label,m.id);c.ctx.path.push((m.key||"")+":"+ids.join("+"))}
 function editAnswer(id){const[c,m]=findMsg(id);if(!c||!m.snap)return;const i=c.msgs.indexOf(m);
   c.gen++;c.chain=Promise.resolve();c.msgs=c.msgs.slice(0,i+1);c.ctx=JSON.parse(JSON.stringify(m.snap));c.queue=m.snapQ.slice();m.ans=null;rebuild();
@@ -575,7 +631,7 @@ function editAnswer(id){const[c,m]=findMsg(id);if(!c||!m.snap)return;const i=c.m
 function findMsg(id){for(const c of Object.values(S.conv)){const m=c.msgs.find(x=>x.id===+id);if(m)return[c,m]}return[null,null]}
 
 /* ───────── flow ───────── */
-const CONCERNS=[["loss","손실이 커지는 것이 걱정돼요"],["reason","처음 투자했던 이유가 여전히 유효한지 모르겠어요"],["opinion","다른 사람들이 팔거나 부정적인 이야기를 해서 불안해요"],["addbuy","추가 매수를 고민하고 있어요"],["vague","특별한 이유는 없지만 그냥 불안해요"]];
+const CONCERNS=[["loss","손실이 커지는 것이 걱정돼요","손실"],["reason","처음 투자했던 이유가 여전히 유효한지 모르겠어요","투자 이유"],["opinion","다른 사람들이 팔거나 부정적인 이야기를 해서 불안해요","외부 의견"],["addbuy","추가 매수를 고민하고 있어요","추가 매수"],["vague","특별한 이유는 없지만 그냥 불안해요","막연한 불안"]];
 const QUEUES={loss:["gauge","record","board","dialog"],reason:["record","board","gauge","dialog"],opinion:["sort","record","board","dialog"],addbuy:["weight","record","board","dialog"],vague:["snap","record","board","dialog"]};
 const NEXTL={gauge:"기준과 지금 위치 보기",record:"매수 당시 내 기준 보기",board:"그때와 지금 비교하기",weight:"비중 변화 계산해 보기",sort:"사실과 의견 나눠 보기",snap:"한눈에 보기",dialog:"질문에 답하며 정리하기"};
 const REFLECT={loss:"손실이 커지는 게 걱정되는군요. 먼저 <b>내가 정해 둔 손실 기준</b>과 지금 위치를 나란히 볼게요.<span class=\"sub\">그래프를 따라 움직이면 그날의 수익률이, 점을 누르면 그날 나온 정보가 보여요.</span>",
@@ -583,11 +639,11 @@ const REFLECT={loss:"손실이 커지는 게 걱정되는군요. 먼저 <b>내�
  opinion:"다른 사람들의 이야기가 마음에 걸리는군요. 바뀐 것이 <b>사실인지 의견인지</b>부터 나눠 볼게요.<span class=\"sub\">먼저 직접 골라 보세요. 고르면 AI 분류도 함께 보여요.</span>",
  addbuy:"추가 매수를 고민 중이군요. 결정은 대신하지 않아요. <b>비중이 어떻게 바뀌는지</b> 직접 움직여 보고, 매수할 때 정한 조건도 함께 볼게요.",
  vague:"그럴 때도 있어요. 이유를 몰라도 괜찮아요. <b>세 가지만</b> 먼저 볼게요. 더 보고 싶은 칸을 눌러 보세요."};
-const concernMsg=(h,lead)=>({key:"concern",text:`${lead||`${USER}님,`} 지금 <b>${esc(h.name)}</b>에서 가장 신경 쓰이는 점은 무엇인가요?<span class="sub">고른 내용에 따라 먼저 볼 정보의 순서가 달라져요.</span>`,ch:CONCERNS.map(x=>({id:x[0],l:x[1]})),col:1,on:"concern"});
+const concernMsg=(h,lead)=>({key:"concern",text:`${lead||`${USER}님,`} 지금 <b>${esc(h.name)}</b>에서 가장 신경 쓰이는 점은 무엇인가요?<span class="sub">고른 내용에 따라 먼저 볼 정보의 순서가 달라져요.</span>`,ch:CONCERNS.map(x=>({id:x[0],l:x[1],t:x[2]})),on:"concern"});
 function start(c){const h=H[c.stock];
-  if(!h.record){ai(c,{key:"norec",text:`<b>${esc(h.name)}</b>에는 매수 당시 남긴 기준이 없어요.<span class="sub">투자 이유를 추측해서 만들지 않을게요. 기준이 없으면 비교도 할 수 없어요.</span>`,w:"emptyRec",ch:[{id:"setup",l:"지금 직접 기준 정리하기",pri:1},{id:"nowonly",l:"기준 없이 지금 상황만 보기"}],on:"norec"});return}
-  ai(c,concernMsg(h))}
-function cont(c){const nx=c.queue[0];if(!nx)return;const ch=[{id:"next",l:`다음 · ${NEXTL[nx]}`,pri:1}];if(nx!=="dialog"&&c.queue.includes("dialog"))ch.push({id:"dialog",l:"바로 질문으로",ghost:1});return ch}
+  const m=h.record?concernMsg(h):{key:"norec",text:`<b>${esc(h.name)}</b>에는 매수 당시 남긴 기준이 없어요.<span class="sub">투자 이유를 추측해서 만들지 않을게요. 기준이 없으면 비교도 할 수 없어요.</span>`,ch:[{id:"setup",t:"기준 작성",l:"지금 직접 기준 정리하기"},{id:"nowonly",t:"현재 상황",l:"기준 없이 지금 상황만 보기"}],on:"norec"};
+  Object.assign(m,{id:++MID,who:"ai",stock:c.stock,intro:true});c.msgs.push(m)}
+function cont(c){const nx=c.queue[0];if(!nx)return;const ch=[{id:"next",t:"다음",l:NEXTL[nx]}];if(nx!=="dialog"&&c.queue.includes("dialog"))ch.push({id:"dialog",t:"건너뛰기",l:"바로 질문에 답하며 정리하기"});return ch}
 function post(c,name,lead){
   c.queue=c.queue.filter(x=>x!==name);if(name==="dialog")return dialogStart(c);
   const h=H[c.stock],ct=c.ctx;
@@ -600,7 +656,7 @@ function post(c,name,lead){
   if(name==="board")m.open=ct.concern==="reason"?"rel":ct.concern==="opinion"?"new":(h.record?"dev":"new");
   if(name==="record")m.openNow=ct.concern==="reason"?["reason"]:ct.concern==="loss"?["loss"]:ct.concern==="addbuy"?[h.record&&h.record.extra?"extra":"weight"]:[];
   if(name==="gauge")m.anim=true;
-  m.ch=cont(c);ai(c,m)}
+  if(SRCS[name])m.srcs=SRCS[name](h);m.ch=cont(c);ai(c,m)}
 const next=c=>{const nx=c.queue[0];if(nx)post(c,nx)};
 
 /* question tree */
@@ -615,7 +671,7 @@ function q3(c){const h=H[c.stock],d=q3target(h);if(!d)return q4(c);c.ctx.q3k=d.k
    ch:[{id:"keep",l:"그대로 의미 있는 기준이에요"},{id:"redo",l:"다시 정하고 싶어요"},{id:"arb",l:"깊이 생각하지 않고 정한 숫자였어요"}],col:1,on:"q3"})}
 function q4(c){const h=H[c.stock],r=h.record;if(!r.periodM)return qmore(c);
   ai(c,{key:"q4",text:`계획한 투자 기간 <b>${esc(r.period)}</b> 중 <b>${monthsBetween(h.buyDate,NOW)}개월</b>이 지났어요. 기간에 대한 생각이 달라졌나요?`,ch:[{id:"same",l:"그대로예요"},{id:"shorter",l:"더 짧게 보고 있어요"},{id:"longer",l:"더 길게 봐도 괜찮아요"},{id:"never",l:"생각해 본 적 없어요"}],on:"q4"})}
-function qmore(c){ai(c,{key:"more",text:"정리하기 전에 더 보고 싶은 게 있나요? 답을 바꾸고 싶으면 내 답 옆의 ‘답 수정’을 눌러요.",ch:[{id:"sum",l:"오늘 내용 정리하기",pri:1},{id:"board",l:"달라진 정보 다시 보기"},{id:"record",l:"내 기준 다시 보기"},{id:"past",l:"지난 판단 기록"}],on:"more"})}
+function qmore(c){ai(c,{key:"more",text:"정리하기 전에 더 보고 싶은 게 있나요? 답을 바꾸고 싶으면 내 답 옆의 ‘답 수정’을 눌러요.",ch:[{id:"sum",t:"정리",l:"오늘 내용 정리하기"},{id:"board",t:"다시 보기",l:"달라진 정보 다시 보기"},{id:"record",t:"다시 보기",l:"내 기준 다시 보기"},{id:"past",t:"기록",l:"지난 판단 기록 보기"}],on:"more"})}
 const addU=(a,v)=>{if(v&&!a.includes(v))a.push(v)};
 const lblOf=(m,ids)=>ids.map(i=>(m.ch.find(o=>o.id===i)||{l:i}).l).join(", ");
 const ON={
@@ -683,7 +739,7 @@ const DECS=[["keep","현재 기준을 유지하겠다","기준과 이유를 그�
 function saveSummary(c,m){const h=H[c.stock],ct=c.ctx,id="r"+Date.now().toString(36),d=new Date();
   m.lines=summaryLines(c);S.records.push({id,stock:h.id,at:`2026-11-17T${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`,pct:+pctOf(h).toFixed(1),concern:ct.concern||"none",decision:ct.dec,memo:(ct.memo||"").trim(),revisit:ct.revisit,lines:m.lines.map(l=>[l[0],l[1]]),path:ct.path.slice(),secs:Math.round((Date.now()-ct.t0)/1000),fb:{}});
   persist();ct.savedId=id;m.saved=true;refreshWidget(m);renderChrome();toast("판단 기록을 저장했어요");
-  ai(c,{key:"saved",fast:1,w:"saved",ch:[{id:"log",l:"판단 기록 모아 보기",pri:1},{id:"fb",l:"테스트 피드백 남기기"},{id:"restart",l:"처음부터 다시"}],on:"after"})}
+  ai(c,{key:"saved",fast:1,w:"saved",ch:[{id:"log",t:"기록",l:"판단 기록 모아 보기"},{id:"fb",t:"테스트",l:"짧은 피드백 남기기"},{id:"restart",t:"처음부터",l:"이 종목 다시 점검하기"}],on:"after"})}
 
 /* ───────── widgets ───────── */
 const pos=(v,lo,hi)=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));
@@ -809,7 +865,6 @@ const memoSync=(c,m)=>{const t=document.querySelector(`[data-memo="${m.id}"]`);i
 document.addEventListener("click",e=>{
   const t=e.target.closest("button,.evdot");if(!t)return;const d=t.dataset;
   if(t.id==="extBtn")return setOpen(!S.open);
-  if(d.variant){S.variant=d.variant;persist();return renderChrome()}
   if(d.sel)return selectStock(d.sel);
   if(d.ev)return showEv(t);
   if(d.order){S.orderMsg=`가상 화면이에요. ${d.order} 주문은 실행되지 않아요.`;return renderSite()}
@@ -861,7 +916,7 @@ document.addEventListener("pointermove",onScrub);document.addEventListener("poin
 
 /* free questions: rule-based, never a buy/sell conclusion or price outlook */
 $("#ask").addEventListener("submit",e=>{e.preventDefault();const inp=$("#askIn"),q=inp.value.trim();if(!q)return;inp.value="";$("#askBtn").disabled=true;
-  const c=conv(),h=H[c.stock];me(c,q);const chs=(h.record?[{id:"record",l:"내 기준"}]:[]).concat([{id:"board",l:"달라진 정보"},{id:"gauge",l:"지금 위치"}]);
+  const c=conv(),h=H[c.stock];if(isIntro(c))leaveIntro(c);me(c,q);const chs=(h.record?[{id:"record",l:"내 기준"}]:[]).concat([{id:"board",l:"달라진 정보"},{id:"gauge",l:"지금 위치"}]);
   if(/팔|매도|사야|살까|사도|매수|손절|익절|오를|떨어|반등|전망|목표가|버텨|물타/.test(q))ai(c,{key:"free",text:`그 질문에는 <b>결론이나 가격 전망을 드리지 않아요.</b> 결정은 ${USER}님의 몫이에요. 대신 판단에 쓸 재료를 바로 꺼내 드릴 수 있어요.`,ch:chs,on:"jump"});
   else if(/실적|매출|공시|이익|흑자/.test(q)){const it=h.info.filter(i=>i.area==="earnings");ai(c,{key:"free",text:it.length?"기록된 실적 관련 정보예요. 모두 가상 예시이고, 판단 전에 원문 확인을 권해요.":"기록된 실적 정보가 없어요.",w:it.length?"mini":null,items:it.map(i=>i.id)})}
   else if(/비중|추가/.test(q))post(c,"weight","비중을 직접 계산해 볼 수 있어요. 계산일 뿐, 권유가 아니에요.");
