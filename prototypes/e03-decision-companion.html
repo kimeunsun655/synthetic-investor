@@ -186,7 +186,7 @@ button.tbtn:hover{background:var(--chrome)}
 .msg{display:grid;gap:10px;min-width:0}
 .msg.ai{grid-template-columns:10px minmax(0,1fr);gap:10px}
 .msg.ai>.mark{margin-top:8px;width:7px;height:7px}
-.msg.me.enter{animation:rise .3s var(--ease) both}
+.msg.me.enter{animation:rise .45s var(--ease) both}
 .mb{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;min-width:0}
 .mb>.txt{font-size:14.5px;line-height:1.65;margin:0;text-wrap:pretty}
 .mb>.txt b{font-weight:600}
@@ -247,7 +247,7 @@ input[type=range]{width:100%;accent-color:var(--p-mark)}
 .ask input[type=text]{border:0;background:none;padding:0;border-radius:0}
 .ask.big input[type=text]{font-size:15px;height:30px}
 .ask.big button{align-self:flex-end;border-radius:50%}
-.thread.fromintro{animation:fade .3s var(--ease)}
+.thread.fromintro{animation:fade .45s var(--ease)}
 /* ↳ suggestion rows */
 .sugg{display:grid;grid-template-columns:minmax(0,1fr)}
 .sg{display:grid;grid-template-columns:16px auto minmax(0,1fr) 18px;gap:8px;align-items:baseline;padding:12px 4px;border-bottom:1px solid var(--p-line);text-align:left;font-size:14px;line-height:1.45;color:var(--p-ink);transition:background .15s,color .15s}
@@ -260,14 +260,18 @@ input[type=range]{width:100%;accent-color:var(--p-mark)}
 .sg[aria-pressed="true"]{font-weight:600}
 .sg[aria-pressed="true"] .ck{background:var(--p-pri);border-color:var(--p-pri)}
 .sg[aria-pressed="true"] .ck svg{opacity:1}
-.intro .sg,.enter .sg{opacity:0;animation:sgin .35s var(--ease) forwards;animation-delay:calc(var(--i) * 85ms + var(--d,0ms))}
-.intro .sugg{--d:200ms}
+.intro .sg,.enter .sg{opacity:0;animation:sgin .5s var(--ease) forwards;animation-delay:calc(var(--i) * 170ms + var(--d,0ms))}
+.intro .sugg{--d:900ms}
+.intro h2{animation:rise .7s var(--ease) both}.intro .lead{animation:rise .7s .2s var(--ease) both}#introAsk{animation:rise .7s .45s var(--ease) both}
 @keyframes sgin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 /* staged answer reveal */
-.msg.ai.enter>.mark,.enter .mb>.txt,.enter .srcs{animation:rise .3s var(--ease) both}
-.enter .wslot{animation:rise .38s .16s var(--ease) both}
-.enter .cslot{--d:220ms}.enter.hasw .cslot{--d:520ms}
-.enter .cslot>.btn,.enter .cslot>div:not(.sugg),.enter .cslot>textarea{animation:rise .3s var(--ease) both;animation-delay:var(--d)}
+.msg.ai.enter>.mark{animation:fade .45s var(--ease) both}
+.wd{opacity:0;animation:wdin .42s var(--ease) forwards;animation-delay:calc(var(--k) * 42ms)}
+@keyframes wdin{from{opacity:0;filter:blur(2px)}to{opacity:1;filter:none}}
+.enter .srcs{animation:rise .45s var(--ease) both;animation-delay:var(--td,0ms)}
+.enter .wslot{animation:rise .6s var(--ease) both;animation-delay:var(--wd,300ms)}
+.enter .cslot{--d:var(--cd,400ms)}
+.enter .cslot>.btn,.enter .cslot>div:not(.sugg),.enter .cslot>textarea{animation:rise .45s var(--ease) both;animation-delay:var(--d)}
 /* loading */
 .loading{display:grid;gap:9px;padding:2px 0 4px;grid-column:2}
 .loading .lt{font-size:13px;color:var(--p-ink3)}
@@ -594,9 +598,23 @@ function ai(c,m){m.id=++MID;m.who="ai";const gen=c.gen;c.chain=c.chain.then(asyn
   if(gen!==c.gen)return;
   const ph=LOADL[m.w]||LOADL._;let t=null;
   if(shown(c)){t=document.createElement("div");t.className="msg ai";t.innerHTML=`<span class="mark" aria-hidden="true"></span><div class="loading"><span class="lt">${ph[0]}</span><span class="sk"></span><span class="sk"></span><span class="sk" style="width:68%"></span></div>`;$("#thread").append(t);scrollEnd()}
-  if(m.w){await wait(560);if(t)t.querySelector(".lt").textContent=ph[1];await wait(460)}else await wait(m.fast?260:420);
+  if(m.w){await wait(1000);if(t)t.querySelector(".lt").textContent=ph[1];await wait(850)}else await wait(m.fast?650:900);
   if(t)t.remove();if(gen!==c.gen)return;
-  m.stock=c.stock;c.msgs.push(m);if(shown(c)){const el=renderMsg(m,true);$("#thread").append(el);mount(el,m,true);scrollEnd()}});return m}
+  m.stock=c.stock;c.msgs.push(m);if(shown(c)){const el=renderMsg(m,true);$("#thread").append(el);stage(el);mount(el,m,true);scrollToMsg(el)}
+  if(!RM)await wait(m.w?900:450)});return m}
+function stage(el){if(RM)return;const tx=el.querySelector(".mb>.txt");let k=0;
+  if(tx){const walk=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w)){f.append(w);return}const sp=document.createElement("span");sp.className="wd";sp.style.setProperty("--k",k++);sp.textContent=w;f.append(sp)});ch.replaceWith(f)}else if(ch.nodeType===1)walk(ch)})};walk(tx)}
+  const td=k*42+300,hasW=!!el.querySelector(".wslot"),wd=td+150,cd=hasW?wd+750:td+200;
+  el.style.setProperty("--td",td+"ms");el.style.setProperty("--wd",wd+"ms");el.style.setProperty("--cd",cd+"ms");el.dataset.wd=wd}
+const relTop=el=>{const b=$("#pBody");return b.scrollTop+el.getBoundingClientRect().top-b.getBoundingClientRect().top};
+function scrollToMsg(el){const b=$("#pBody");
+  requestAnimationFrame(()=>{const prev=el.previousElementSibling,anchor=prev&&prev.classList.contains("me")?prev:el;
+    const top=relTop(anchor)-16,need=relTop(el)+el.offsetHeight-b.clientHeight+24;
+    b.scrollTo({top:Math.max(b.scrollTop,Math.min(top,need)),behavior:RM?"auto":"smooth"});
+    const cs=el.querySelector(".cslot");
+    if(cs&&cs.children.length&&!RM)setTimeout(()=>{if(!el.isConnected)return;const want=relTop(cs)+Math.min(cs.offsetHeight,150)-b.clientHeight+20;if(want>b.scrollTop)b.scrollTo({top:want,behavior:"smooth"})},(parseInt(el.style.getPropertyValue("--cd"))||400)+250);
+  });
+}
 function me(c,text,of){const m={id:++MID,who:"me",text,of,stock:c.stock};c.msgs.push(m);if(shown(c)){$("#thread").append(renderMsg(m,true));scrollEnd()}}
 const EDITABLE=["concern","q1","q2v","q2p","q2o","q2p2","unsure","q3","q3r","q4"];
 function renderMsg(m,anim){
@@ -627,7 +645,7 @@ function answer(c,m,label,ids){m.snap=JSON.parse(JSON.stringify(c.ctx));m.snapQ=
   const cs=document.querySelector(`[data-mid="${m.id}"] .cslot`);if(cs)cs.innerHTML="";if(label)me(c,label,m.id);c.ctx.path.push((m.key||"")+":"+ids.join("+"))}
 function editAnswer(id){const[c,m]=findMsg(id);if(!c||!m.snap)return;const i=c.msgs.indexOf(m);
   c.gen++;c.chain=Promise.resolve();c.msgs=c.msgs.slice(0,i+1);c.ctx=JSON.parse(JSON.stringify(m.snap));c.queue=m.snapQ.slice();m.ans=null;rebuild();
-  requestAnimationFrame(()=>{const el=document.querySelector(`[data-mid="${m.id}"]`);if(el)$("#pBody").scrollTop=el.offsetTop-12})}
+  requestAnimationFrame(()=>{const el=document.querySelector(`[data-mid="${m.id}"]`);if(el)$("#pBody").scrollTop=relTop(el)-12})}
 function findMsg(id){for(const c of Object.values(S.conv)){const m=c.msgs.find(x=>x.id===+id);if(m)return[c,m]}return[null,null]}
 
 /* ───────── flow ───────── */
@@ -841,7 +859,7 @@ function scrub(svg,cx){const h=H[svg.dataset.hist],{d,lim,Wd,pl,pr,X,Y}=geo(h),r
 function showEv(el){const h=H[el.dataset.hs],i=h.info.find(x=>x.id===el.dataset.ev);
   el.closest(".gauge").querySelector(".readout").innerHTML=`<b>${esc(i.t)}</b><br>${esc(i.d)} · ${esc(i.src)}(가상)${i.link?`<br><span class="ailbl">AI 추론</span> ${esc(i.link)}`:""}`}
 function mount(el,m,anim){if(m.w!=="gauge")return;const g=el.querySelector(".gauge");if(!g)return;
-  if(!anim||RM)g.classList.add("in");else requestAnimationFrame(()=>requestAnimationFrame(()=>g.classList.add("in")))}
+  if(!anim||RM)g.classList.add("in");else setTimeout(()=>g.classList.add("in"),(+el.dataset.wd||0)+350)}
 
 /* ───────── log ───────── */
 const CL={loss:"손실 걱정",reason:"투자 이유 확인",opinion:"외부 의견",addbuy:"추가 매수 고민",vague:"막연한 불안",none:"기준 없이 확인"};
