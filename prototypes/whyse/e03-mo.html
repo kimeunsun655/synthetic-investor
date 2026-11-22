@@ -550,6 +550,43 @@ body{background:var(--page)}
 .isl.co{border-radius:20px}
 .isl .isl-c{height:36px}
 .isl.ex{width:356px;border-radius:40px}
+
+/* ── matched to E07 (원칙 대조기) sheet ── */
+.phone .panel{top:58px;border-radius:30px 30px 0 0}
+.phone .grab{width:38px;height:5px;border-radius:3px;background:#3A4037;margin:8px auto 0}
+.phone .p-head{padding:6px 18px 0;gap:10px}
+.phone .p-top{padding:10px 0 0;gap:8px}
+.phone .p-top .t{gap:8px}
+.phone .p-top b{font-size:14px;font-weight:700;letter-spacing:0}
+.phone .p-top small{font-size:12.5px;font-weight:500;color:var(--p-ink3)}
+.phone .wl{width:22px;height:22px;border-radius:7px;background:var(--lime);color:#152000;font-weight:900;font-size:13px;line-height:1;display:grid;place-items:center;flex:none}
+.phone .ibtn{width:30px;height:30px;border-radius:50%;background:var(--p-bg3);color:var(--p-ink)}
+.phone .ibtn:hover{background:#30352E;color:var(--p-ink)}
+.phone .ibtn svg{width:13px;height:13px}
+.phone .ibtn[data-act="close"] svg{width:12px;height:12px;stroke-width:2}
+.phone .btn{height:46px;border-radius:15px;font-weight:700}
+.phone .btn.full{height:54px;font-size:16.5px;font-weight:800}
+.phone .btn.sm{height:38px;border-radius:19px;font-size:13.5px;padding:0 16px}
+.phone .btn.sec{background:var(--p-bg3);border:0;color:var(--p-ink)}
+.phone .w,.phone .stats{border-radius:20px}
+.phone .w{padding:18px}
+.phone .toast{background:#111;color:#fff;border-radius:12px;padding:10px 14px;bottom:110px}
+
+/* island = E07 */
+.nudge.isl{padding:0!important;border:0!important;box-shadow:none!important;display:block;gap:0;animation:none}
+.isl{transition:width .45s cubic-bezier(.3,1.3,.5,1),border-radius .45s}
+.isl.co{width:210px!important;border-radius:20px}
+.isl .isl-c{width:100%;height:36px;min-width:0;max-width:none;padding:0 12px 0 8px;justify-content:space-between;gap:8px}
+.isl .isl-c .r{font-size:13px;font-weight:700;color:var(--lime);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.isl.ex{width:356px!important;border-radius:40px}
+.isl-ex{padding:18px 20px 16px;display:flex;flex-direction:column;gap:10px}
+.isl-ex .h{display:flex;align-items:center;gap:8px;font-size:12px;color:#9a9ca3;font-weight:600}
+.isl-ex .t{font-size:17px;font-weight:700;line-height:1.35;letter-spacing:-.02em;color:#fff}
+.isl-ex .t small{display:block;font-size:13px;font-weight:500;color:#b4b6bd;margin-top:2px}
+.isl-ex .b{display:flex;gap:8px;margin-top:6px}
+.isl-ex .b button{flex:1;height:38px;border-radius:19px;font-size:14px;font-weight:700}
+.isl-ex .b .n{background:#262A25;color:#F1F4EE}
+.isl-ex .b .y{background:var(--lime);color:#152000}
 </style>
 
 <div class="mo">
@@ -561,7 +598,7 @@ body{background:var(--page)}
       <aside class="panel xt" id="panel" aria-label="WHYSE 화면" inert>
         <div class="resize" id="resize" hidden></div>
         <div class="grab" aria-hidden="true"></div><div class="p-head">
-          <div class="p-top"><div class="t"><span class="mark"></span><b>WHYSE</b><small>내 기준으로 점검</small></div>
+          <div class="p-top"><div class="t"><span class="wl">W</span><b>WHYSE</b><small>흔들릴 때 내 기준 점검</small></div>
             <button class="ibtn" data-act="tips" title="사용법 안내 다시 보기" aria-label="사용법 다시 보기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M6.4 6.3a1.7 1.7 0 0 1 3.2.8c0 1.1-1.6 1.4-1.6 2.4M8 11.6v.1"/></svg></button>
             <button class="ibtn" data-act="restart" title="이 종목 대화 처음부터" aria-label="처음부터"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.5V5h2.5"/></svg></button>
             <button class="ibtn" data-act="close" aria-label="패널 닫기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
@@ -721,10 +758,10 @@ function renderChrome(){__step();
   $("#extDot").hidden=S.open||!!S.nudged[h.id]||!h.record;renderLauncher();
   const n=$("#nudge"),show=!S.open&&!S.nudged[h.id]&&!!h.record;n.hidden=false;n.className="nudge xt isl "+(show?"ex":"co");
   {const r0=h.record,p0=pctOf(h),dv=deviations(h).find(d=>d.k==="loss");
-   const stTx=!r0?"기준 없음 · 정리하기":dv?(dv.dev?`<span class="warn">기준보다 ${(r0.lossLimit-p0).toFixed(1)}%p 아래</span>`:`기준까지 ${(p0-r0.lossLimit).toFixed(1)}%p 여유`):"내 기준 보기";
-   n.innerHTML=show?`<div class="isl-ex" role="dialog" aria-label="WHYSE 알림"><div class="who"><span class="wl">W</span>WHYSE · ${esc(h.name)}</div><p>매수 당시 적어 둔 기준이 있어요. 지금 상황과 함께 확인해 볼까요?</p><div class="sub">${dv?(dv.dev?`지금 ${sgn(p0)}% · 내 손실 기준 ${r0.lossLimit}%`:`지금 ${sgn(p0)}% · 내 손실 기준 ${r0.lossLimit}%`):"매수 이유와 기준을 꺼내 볼 수 있어요"}</div><div class="row"><button class="later" data-act="dismiss">나중에</button><button class="go" data-act="open">확인해 보기</button></div></div>`
-    :S.open?`<div class="isl-c on" role="status"><span class="wl">W</span><span class="tx">읽기만 · 주문하지 않아요</span><span class="ld"></span></div>`
-    :`<button class="isl-c" data-act="open" aria-label="WHYSE 열기"><span class="wl">W</span><span class="tx">${stTx}</span></button>`;}
+   const stTx=!r0?"기준 없음 · 정리하기":dv?(dv.dev?`기준보다 ${(r0.lossLimit-p0).toFixed(1)}%p 아래`:`기준까지 ${(p0-r0.lossLimit).toFixed(1)}%p 여유`):"내 기준 보기";
+   n.innerHTML=show?`<div class="isl-ex" role="dialog" aria-label="WHYSE 알림"><div class="h"><span class="wl">W</span>WHYSE · ${esc(h.name)}</div><div class="t">매수 당시 적어 둔 기준이 있어요<small>${dv?`지금 ${sgn(p0)}% · 내 손실 기준 ${r0.lossLimit}%`:"매수 이유와 기준을 꺼내 볼 수 있어요"}</small></div><div class="b"><button class="n" data-act="dismiss">나중에</button><button class="y" data-act="open">확인해 보기</button></div></div>`
+    :S.open?`<div class="isl-c on" role="status"><span class="wl">W</span><span class="r">읽기만 하는 중</span></div>`
+    :`<button class="isl-c" data-act="open" aria-label="WHYSE 열기"><span class="wl">W</span><span class="r">${stTx}</span></button>`;}
   document.querySelectorAll(".tabs button").forEach(x=>{const on=x.dataset.tab===S.tab;x.classList.toggle("on",on);x.setAttribute("aria-selected",on)});
   $("#logCount").textContent=S.records.length;
   const p=pctOf(h),r=h.record,loss=deviations(h).find(d=>d.k==="loss");
