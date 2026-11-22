@@ -1,11 +1,14 @@
 <title>WHYSE 통합 프로토타입</title>
 <style>
-:root{--bg:#eef0f4;--card:#ffffff;--ink:#14161a;--sub:#6b7280;--line:#dfe2e8;--acc:#c8f05a;--accInk:#14161a;--on:#14161a;--onInk:#ffffff}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111317;--card:#1b1e24;--ink:#f1f3f6;--sub:#9aa1ad;--line:#2b2f37;--on:#f1f3f6;--onInk:#14161a}}
-:root[data-theme="dark"]{--bg:#111317;--card:#1b1e24;--ink:#f1f3f6;--sub:#9aa1ad;--line:#2b2f37;--on:#f1f3f6;--onInk:#14161a}
+/* Layout: tabs on top; every tab = same phone column (left, fixed) + same explainer column (right). */
+:root{--bg:#eef0f4;--card:#ffffff;--ink:#14161a;--sub:#6b7280;--line:#dfe2e8;--acc:#c8f05a;--accSoft:rgba(198,240,106,.28);--accInk:#14161a;--on:#14161a;--onInk:#ffffff;--onSub:#b3b8c2}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111317;--card:#1b1e24;--ink:#f1f3f6;--sub:#9aa1ad;--line:#2b2f37;--accSoft:rgba(198,240,106,.16);--on:#f1f3f6;--onInk:#14161a;--onSub:#4b5160;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111317;--card:#1b1e24;--ink:#f1f3f6;--sub:#9aa1ad;--line:#2b2f37;--accSoft:rgba(198,240,106,.16);--on:#f1f3f6;--onInk:#14161a;--onSub:#4b5160;color-scheme:dark}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 header{padding:14px 20px 0;display:flex;flex-direction:column;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .logo{width:22px;height:22px;border-radius:6px;background:var(--acc);color:var(--accInk);font-weight:900;font-size:13px;display:grid;place-items:center}
@@ -14,30 +17,62 @@ header{padding:14px 20px 0;display:flex;flex-direction:column;gap:12px}
 .brand .note{margin-left:auto;font-size:12px}
 nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;position:relative}
 nav::before{content:"";position:absolute;left:4%;right:4%;top:50%;height:1px;background:var(--line);z-index:0}
-nav button{position:relative;z-index:1;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 14px;cursor:pointer;font:inherit;display:grid;gap:2px;transition:background .15s,border-color .15s}
+nav button{position:relative;z-index:1;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:10px 14px;display:grid;gap:2px;transition:background .15s,border-color .15s}
 nav button:hover{border-color:var(--sub)}
 nav button[aria-selected="true"]{background:var(--on);color:var(--onInk);border-color:var(--on)}
 nav .mo{font-size:12px;opacity:.7;display:flex;gap:6px;align-items:center}
-nav .mo i{font-style:normal;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--acc);color:var(--accInk);font-weight:700;opacity:1}
+nav .mo i{font-style:normal;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--acc);color:var(--accInk);font-weight:700}
 nav .ti{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 nav .fm{font-size:11px;opacity:.6}
 main{flex:1;min-height:0;padding:12px 20px 16px}
-.stage{position:relative;height:100%;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--card)}
-iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
-iframe[hidden]{display:none}
+.stage{height:100%;display:grid;grid-template-columns:440px minmax(0,1fr);gap:8px;border-radius:18px;border:1px solid var(--line);background:var(--card);overflow:hidden}
+.ph{position:relative;min-height:0;background:var(--bg)}
+.ph iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent}
+.ph iframe[hidden]{display:none}
+.info>*{flex:none}
+.info{min-width:0;overflow:auto;padding:28px 32px 28px 28px;display:flex;flex-direction:column;gap:18px;max-width:640px}
+.eyebrow{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--sub);font-weight:600}
+.eyebrow i{font-style:normal;font-size:11px;padding:1px 8px;border-radius:99px;background:var(--acc);color:var(--accInk);font-weight:700}
+.info h1 .code{font-style:normal;font-size:12px;padding:2px 9px;border-radius:99px;background:var(--acc);color:var(--accInk);font-weight:700;vertical-align:middle;letter-spacing:0;position:relative;top:-3px}
+.info h1{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.2;text-wrap:balance}
+.lede{font-size:14.5px;line-height:1.6;color:var(--sub);max-width:56ch}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:6px}
+.seg button{border-radius:10px;padding:10px 12px;text-align:left;line-height:1.35;font-size:14px;font-weight:600}
+.seg button small{display:block;color:var(--sub);font-size:12px;font-weight:400}
+.seg button[aria-pressed="true"]{background:var(--on);color:var(--onInk)}
+.seg button[aria-pressed="true"] small{color:var(--onSub)}
+.steps{list-style:none;padding:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.steps li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;padding:12px 16px;border-top:1px solid var(--line);color:var(--sub);font-size:13px;line-height:1.45;transition:background .25s}
+.steps li:first-child{border-top:0}
+.steps li b{display:block;color:var(--ink);font-weight:700;font-size:14px}
+.steps li .no{font-variant-numeric:tabular-nums;font-size:12px;font-weight:600;padding-top:2px}
+.steps li.on{background:var(--accSoft)}
+.steps li.on .no{color:var(--ink)}
+.steps li.done .no::after{content:" ✓"}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ghost{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 16px;font-size:13.5px;font-weight:600}
+.ghost:hover{border-color:var(--sub)}
 footer{padding:0 20px 12px;font-size:12px;color:var(--sub)}
+@media (max-width:900px){
+ main{overflow:auto}
+ .stage{height:auto;display:block}
+ .ph{height:min(760px,calc(100dvh - 150px));min-height:520px}
+ .info{max-width:none;padding:20px}
+}
 @media (max-width:760px){
  header{padding:12px 16px 0}
  .brand .note{display:none}
- nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+ nav{gap:6px}
  nav::before{display:none}
- nav button{padding:8px 8px;border-radius:12px}
+ nav button{padding:8px;border-radius:12px}
  nav .ti,nav .fm{display:none}
  nav .mo{flex-wrap:wrap;gap:4px}
  nav .mo i{font-size:10px;padding:1px 5px}
  main{padding:10px 16px 12px}
+ .info h1{font-size:23px}
  footer{padding:0 16px 10px}
 }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <header>
   <div class="brand"><span class="logo">W</span><b>WHYSE</b><span>답보다 중요한 건, 왜.</span><span class="note">5조 금융 · 가상 데이터 · 실제 주문되지 않아요</span></div>
@@ -48,17 +83,46 @@ footer{padding:0 20px 12px;font-size:12px;color:var(--sub)}
     <button role="tab" data-k="e03" aria-selected="false"><span class="mo">④ 보유 중 <i>E03</i></span><span class="ti">흔들리는 순간, 내 기준 꺼내기</span><span class="fm">모바일</span></button>
   </nav>
 </header>
-<main><div class="stage" id="stage"></div></main>
+<main><div class="stage"><div class="ph" id="ph"></div><section class="info" id="info" aria-live="polite"></section></div></main>
 <footer>하지 않는 것 — 매수·매도 권유 · 가격 전망 · “괜찮다/위험하다” 판정 · 손절선 대신 정하기 · 주문 대신 실행</footer>
 <script>
-const SRC={e11:'e11-e07.html?embed=1&sc=e11',buy:'buy.html',e07:'e11-e07.html?embed=1&sc=e07',e03:'e03-mo.html'};
-const TITLE={e11:'① 매수 전 E11',buy:'② 매수 직전',e07:'③ 주문 직전 E07',e03:'④ 보유 중 E03'};
-const stage=document.getElementById('stage'),frames={};
+const SRC={e11:'e11-e07.html?embed=1&sc=e11',buy:'buy.html?embed=1',e07:'e11-e07.html?embed=1&sc=e07',e03:'e03-mo.html?embed=1'};
+const INFO={
+ e11:{no:'①',when:'매수 전',code:'E11',title:'① 매수 전 프로토타입',lede:'사려는 종목에 내 기준이 없으면 먼저 묻고, 얼마나 떨어지면 버틸지와 그때 할 일을 내 돈과 생활비로 정해 둡니다.',
+  steps:[['주문 화면에서 먼저 묻는다','이 종목에 내 기준이 없으면 위 알림 자리가 펼쳐진다'],['얼마나 떨어지면 버틸까','하락 폭을 움직이면 금액과 생활비 몇 달치로 바뀐다'],['그때 어떻게 할까','그 하락에 닿으면 할 행동을 미리 고른다'],['더 떨어지면','더 깊은 하락에서도 같은지 한 번 더 묻는다'],['왜 사나요','산 이유와 보유 기간을 한 줄로 남긴다'],['내 기준 저장','주문 화면에 내 기준이 칩으로 남는다']]},
+ buy:{no:'②',when:'매수 직전',code:'E09·E06·E13',title:'② 매수 직전 프로토타입',lede:'증권사 기능이 아니라 바깥에 있는 서비스예요. 사려는 순간 먼저 묻거나, 영상을 보다가 직접 열어서 세 가지를 보고 증권사로 돌아갑니다.',
+  paths:[['broker','증권사를 볼 때','알림 전환형 · WHYSE가 먼저 묻는다'],['yt','유튜브를 볼 때','먼저 확인형 · 사용자가 먼저 연다']],
+  steps:[['구매 화면에 들어간다','증권사 화면은 그대로, 위 알림 자리가 펼쳐진다'],['WHYSE 요약 카드','세 줄 중 하나를 눌러 전용 화면으로'],['E09 · 그려 본다','지수 길을 그리면 2배 선이 따라온다'],['E06 · 내 돈으로','하락폭을 움직이면 한 달 칸이 찬다'],['E13 · 맞붙인다','이유와 확신 → VS 라운드 → 확신 다시'],['돌아가서 직접 확정','아일랜드에 확인 n/3이 남는다']]},
+ e07:{no:'③',when:'주문 직전',code:'E07',title:'③ 주문 직전 프로토타입',lede:'많이 오른 종목을 더 사려는 순간, 주문을 확정하기 전에 내가 정해 둔 원칙과 나란히 놓고 보여 줍니다.',
+  steps:[['급등한 종목, 추가 구매 화면','아일랜드에 “원칙 4개 준비됨”이 떠 있다'],['구매하기를 누르면 먼저 묻는다','확정 전에 내 원칙과 비교할지 묻는다'],['내 원칙 4개와 나란히','다른 건 ✕, 맞는 건 ✓ · 수량을 바꾸면 바로 다시 본다'],['한 줄 남기기','이번 주문의 이유를 판단 기록에 남긴다'],['돌아가서 직접 확정','확정은 증권사 화면에서 직접 한다']]},
+ e03:{no:'④',when:'보유 중',code:'E03',title:'④ 보유 중 프로토타입',lede:'보유 종목이 흔들릴 때, 살 때 적어 둔 이유와 기준을 꺼내 지금 상황과 내 숫자로 나란히 보여 줍니다.',
+  steps:[['보유 화면에서 먼저 묻는다','기준이 있는 종목이 흔들리면 아일랜드가 기준을 꺼낸다'],['신경 쓰이는 점 고르기','손실 · 투자 이유 · 외부 의견 중 고르거나 직접 묻는다'],['지금 상황을 내 숫자로','고른 걱정에 맞춰 손실 기준 게이지, 비중 계산, 사실·의견 나누기부터'],['그때와 지금 비교','매수 당시 기록과 새로 나온 정보를 나란히 본다'],['점검 질문','기준을 벗어난 건지, 전제가 바뀐 건지 스스로 답한다'],['내 판단 기록','결정을 고르고 저장하면 판단 기록에 남는다']]}
+};
+const ST={e11:{idx:0},buy:{idx:0,path:'broker'},e07:{idx:0},e03:{idx:0}};
+const ph=document.getElementById('ph'),info=document.getElementById('info'),frames={};let cur='e11';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function renderInfo(){
+  const I=INFO[cur],s=ST[cur],steps=s.steps||I.steps,idx=s.idx;
+  info.innerHTML=`<h1>${I.title} <i class="code">${I.code}</i></h1><p class="lede">${I.lede}</p>
+   ${I.paths?`<div class="seg" role="group" aria-label="들어오는 길">${I.paths.map(p=>`<button aria-pressed="${s.path===p[0]}" data-path="${p[0]}">${p[1]}<small>${p[2]}</small></button>`).join('')}</div>`:''}
+   <ol class="steps">${steps.map((x,i)=>`<li class="${i===idx?'on':''} ${i<idx?'done':''}"${i===idx?' aria-current="step"':''}><span class="no">${String(i+1).padStart(2,'0')}</span><span><b>${esc(x[0])}</b>${esc(x[1])}</span></li>`).join('')}</ol>
+   <div class="row"><button class="ghost" data-reset>처음부터</button></div>`;
+}
+function send(k,msg){const f=frames[k];if(f&&f.contentWindow)f.contentWindow.postMessage(Object.assign({whyse:1},msg),'*')}
+info.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.hasAttribute('data-reset'))send(cur,{cmd:'reset'});
+  else if(b.dataset.path){ST.buy.path=b.dataset.path;renderInfo();send('buy',{cmd:'path',v:b.dataset.path})}});
+window.addEventListener('message',e=>{const d=e.data;if(!d||!d.whyse)return;
+  const k=Object.keys(frames).find(id=>frames[id].contentWindow===e.source);if(!k)return;
+  if(d.type==='step'&&typeof d.idx==='number')ST[k].idx=d.idx;
+  if(d.type==='steps'){ST[k].idx=d.idx;ST[k].steps=d.steps;if(d.path)ST[k].path=d.path}
+  if(k===cur)renderInfo()});
 function show(k){
-  if(!SRC[k])k='e11';
+  if(!SRC[k])k='e11';cur=k;
   document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.k===k));
-  if(!frames[k]){const f=document.createElement('iframe');f.src=SRC[k];f.title=TITLE[k];stage.appendChild(f);frames[k]=f;}
+  if(!frames[k]){const f=document.createElement('iframe');f.src=SRC[k];f.title=INFO[k].title;ph.appendChild(f);frames[k]=f}
   for(const id in frames)frames[id].hidden=id!==k;
+  renderInfo();
   try{localStorage.setItem('whyse-tab',k)}catch(e){}
   if(location.hash!=='#'+k)history.replaceState(null,'','#'+k);
 }

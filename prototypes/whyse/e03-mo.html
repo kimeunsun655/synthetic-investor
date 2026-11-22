@@ -1,4 +1,4 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!doctype html><html lang="ko"><head><script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('emb');</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>WHYSE 보유 중 E03 모바일</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -459,11 +459,15 @@ input[type=range]{width:100%;accent-color:var(--p-mark)}
 html,body{height:100%;overflow:hidden}
 body{background:var(--page)}
 .mo{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.emb body{overflow:hidden}
+.emb,.emb body,.emb .mo{background:transparent!important}
+.emb .mo{position:fixed;inset:0;display:block;padding:0}
+.emb .phone-fit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
 .mo-note{margin:0;font-size:12px;color:var(--chrome-sub);text-align:center;max-width:420px;line-height:1.5}
-.phone-fit{position:relative;width:412px;height:866px;flex:none}
-.phone{position:absolute;left:0;top:0;width:412px;height:866px;padding:11px;border-radius:60px;background:#0B0B0C;box-shadow:0 0 0 1.5px #2A2B2E,0 30px 60px rgba(10,14,20,.22);transform-origin:0 0}
-.phone .viewport{position:relative;display:block;width:100%;height:100%;border-radius:49px;overflow:hidden;background:var(--bg-2)}
-.phone .viewport.open::after{content:"";position:absolute;inset:0;border-radius:49px;pointer-events:none;z-index:14;border:2px solid var(--lime);box-shadow:inset 0 0 22px var(--lime-glow);animation:tagin .35s var(--ease)}
+.phone-fit{position:relative;width:390px;height:844px;flex:none}
+.phone{position:absolute;left:0;top:0;width:390px;height:844px;padding:11px;border-radius:58px;background:#0B0B0C;box-shadow:0 0 0 1.5px #2A2B2E,0 30px 60px rgba(10,14,20,.22);transform-origin:0 0}
+.phone .viewport{position:relative;display:block;width:100%;height:100%;border-radius:47px;overflow:hidden;background:var(--bg-2)}
+.phone .viewport.open::after{content:"";position:absolute;inset:0;border-radius:47px;pointer-events:none;z-index:14;border:2px solid var(--lime);box-shadow:inset 0 0 22px var(--lime-glow);animation:tagin .35s var(--ease)}
 .sb{position:absolute;left:0;right:0;top:0;height:52px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0 38px;font-size:15px;font-weight:600;color:var(--ink);z-index:3;background:var(--bg);font-variant-numeric:tabular-nums}
 .sbi{display:flex;gap:6px;align-items:center}.sbi svg{height:11px;width:auto}
 .scrim{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:9;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
@@ -698,7 +702,11 @@ function renderLauncher(){$("#launch").innerHTML="";return;const h=H[S.sel],r=h.
   else if(v==="pill")box.innerHTML=`<button class="lc-pill" data-act="open"><span class="lgo">${LGO}</span>내 기준 확인<span class="sep"></span><span class="st2 ${stCls}">${stTx}</span>${CHEV}</button>`;
   else if(v==="inline"){box.innerHTML="";const det=document.querySelector(".det");if(det){const b=document.createElement("button");b.className="lc-inline";b.dataset.act="open";
     b.innerHTML=`<span class="lgo">${LGO}</span><span class="tx"><small>WHYSE</small>${r&&r.lossLimit!=null?`<b>내 기준 ${r.lossLimit}%</b> · <span class="${stCls?"ok8":"w8"}">${stTx}</span>`:`<b>${stTx}</b>`}</span><span class="go">비교해 보기 ›</span>`;det.insertBefore(b,det.children[1])}}}
-function renderChrome(){
+function __post(o){try{if(parent!==window)parent.postMessage(Object.assign({whyse:1},o),'*')}catch(e){}}
+function __stepOf(m){const k=m.key||"",w=m.w||"";if(k==="sum"||k==="saved"||w==="sum"||w==="saved")return 5;if(/^(q[0-9][a-z0-9]*|su[0-9]|unsure|faith|fb)$/.test(k)||k==="dialog")return 4;if(w==="record"||w==="board")return 3;if(w==="gauge"||w==="weight"||w==="sort"||w==="snap")return 2;return -1}
+function __step(){const c=S.conv[S.sel];let idx=S.open?1:0;if(c&&c.msgs){for(let i=c.msgs.length-1;i>=0;i--){const v=__stepOf(c.msgs[i]);if(v>=0){idx=Math.max(idx,v);break}}}__post({type:'step',idx})}
+addEventListener("message",e=>{const d=e.data;if(!d||!d.whyse)return;if(d.cmd==="reset")location.reload()});
+function renderChrome(){__step();
   const h=H[S.sel];
   $("#extDot").hidden=S.open||!!S.nudged[h.id]||!h.record;renderLauncher();
   const n=$("#nudge"),show=!S.open&&!S.nudged[h.id]&&!!h.record;n.hidden=false;n.className="nudge xt isl "+(show?"ex":"co");
@@ -746,7 +754,7 @@ function ai(c,m){m.id=++MID;m.who="ai";const gen=c.gen;c.chain=c.chain.then(asyn
   if(shown(c)){t=document.createElement("div");t.className="msg ai";t.innerHTML=`<span class="mark" aria-hidden="true"></span><div class="loading"><span class="lt">${ph[0]}</span><span class="sk"></span><span class="sk"></span><span class="sk" style="width:68%"></span></div>`;$("#thread").append(t);scrollEnd()}
   if(m.w){await wait(1000);if(t)t.querySelector(".lt").textContent=ph[1];await wait(850)}else await wait(m.fast?650:900);
   if(t)t.remove();if(gen!==c.gen)return;
-  m.stock=c.stock;c.msgs.push(m);if(shown(c)){const el=renderMsg(m,true);$("#thread").append(el);stage(el);mount(el,m,true);scrollToMsg(el)}
+  m.stock=c.stock;c.msgs.push(m);__step();if(shown(c)){const el=renderMsg(m,true);$("#thread").append(el);stage(el);mount(el,m,true);scrollToMsg(el)}
   if(!RM)await wait(m.w?900:450)});return m}
 function stage(el){if(RM)return;const tx=el.querySelector(".mb>.txt");let k=0;
   if(tx){const walk=n=>{[...n.childNodes].forEach(ch=>{if(ch.nodeType===3){const f=document.createDocumentFragment();ch.textContent.split(/(\s+)/).forEach(w=>{if(!w)return;if(/^\s+$/.test(w)){f.append(w);return}const sp=document.createElement("span");sp.className="wd";sp.style.setProperty("--k",k++);sp.textContent=w;f.append(sp)});ch.replaceWith(f)}else if(ch.nodeType===1)walk(ch)})};walk(tx)}
@@ -1110,7 +1118,8 @@ renderSite();renderChrome();
 })();
 </script>
 <script>
-(function(){const fit=document.getElementById("phoneFit"),ph=document.getElementById("phone"),note=document.querySelector(".mo-note");
-  function f(){const nh=(note?note.offsetHeight:0)+34,s=Math.max(.4,Math.min(1,(window.innerHeight-nh)/866,(window.innerWidth-32)/412));window.__zs=s;ph.style.transform="scale("+s+")";fit.style.width=412*s+"px";fit.style.height=866*s+"px"}
+(function(){const fit=document.getElementById("phoneFit"),ph=document.getElementById("phone");
+  function __zs(){return Math.max(.35,Math.min(1,(innerHeight-40)/844,(innerWidth-24)/390))}
+  function f(){const s=__zs();window.__zs=s;ph.style.transform="scale("+s+")";fit.style.width=390*s+"px";fit.style.height=844*s+"px"}
   f();window.addEventListener("resize",f)})();
 </script>
