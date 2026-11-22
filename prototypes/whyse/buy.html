@@ -697,7 +697,7 @@ function toast(t){const e=$('#toast');e.textContent=t;e.hidden=false;clearTimeou
 /* ---------- motion helpers ---------- */
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function tween(dur,fn,done,lin){if(RM){fn(1,1);done&&done();return()=>{}}let stop=false;const t0=performance.now(),ease=t=>lin?t:1-Math.pow(1-t,3);
- function f(now){if(stop)return;const t=Math.min(1,(now-t0)/dur);fn(ease(t),t);if(t<1)requestAnimationFrame(f);else done&&done()}requestAnimationFrame(f);return()=>{stop=true}}
+ function f(now){if(stop)return;const t=Math.max(0,Math.min(1,(now-t0)/dur));fn(ease(t),t);if(t<1)requestAnimationFrame(f);else done&&done()}requestAnimationFrame(f);return()=>{stop=true}}
 function countTo(el,to,fmt,dur,from){const a=from!=null?from:(el._v!=null?el._v:0);el._v=to;el._stop&&el._stop();el._stop=tween(dur||700,e=>{el.textContent=fmt(a+(to-a)*e)})}
 function bump(el,c){el.classList.remove(c||'bump');void el.offsetWidth;el.classList.add(c||'bump')}
 

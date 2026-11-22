@@ -572,6 +572,8 @@ body{background:var(--page)}
 .phone .w{padding:18px}
 .phone .toast{background:#111;color:#fff;border-radius:12px;padding:10px 14px;bottom:110px}
 
+.phone .viewport.open::after{display:none!important}
+.phone{--bg:#FFFFFF;--bg-2:#F6F7F9;--line:#ECEEF1;--line-2:#DFE2E6;--ink:#121418;--ink-2:#4A505A;--ink-3:#8A909A;--up:#E0464E;--down:#3568D4;--site-brand:#1F2D57;color-scheme:light;color:var(--ink)}
 /* island = E07 */
 .nudge.isl{padding:0!important;border:0!important;box-shadow:none!important;display:block;gap:0;animation:none}
 .isl{transition:width .45s cubic-bezier(.3,1.3,.5,1),border-radius .45s}
@@ -785,7 +787,7 @@ function applyMode(){const c=S.conv[S.sel],intro=S.open&&S.tab==="chat"&&isIntro
   $("#intro").hidden=!intro;$("#thread").hidden=intro||S.tab!=="chat";
   if(intro){const slot=$("#introAsk");if(slot&&f.parentElement!==slot)slot.append(f);f.classList.add("big")}else if(f.parentElement!==$("#pFoot")){$("#pFoot").prepend(f);f.classList.remove("big")}
   $("#pFoot").hidden=S.tab!=="chat";$("#ask").hidden=false}
-function renderIntro(c){const h=H[c.stock],m=c.msgs[0];
+function renderIntro(c){const h=H[c.stock],m=c.msgs[0];{const f0=$("#ask");if(f0&&f0.parentElement&&f0.parentElement.id==="introAsk")$("#pFoot").prepend(f0)}
   $("#intro").innerHTML=h.record?`<h2><span class="grad">흔들릴 때,</span> 내 기준부터 꺼내 볼까요?</h2><p class="lead">${esc(h.name)} · 지금 가장 신경 쓰이는 점을 고르거나 직접 적어 주세요</p><div id="introAsk"></div>${choicesHTML(m)}`
    :`<h2><span class="grad">기준이 없어도</span> 지금부터 정리할 수 있어요</h2><p class="lead">${esc(h.name)}에는 매수 당시 남긴 기준이 없어요. 추측해서 만들지 않아요.</p><div id="introAsk"></div>${choicesHTML(m)}`;
   const f=$("#ask");$("#introAsk").append(f);f.classList.add("big")}
