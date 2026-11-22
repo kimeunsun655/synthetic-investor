@@ -557,7 +557,6 @@ body{background:var(--page)}
         <div class="p-body" id="pBody"><div class="intro" id="intro" hidden></div><div class="thread" id="thread"></div><div id="logView" hidden></div></div>
         <div class="p-foot" id="pFoot">
           <form class="ask" id="ask" autocomplete="off"><input id="askIn" type="text" placeholder="궁금한 걸 직접 물어봐도 돼요" aria-label="질문하기"><button id="askBtn" type="submit" aria-label="보내기" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg></button></form>
-          <div class="disc">매수·매도를 권하거나 가격을 전망하지 않아요. 최종 판단은 언제나 직접 해요.</div>
         </div>
         <div class="toast" id="toast" hidden></div>
       </aside>
@@ -565,7 +564,6 @@ body{background:var(--page)}
       <div id="launch" hidden></div>
     </div>
   </div></div>
-  <p class="mo-note">위쪽 아일랜드가 먼저 말을 걸어요. 접힌 상태에서 눌러도 열려요.</p>
   <div hidden><button id="extBtn" type="button" tabindex="-1">WHYSE</button><span id="extDot"></span></div>
 </div>
 
@@ -685,7 +683,6 @@ function renderSite(){
       <div class="ordermsg" aria-live="polite">${esc(S.orderMsg)}</div></div></section>
    <section class="m-card" aria-label="관련 뉴스"><div class="m-h"><h2>관련 뉴스</h2><span>가상 기사</span></div>
      <ul class="news">${NEWS[h.id].map(n=>`<li><span>${esc(n[0])}</span><span class="meta">${esc(n[1])}</span></li>`).join("")}</ul></section>
-   <p class="mo-note" style="margin:4px auto 0">${ASOF} 기준 · 가상 데이터</p>
   </div>`;
 }
 
@@ -951,15 +948,14 @@ const W={
   else if(cur==="rel")list=rel.length?rel.map(info).join(""):`<div class="src" style="padding:12px 0">${h.record&&h.record.origin==="later"?"직접 적은 매수 이유와 어떤 정보가 연결되는지는 AI가 판단하지 않았어요. ‘새로 나온 정보’를 보고 직접 연결해 보세요.":"투자 근거와 직접 연결된 새 정보가 없어요."}</div>`;
   else list=h.unknowns.map((u,k)=>{const inL=c&&c.ctx.toCheck.includes(u.t);return row("u"+k,esc(u.t),inL?"확인할 내용에 담김":"확인 전",`<div><span class="ailbl">AI 추론</span> ${esc(u.why)}</div><div><button class="btn sec sm" data-addchk="${m.id}" data-k="${k}">${inL?"확인할 내용에 담김 ✓":"확인할 내용에 담기"}</button></div>`)}).join("");
   return `<div class="w"><div class="tipwrap">${tip("board")}<div class="cats">${cats.map(x=>`<button class="cat" aria-pressed="${cur===x[0]}" data-cat="${m.id}" data-v="${x[0]}"><span class="c num"><i class="i-${x[0]}"></i>${x[2]}</span><span class="l">${x[1]}</span></button>`).join("")}</div></div>
-   <div class="rows">${list}</div><div class="src">모든 정보는 프로토타입용 가상 예시 · ${ASOF}</div></div>`},
+   <div class="rows">${list}</div></div>`},
  weight(h,m){const r=h.record,cap=r&&r.weightCap!=null?r.weightCap:null,x=m.x||0,w0=weightOf(h),w1=(evalOf(h)+x)/TOTAL*100,mx=wMax(w1);
   return `<div class="w"><div class="kpi"><div><div class="k">추가 금액 (가정)</div><div class="v num" data-wx>${won(x)}원</div></div><div style="text-align:right"><div class="k">계산된 비중</div><div class="v num" data-wv>${w1.toFixed(1)}%</div></div></div>
    <div class="tipwrap">${tip("weight")}<input type="range" min="0" max="${CASH}" step="50000" value="${x}" data-wslide="${m.id}" aria-label="추가 금액"></div>
    <p class="src" style="margin-top:-6px">계산일 뿐, 사라거나 사지 말라는 뜻이 아니에요.</p>
    <div class="wbar ${cap!=null&&w1>cap?"over":""}" data-wbar><span class="cur" style="width:${w0/mx*100}%"></span><span class="add" style="left:${w0/mx*100}%;width:${(w1-w0)/mx*100}%"></span>${cap!=null?`<span class="cap" style="left:${cap/mx*100}%"><span>내 상한 ${cap}%</span></span>`:""}</div>
    <p class="note" data-wnote>${wNote(w0,w1,cap)}</p>
-   ${r&&(r.extra||r.memo)?`<div class="quote"><div class="m"><span>내가 쓴 원문</span><span>${esc(r.written)}</span></div>${r.extra?`<p>${esc(r.extra.k)}: ${esc(r.extra.v)}</p>`:""}${r.memo?`<p>${esc(r.memo)}</p>`:""}</div>`:""}
-   <div class="src">예수금 ${won(CASH)}원 안에서 단순 계산 · 수수료·가격 변동 미반영 · 가상 데이터</div></div>`},
+   ${r&&(r.extra||r.memo)?`<div class="quote"><div class="m"><span>내가 쓴 원문</span><span>${esc(r.written)}</span></div>${r.extra?`<p>${esc(r.extra.k)}: ${esc(r.extra.v)}</p>`:""}${r.memo?`<p>${esc(r.memo)}</p>`:""}</div>`:""}</div>`},
  sort(h,m){const it=h.info.filter(i=>i.ph==="now"),g=m.g||{},AIL={fact:"사실 (공시·뉴스)",market:"사실 (시장 데이터)",opinion:"의견"},done=it.filter(i=>g[i.id]).length;
   return `<div class="w"><div class="w-h"><span>사실일까, 의견일까?</span><span class="src num">${done}/${it.length}</span></div><div class="rows tipwrap">${tip("sort")}${it.map(i=>{const u=g[i.id],f=i.kind==="opinion"?"op":"fact";return `<div class="row"><div class="row-b" style="padding-top:12px">
     <div><div style="font-size:14px;font-weight:600;line-height:1.45">${esc(i.t)}</div><div class="src">${esc(i.d)} · ${esc(i.src)}(가상)</div></div>
@@ -975,8 +971,7 @@ const W={
  emptyRec(){return `<div class="w"><div class="sum" style="border-top:0">${["매수 이유","투자 기간","손실 허용 범위","재검토 조건"].map(l=>`<div class="sum-r"><span class="k">${l}</span><span style="color:var(--p-ink3)">기록 없음</span></div>`).join("")}</div></div>`},
  lossPick(h,m){return `<div class="w"><div class="kpi"><div class="k">감수할 수 있는 손실</div><div class="v num" data-lpv>${m.none?"정하지 않음":m.lp+"%"}</div></div>
    <input type="range" min="-50" max="-5" step="1" value="${m.lp}" data-lp="${m.id}" aria-label="손실 허용 범위" ${m.done?"disabled":""}><div class="g-scale"><span>−50%</span><span>−5%</span></div>
-   ${m.done?"":`<div class="actions"><button class="btn pri sm" data-lpok="${m.id}">이 기준으로 정하기</button><button class="btn sec sm" data-lpnone="${m.id}">정하지 않을래요</button></div>`}
-   <div class="src">추천하는 값은 없어요. 지금 수익률(${sgn(pctOf(h))}%)과 관계없이 정해도 돼요.</div></div>`},
+   ${m.done?"":`<div class="actions"><button class="btn pri sm" data-lpok="${m.id}">이 기준으로 정하기</button><button class="btn sec sm" data-lpnone="${m.id}">정하지 않을래요</button></div>`}</div>`},
  sum(h,m){const c=S.conv[m.stock],ct=c.ctx,L=m.lines||summaryLines(c);
   const lines=`<div class="sum">${L.map(l=>`<div class="sum-r"><span class="k">${esc(l[0])}</span><span class="v ${l[2]}">${esc(l[1])}</span></div>`).join("")}</div>`;
   if(m.saved)return `<div class="w">${lines}<div class="sum-r" style="border-bottom:0"><span class="k">내 선택</span><span style="font-weight:600">${esc(DECS.find(d=>d[0]===ct.dec)[1])}</span></div></div>`;
