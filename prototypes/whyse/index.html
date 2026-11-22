@@ -1,0 +1,70 @@
+<title>WHYSE 통합 프로토타입</title>
+<style>
+:root{--bg:#eef0f4;--card:#ffffff;--ink:#14161a;--sub:#6b7280;--line:#dfe2e8;--acc:#c8f05a;--accInk:#14161a;--on:#14161a;--onInk:#ffffff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111317;--card:#1b1e24;--ink:#f1f3f6;--sub:#9aa1ad;--line:#2b2f37;--on:#f1f3f6;--onInk:#14161a}}
+:root[data-theme="dark"]{--bg:#111317;--card:#1b1e24;--ink:#f1f3f6;--sub:#9aa1ad;--line:#2b2f37;--on:#f1f3f6;--onInk:#14161a}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+header{padding:14px 20px 0;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{width:22px;height:22px;border-radius:6px;background:var(--acc);color:var(--accInk);font-weight:900;font-size:13px;display:grid;place-items:center}
+.brand b{font-size:17px;letter-spacing:.02em}
+.brand span{color:var(--sub);font-size:13px}
+.brand .note{margin-left:auto;font-size:12px}
+nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;position:relative}
+nav::before{content:"";position:absolute;left:4%;right:4%;top:50%;height:1px;background:var(--line);z-index:0}
+nav button{position:relative;z-index:1;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 14px;cursor:pointer;font:inherit;display:grid;gap:2px;transition:background .15s,border-color .15s}
+nav button:hover{border-color:var(--sub)}
+nav button[aria-selected="true"]{background:var(--on);color:var(--onInk);border-color:var(--on)}
+nav .mo{font-size:12px;opacity:.7;display:flex;gap:6px;align-items:center}
+nav .mo i{font-style:normal;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--acc);color:var(--accInk);font-weight:700;opacity:1}
+nav .ti{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+nav .fm{font-size:11px;opacity:.6}
+main{flex:1;min-height:0;padding:12px 20px 16px}
+.stage{position:relative;height:100%;border-radius:18px;overflow:hidden;border:1px solid var(--line);background:var(--card)}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+iframe[hidden]{display:none}
+footer{padding:0 20px 12px;font-size:12px;color:var(--sub)}
+@media (max-width:760px){
+ header{padding:12px 16px 0}
+ .brand .note{display:none}
+ nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+ nav::before{display:none}
+ nav button{padding:8px 8px;border-radius:12px}
+ nav .ti,nav .fm{display:none}
+ nav .mo{flex-wrap:wrap;gap:4px}
+ nav .mo i{font-size:10px;padding:1px 5px}
+ main{padding:10px 16px 12px}
+ footer{padding:0 16px 10px}
+}
+</style>
+<header>
+  <div class="brand"><span class="logo">W</span><b>WHYSE</b><span>답보다 중요한 건, 왜.</span><span class="note">5조 금융 · 가상 데이터 · 실제 주문되지 않아요</span></div>
+  <nav role="tablist" aria-label="투자 결정 시점">
+    <button role="tab" data-k="e11" aria-selected="true"><span class="mo">① 매수 전 <i>E11</i></span><span class="ti">손실 시뮬레이션 · 내 기준 정하기</span><span class="fm">모바일</span></button>
+    <button role="tab" data-k="buy" aria-selected="false"><span class="mo">② 매수 직전 <i>E09·E06·E13</i></span><span class="ti">쉬운 설명 · 내 돈으로 · 양쪽 근거</span><span class="fm">모바일 · PC</span></button>
+    <button role="tab" data-k="e07" aria-selected="false"><span class="mo">③ 주문 직전 <i>E07</i></span><span class="ti">내 원칙 대조기</span><span class="fm">모바일</span></button>
+    <button role="tab" data-k="e03" aria-selected="false"><span class="mo">④ 보유 중 <i>E03</i></span><span class="ti">흔들리는 순간, 내 기준 꺼내기</span><span class="fm">PC 사이드 패널</span></button>
+  </nav>
+</header>
+<main><div class="stage" id="stage"></div></main>
+<footer>하지 않는 것 — 매수·매도 권유 · 가격 전망 · “괜찮다/위험하다” 판정 · 손절선 대신 정하기 · 주문 대신 실행</footer>
+<script>
+const SRC={e11:'e11-e07.html?embed=1&sc=e11',buy:'buy.html',e07:'e11-e07.html?embed=1&sc=e07',e03:'e03.html'};
+const TITLE={e11:'① 매수 전 E11',buy:'② 매수 직전',e07:'③ 주문 직전 E07',e03:'④ 보유 중 E03'};
+const stage=document.getElementById('stage'),frames={};
+function show(k){
+  if(!SRC[k])k='e11';
+  document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.k===k));
+  if(!frames[k]){const f=document.createElement('iframe');f.src=SRC[k];f.title=TITLE[k];stage.appendChild(f);frames[k]=f;}
+  for(const id in frames)frames[id].hidden=id!==k;
+  try{localStorage.setItem('whyse-tab',k)}catch(e){}
+  if(location.hash!=='#'+k)history.replaceState(null,'','#'+k);
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.k));
+let start=location.hash.slice(1);
+if(!SRC[start]){try{start=localStorage.getItem('whyse-tab')}catch(e){start=null}}
+show(start||'e11');
+window.addEventListener('hashchange',()=>{const k=location.hash.slice(1);if(SRC[k])show(k)});
+</script>
