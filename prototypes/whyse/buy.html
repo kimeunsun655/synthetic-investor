@@ -6,7 +6,7 @@
 <style>
 :root{
   --page:#eceef2; --pageInk:#1a1c21; --pageMute:#6b7280; --panel:#ffffff; --panelLine:#e3e6ec; --accentInk:#0a6cff;
-  --k0:#131519; --k1:#212328; --k2:#30343b; --t1:#ffffff; --t2:#b3b8c2; --t3:#858a94; --hl:#ffe94d;
+  --k0:#131519; --k1:#212328; --k2:#30343b; --t1:#ffffff; --t2:#b3b8c2; --t3:#858a94; --hl:#C6F06A;
   --b0:#ffffff; --b1:#f4f5f7; --bInk:#17191e; --bMute:#7a808a; --bLine:#e6e8ec; --red:#e5484d; --blue:#2f6fe4;
   --sans:"Pretendard","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -142,7 +142,7 @@ h2{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.03em;font-weig
 .ytb .m{font-size:12px;color:#aaa}
 .acts{display:flex;gap:8px;flex-wrap:wrap;padding:4px 3px}
 .acts button{background:#272727;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap}
-.acts .share{background:#fff;color:#0f0f0f;box-shadow:0 0 0 3px #ffe94d}
+.acts .share{background:#fff;color:#0f0f0f;box-shadow:0 0 0 3px #C6F06A}
 .cm{margin-top:10px;display:flex;flex-direction:column;gap:12px}
 .cm div{display:flex;gap:10px;font-size:12.5px;color:#ddd}.cm i{width:26px;height:26px;border-radius:50%;background:#333;flex:none}
 .sheet{position:absolute;left:0;right:0;bottom:0;max-height:calc(100% - 60px);overflow:auto;background:#f2f2f5;color:#111;border-radius:22px 22px 0 0;padding:16px 18px 30px;z-index:7;transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
@@ -159,7 +159,7 @@ h2{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.03em;font-weig
 .list li::before{content:"· "}
 .miss{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 .miss .card b{display:block;font-size:13.5px}.miss .card small{color:var(--t3);font-size:11.5px}
-.hlu{color:var(--hl);border-bottom:1.5px solid #ffe94d8c;padding-bottom:2px;font-weight:700;font-size:12.5px}
+.hlu{color:var(--hl);border-bottom:1.5px solid #C6F06A8c;padding-bottom:2px;font-weight:700;font-size:12.5px}
 .amt{display:flex;align-items:baseline;gap:6px;background:var(--k1);border-radius:16px;padding:16px;border:1.5px solid var(--hl)}
 .amt input{flex:1;min-width:0;background:none;border:0;color:#fff;font:600 26px var(--mono);letter-spacing:-.02em;outline:none}
 .amt span{color:var(--t2);font-size:16px}
@@ -193,7 +193,7 @@ h2{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.03em;font-weig
 .pick .v{display:flex;align-items:center;gap:4px;color:var(--t2);font-weight:500}
 .pick .v input{width:86px;background:none;border:0;border-bottom:1px solid var(--k2);color:#fff;text-align:right;font:600 14px var(--mono);outline:none}
 .pick label:has(input:checked) .v input{color:var(--hl)}
-.big{font-size:34px;font-weight:700;font-family:var(--mono);letter-spacing:-.04em;color:var(--hl);display:inline-block;border-bottom:2px solid #ffe94d8c;line-height:1.15}
+.big{font-size:34px;font-weight:700;font-family:var(--mono);letter-spacing:-.04em;color:var(--hl);display:inline-block;border-bottom:2px solid #C6F06A8c;line-height:1.15}
 .eq{font-weight:700;font-size:15px;margin:8px 0 14px}
 .months{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .months .m{background:var(--k1);border-radius:12px;padding:10px 10px 12px}
@@ -269,7 +269,7 @@ h2{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.03em;font-weig
 .srow.rise{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
 @keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
 .srow.flash{animation:flash 1.1s ease}
-@keyframes flash{0%{border-color:var(--hl);box-shadow:0 0 0 5px #ffe94d40}100%{border-color:transparent;box-shadow:0 0 0 0 #ffe94d00}}
+@keyframes flash{0%{border-color:var(--hl);box-shadow:0 0 0 5px #C6F06A40}100%{border-color:transparent;box-shadow:0 0 0 0 #C6F06A00}}
 .srow .go.pop{animation:popc .5s cubic-bezier(.2,1.7,.4,1)}
 @keyframes popc{from{transform:scale(.1) rotate(-30deg)}to{transform:none}}
 .vs .c.l{animation:inL .55s cubic-bezier(.2,1.15,.3,1) both}
@@ -285,11 +285,11 @@ h2{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.03em;font-weig
 .flag:not([hidden]){animation:up .4s cubic-bezier(.2,1.3,.4,1)}
 @keyframes up{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
 .island.done{animation:pulseI 1.1s ease 2}
-@keyframes pulseI{50%{box-shadow:0 0 0 7px #ffe94d55}}
+@keyframes pulseI{50%{box-shadow:0 0 0 7px #C6F06A55}}
 .island.ask{animation:dropI .5s cubic-bezier(.2,1.4,.4,1)}
 @keyframes dropI{from{transform:translateX(-50%) scale(.92)}to{transform:translateX(-50%) scale(1)}}
 .res .box b{display:inline-block;min-width:3.4em}
-.res .box.p.neg{box-shadow:inset 0 0 0 1.5px #ffe94d66}
+.res .box.p.neg{box-shadow:inset 0 0 0 1.5px #C6F06A66}
 .day{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--t3);margin-top:6px}
 .day button{color:var(--hl);font-weight:700;font-size:12px}
 .big.bump{animation:bump .35s}
@@ -314,8 +314,8 @@ h2{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.03em;font-weig
 .extb .ic{width:20px;height:20px;border-radius:6px;background:var(--k0);display:grid;place-items:center}.extb .ic i{width:8px;height:8px;border-radius:2px;background:var(--hl)}
 .extb em{font-style:normal;font-family:var(--mono);font-size:11px;background:var(--k0);color:var(--hl);border-radius:6px;padding:1px 6px}
 .extb em:empty{display:none}
-.extb.call{box-shadow:0 0 0 3px #ffe94d;animation:pulseE 1.4s ease infinite}
-@keyframes pulseE{50%{box-shadow:0 0 0 6px #ffe94d66}}
+.extb.call{box-shadow:0 0 0 3px #C6F06A;animation:pulseE 1.4s ease infinite}
+@keyframes pulseE{50%{box-shadow:0 0 0 6px #C6F06A66}}
 .bbody{flex:1;min-height:0;display:flex;position:relative}
 .page{flex:1;min-width:0;overflow:auto;position:relative;background:#fff}
 .pcpanel{flex:none;width:0;overflow:hidden;transition:width .4s cubic-bezier(.2,.8,.2,1);background:var(--k0);color:#fff;border-left:1px solid #0000}
@@ -450,7 +450,7 @@ h2{margin:0 0 6px;font-size:23px;line-height:1.3;letter-spacing:-.03em;font-weig
       <!-- WHYSE: summary -->
       <section class="view" id="v-sum" hidden>
         <span class="back" data-go="exit">◀ 가상증권</span>
-        <div class="top"><span class="chip"><i></i><b>WHYSE</b>· 판단 확인</span><span class="ring"><svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="#30343b" stroke-width="3"/><circle id="ringC" cx="13" cy="13" r="10" fill="none" stroke="#ffe94d" stroke-width="3" stroke-linecap="round" stroke-dasharray="62.8" stroke-dashoffset="0"/></svg><b class="n" id="ringT">3:00</b></span></div>
+        <div class="top"><span class="chip"><i></i><b>WHYSE</b>· 판단 확인</span><span class="ring"><svg viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="#30343b" stroke-width="3"/><circle id="ringC" cx="13" cy="13" r="10" fill="none" stroke="#C6F06A" stroke-width="3" stroke-linecap="round" stroke-dasharray="62.8" stroke-dashoffset="0"/></svg><b class="n" id="ringT">3:00</b></span></div>
         <div class="lbl" id="sumLbl">가상증권에서 사려는</div>
         <h2 id="sumAmt" class="n" style="font-family:var(--sans)">355주 · 2,999,750원</h2>
         <p class="sub">사기 전에, 세 가지만 보고 가요. 주문은 막지 않아요.</p>
@@ -725,12 +725,12 @@ function drawE09(d){if(d==null)d=N-1;const p=product(idx);const cl=v=>Math.max(l
  const cx=X(d),iy=Y(cl(at(idx,d))),py=Y(cl(at(p,d)));
  let g=`<defs><clipPath id="clp"><rect x="0" y="0" width="${(cx+1).toFixed(1)}" height="${H}"/></clipPath></defs>`;
  g+=`<line x1="${PADX}" x2="${W-PADX}" y1="${Y(100)}" y2="${Y(100)}" stroke="#30343b" stroke-dasharray="3 4"/><text x="${W-PADX}" y="${Y(100)-5}" text-anchor="end" font-size="9" fill="#858a94">시작</text>`;
- g+=`<g clip-path="url(#clp)"><polygon points="${X(0)},${Y(100)} ${pl(p)} ${X(N-1)},${Y(100)}" fill="#ffe94d" opacity=".08"/>`;
+ g+=`<g clip-path="url(#clp)"><polygon points="${X(0)},${Y(100)} ${pl(p)} ${X(N-1)},${Y(100)}" fill="#C6F06A" opacity=".08"/>`;
  g+=`<polyline points="${pl(idx)}" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>`;
- g+=`<polyline points="${pl(p)}" fill="none" stroke="#ffe94d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+ g+=`<polyline points="${pl(p)}" fill="none" stroke="#C6F06A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>`;
  if(d>=N-1)idx.forEach((v,i)=>{if(i)g+=`<circle cx="${X(i)}" cy="${Y(cl(v))}" r="3.5" fill="#131519" stroke="#fff" stroke-width="1.5"/>`});
  if(d<N-1)g+=`<line x1="${cx}" x2="${cx}" y1="8" y2="${H-8}" stroke="#ffffff" stroke-opacity=".15"/>`;
- g+=`<circle cx="${cx}" cy="${iy}" r="4" fill="#fff"/><circle cx="${cx}" cy="${py}" r="6" fill="#ffe94d" stroke="#131519" stroke-width="2"/>`;
+ g+=`<circle cx="${cx}" cy="${iy}" r="4" fill="#fff"/><circle cx="${cx}" cy="${py}" r="6" fill="#C6F06A" stroke="#131519" stroke-width="2"/>`;
  $('#dsvg').innerHTML=g;
  const ri=at(idx,d)-100,rp=at(p,d)-100;$('#ri').textContent=fmtP(ri);$('#rp').textContent='약 '+fmtP(rp);
  $('#rp').parentNode.classList.toggle('neg',rp<ri);$('#dayT').textContent=`D+${Math.round(d)} · 하루씩 2배로 쌓여요`;
