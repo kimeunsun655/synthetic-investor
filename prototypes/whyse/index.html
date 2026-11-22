@@ -45,13 +45,13 @@ footer{padding:0 20px 12px;font-size:12px;color:var(--sub)}
     <button role="tab" data-k="e11" aria-selected="true"><span class="mo">① 매수 전 <i>E11</i></span><span class="ti">손실 시뮬레이션 · 내 기준 정하기</span><span class="fm">모바일</span></button>
     <button role="tab" data-k="buy" aria-selected="false"><span class="mo">② 매수 직전 <i>E09·E06·E13</i></span><span class="ti">쉬운 설명 · 내 돈으로 · 양쪽 근거</span><span class="fm">모바일 · PC</span></button>
     <button role="tab" data-k="e07" aria-selected="false"><span class="mo">③ 주문 직전 <i>E07</i></span><span class="ti">내 원칙 대조기</span><span class="fm">모바일</span></button>
-    <button role="tab" data-k="e03" aria-selected="false"><span class="mo">④ 보유 중 <i>E03</i></span><span class="ti">흔들리는 순간, 내 기준 꺼내기</span><span class="fm">PC 사이드 패널</span></button>
+    <button role="tab" data-k="e03" aria-selected="false"><span class="mo">④ 보유 중 <i>E03</i></span><span class="ti">흔들리는 순간, 내 기준 꺼내기</span><span class="fm">모바일</span></button>
   </nav>
 </header>
 <main><div class="stage" id="stage"></div></main>
 <footer>하지 않는 것 — 매수·매도 권유 · 가격 전망 · “괜찮다/위험하다” 판정 · 손절선 대신 정하기 · 주문 대신 실행</footer>
 <script>
-const SRC={e11:'e11-e07.html?embed=1&sc=e11',buy:'buy.html',e07:'e11-e07.html?embed=1&sc=e07',e03:'e03.html'};
+const SRC={e11:'e11-e07.html?embed=1&sc=e11',buy:'buy.html',e07:'e11-e07.html?embed=1&sc=e07',e03:'e03-mo.html'};
 const TITLE={e11:'① 매수 전 E11',buy:'② 매수 직전',e07:'③ 주문 직전 E07',e03:'④ 보유 중 E03'};
 const stage=document.getElementById('stage'),frames={};
 function show(k){
